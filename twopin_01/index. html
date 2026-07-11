@@ -33,6 +33,8 @@
 </head>
 <body>
 
+<a href="twopin_01/index.html">點擊這裡進入第二個遊戲</a>
+
 <div class="container">
     <textarea id="input" placeholder="請輸入文字"></textarea>
     
