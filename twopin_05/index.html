@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>中英文單字配對遊戲</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Patrick+Hand&family=Schoolbell&family=Architects+Daughter&family=Short+Stack&family=Fredoka+One&family=Nunito:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --en-font-family:'Patrick Hand', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --vowel-color-a:#ff1a1a;
+    --vowel-color-e:#00c853;
+    --vowel-color-i:#2979ff;
+    --vowel-color-o:#ff6d00;
+    --vowel-color-u:#d500f9;
+    --board:#1f4d44;
+    --board-deep:#163d35;
+    --chalk:#f4ecd8;
+    --card:#fffdf6;
+    --card-edge:#e8dfc7;
+    --pin-yellow:#e8b339;
+    --pin-coral:#e0654f;
+    --pin-blue:#4f8fe0;
+    --pin-mint:#5fc7a5;
+    --ink:#22302c;
+    --good:#5fc78a;
+    --bad:#e0654f;
+    --shadow: 0 10px 22px -10px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 20% -10%, rgba(255,255,255,.05), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0px, rgba(255,255,255,.015) 1px, transparent 1px, transparent 3px),
+      var(--board);
+    color:var(--chalk);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:max(16px, env(safe-area-inset-top)) 16px 28px;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:980px;margin:0 auto;}
+
+  /* ---------- Header / signature element ---------- */
+  header.top{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    gap:12px;margin:6px 4px 22px;flex-wrap:wrap;
+  }
+  .brand{display:flex;flex-direction:column;}
+  .brand .tag{
+    font-family:'Patrick Hand', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size:13px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--pin-yellow);opacity:.9;margin-bottom:2px;
+  }
+  .brand h1{
+    font-family:'Caveat', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-weight:700;
+    font-size:clamp(34px,7vw,52px);
+    margin:0;line-height:.95;
+    color:var(--chalk);
+    text-shadow:0 2px 0 rgba(0,0,0,.15);
+  }
+  .brand h1 .accent{color:var(--pin-coral);}
+
+  .stat-strip{
+    display:flex;gap:10px;flex-wrap:wrap;
+  }
+  .stat-chip{
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:10px;
+    padding:7px 12px;
+    font-size:12.5px;
+    display:flex;flex-direction:column;align-items:flex-start;
+    min-width:64px;
+  }
+  .stat-chip b{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--chalk);}
+  .stat-chip span{opacity:.65;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;}
+
+  /* ---------- Screens ---------- */
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  /* ---- Start screen ---- */
+  .start-card{
+    background:var(--card);
+    color:var(--ink);
+    border-radius:18px;
+    padding:22px 20px 20px;
+    box-shadow:var(--shadow);
+    position:relative;
+    border:1px solid var(--card-edge);
+    max-width:420px;
+    margin:14px auto 10px;
+  }
+  .start-card::before{
+    content:"";position:absolute;top:-13px;left:50%;transform:translateX(-50%) rotate(-3deg);
+    width:26px;height:26px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff7d6, var(--pin-yellow) 60%, #b9851d 100%);
+    box-shadow:0 4px 8px rgba(0,0,0,.35);
+  }
+  .start-card h2{
+    font-family:'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+    font-size:30px;margin:4px 0 4px;color:var(--ink);
+  }
+  .start-card p.sub{margin:0 0 14px;font-size:13px;color:#5b665f;line-height:1.5;}
+  .field-label{font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7a8278;margin:0 0 8px;}
+  .count-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
+  .count-grid-3{grid-template-columns:repeat(3,1fr);}
+  .count-grid-4{grid-template-columns:repeat(4,1fr);}
+  input.custom-input{
+    text-align:center;width:100%;-webkit-appearance:none;appearance:none;
+  }
+  input.custom-input::placeholder{color:#a9b0a4;font-weight:600;}
+  .diff-grid{grid-template-columns:repeat(4,1fr);}
+  .diff-sub{font-size:10.5px;font-weight:500;opacity:.65;display:block;margin-top:2px;}
+  .start-card.state-ok .diff-btn.selected,
+  .start-card.state-ok .syll-btn.selected,
+  .start-card.state-ok .count-btn.selected,
+  .start-card.state-ok .letter-toggle,
+  .start-card.state-ok #startBtn{
+    background:var(--board) !important;border-color:var(--board) !important;color:var(--chalk) !important;
+    box-shadow:none !important;
+  }
+  .start-card.state-ok .letter-toggle .arrow{color:var(--chalk) !important;}
+  .start-card.state-bad .diff-btn.selected,
+  .start-card.state-bad .syll-btn.selected,
+  .start-card.state-bad .count-btn.selected,
+  .start-card.state-bad .letter-toggle,
+  .start-card.state-bad #startBtn{
+    background:var(--pin-coral) !important;border-color:var(--pin-coral) !important;color:var(--chalk) !important;
+    box-shadow:none !important;
+  }
+  .start-card.state-bad .letter-toggle .arrow{color:var(--chalk) !important;}
+
+  .letter-toggle{
+    width:100%;text-align:left;padding:11px 14px;border-radius:11px;border:2px solid var(--card-edge);
+    background:#fbf8ee;color:var(--ink);font-family:'Inter',sans-serif;font-weight:700;font-size:14px;
+    margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+  }
+  .letter-toggle .arrow{transition:transform .15s ease;color:#8b9389;}
+  .letter-toggle.open .arrow{transform:rotate(180deg);}
+  .toggle-row-3{display:flex;gap:6px;margin-bottom:10px;}
+  .toggle3-btn{
+    flex:1;padding:10px 6px;border-radius:11px;border:2px solid var(--card-edge);
+    background:#fbf8ee;color:var(--ink);font-family:'Inter',sans-serif;font-weight:700;font-size:12px;
+    cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:4px;
+    transition:border-color .12s ease, background .12s ease;
+  }
+  .toggle3-btn .arrow{transition:transform .15s ease;color:#8b9389;font-size:11px;}
+  .toggle3-btn.open .arrow{transform:rotate(180deg);}
+  .toggle3-btn.open{border-color:var(--board);}
+  .font-grid-3x3{
+    display:none;
+    grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;
+  }
+  .font-grid-3x3.open{display:grid;}
+  .vowel-inline-picker{
+    display:none;
+    background:#f5f0e8;border-radius:10px;padding:10px 12px;margin-bottom:10px;
+  }
+  .vowel-inline-picker.open{display:block;}
+  .vowel-picker-title{
+    font-size:12px;font-weight:700;color:#7a8278;text-transform:uppercase;letter-spacing:.06em;
+    display:block;margin-bottom:8px;
+  }
+  .vowel-swatch-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .vc-swatch-inline{
+    width:22px;height:22px;border-radius:50%;border:3px solid transparent;cursor:pointer;
+    box-shadow:0 0 0 1px var(--card-edge) inset;flex-shrink:0;
+  }
+  .vc-swatch-inline.selected{border-color:var(--ink);}
+  .vc-swatch-inline-none{
+    width:22px;height:22px;border-radius:50%;border:2px solid var(--card-edge);
+    background:#eee7d4;color:#7a8278;font-size:9px;font-weight:700;font-family:'Inter',sans-serif;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .vc-swatch-inline-none.selected{border-color:var(--ink);}
+  .letter-btn.is-vowel{font-weight:900;}
+  #fontGrid{display:none;}
+  #fontGrid.open{display:grid;}
+  .vowel-color-rows{display:none;margin-bottom:10px;}
+  .vowel-color-rows.open{display:block;}
+  .color-settings-panel{
+    display:none;background:#f5f0e8;border-radius:12px;padding:10px;margin-bottom:10px;
+  }
+  .color-settings-panel.open{display:block;}
+  .color-letter-grid{
+    display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:10px;
+  }
+  .color-letter-btn{
+    font-family:'Inter',sans-serif;font-weight:800;font-size:13px;
+    padding:7px 2px;border-radius:7px;border:2px solid transparent;
+    background:#fbf8ee;cursor:pointer;text-align:center;
+    transition:border-color .12s ease, background .12s ease;
+    position:relative;
+  }
+  .color-letter-btn.active{
+    border-color:var(--ink);background:#fff;
+  }
+  .letter-grid{
+    display:none;
+    grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:10px;
+  }
+  .letter-grid.open{display:grid;}
+  .letter-btn{
+    font-family:'Inter',sans-serif;font-weight:700;font-size:12px;
+    padding:7px 2px;border-radius:7px;border:2px solid var(--card-edge);
+    background:#fbf8ee;color:var(--ink);cursor:pointer;text-align:center;
+    transition:transform .12s ease, border-color .12s ease, background .12s ease;
+  }
+  .letter-btn.selected{
+    border-color:var(--board);background:var(--board);color:var(--chalk);
+  }
+  .vc-row{
+    display:flex;align-items:center;gap:8px;margin-bottom:7px;
+  }
+  .vc-label{
+    width:22px;height:22px;border-radius:6px;background:var(--card-edge);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Inter',sans-serif;font-weight:800;font-size:13px;color:var(--ink);
+    flex-shrink:0;
+  }
+  .vc-swatches{display:flex;gap:6px;flex:1;}
+  .vc-swatch{
+    flex:1;aspect-ratio:1/1;max-width:30px;border-radius:50%;border:3px solid transparent;cursor:pointer;
+    box-shadow:0 0 0 1px var(--card-edge) inset;
+  }
+  .vc-swatch.selected{border-color:var(--ink);transform:scale(1.12);}
+  .vc-swatch-none{
+    background:#eee7d4;color:#7a8278;font-size:9.5px;font-weight:700;font-family:'Inter',sans-serif;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .count-btn{
+    font-family:'Inter',sans-serif;font-weight:700;font-size:14px;
+    padding:9px 4px;border-radius:10px;border:2px solid var(--card-edge);
+    background:#fbf8ee;color:var(--ink);cursor:pointer;
+    transition:transform .12s ease, border-color .12s ease, background .12s ease;
+  }
+  .count-btn:hover{transform:translateY(-2px);}
+  .count-btn.selected{
+    border-color:var(--board);background:var(--board);color:var(--chalk);
+  }
+  .custom-row{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+  .custom-row input[type=number]{
+    width:90px;padding:10px 10px;border-radius:9px;border:2px solid var(--card-edge);
+    font-size:15px;font-family:'Inter',sans-serif;font-weight:600;color:var(--ink);background:#fbf8ee;
+  }
+  .custom-row label{font-size:13px;color:#5b665f;}
+  .pool-note{font-size:12px;color:#8b9389;margin:-8px 0 20px;}
+  .warn-note{font-size:13px;color:#c8392b;font-weight:700;margin:-14px 0 16px;display:none;}
+  .warn-note.active{display:block;}
+  .custom-words-toggle{
+    width:100%;margin-top:10px;padding:11px 14px;border-radius:11px;
+    border:2px dashed var(--card-edge);background:#fbf8ee;color:var(--ink);
+    font-family:'Inter',sans-serif;font-weight:700;font-size:13.5px;
+    cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+    transition:border-color .12s, background .12s;
+  }
+  .custom-words-toggle .arrow{transition:transform .15s;color:#8b9389;}
+  .custom-words-toggle.open{border-color:var(--board);background:#f0f8f5;}
+  .custom-words-toggle.open .arrow{transform:rotate(180deg);}
+  .custom-words-panel{display:none;margin-top:8px;}
+  .custom-words-panel.open{display:block;}
+  .custom-words-hint{font-size:12px;color:#6b7a6e;line-height:1.6;margin:0 0 8px;}
+  .custom-words-hint b{color:var(--ink);}
+  .custom-words-hint code{background:#eee7d4;border-radius:4px;padding:1px 5px;font-size:11px;}
+  .custom-words-textarea{
+    width:100%;border-radius:10px;border:2px solid var(--card-edge);
+    background:#fbf8ee;color:var(--ink);font-family:'Inter',sans-serif;font-size:13px;
+    padding:10px 12px;line-height:1.6;resize:vertical;
+  }
+  .custom-words-btns{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;}
+  .custom-words-clear{
+    padding:7px 14px;border-radius:8px;border:1px solid var(--card-edge);
+    background:#fbf8ee;color:#7a8278;font-size:12px;font-weight:600;cursor:pointer;
+  }
+  .custom-words-count{font-size:12px;color:#7a8278;flex:1;}
+  .custom-words-only-label{font-size:12px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:5px;cursor:pointer;}
+  .mic-btn{
+    flex:1;padding:8px 6px;border-radius:11px;border:2px solid rgba(255,255,255,.25);
+    background:transparent;color:var(--chalk);font-size:16px;cursor:pointer;line-height:1;
+    transition:background .12s, border-color .12s;text-align:center;
+  }
+  .mic-btn.listening{background:#fde8e8;border-color:#ff1a1a;animation:pulse-mic 1.2s ease infinite;}
+  @keyframes pulse-mic{0%,100%{opacity:1;}50%{opacity:.5;}}
+  .voice-glow-green{
+    background:#d6f5e3 !important;border:2.5px solid #00c853 !important;
+    box-shadow:0 0 0 4px rgba(0,200,83,.35) !important;
+  }100%{opacity:0;visibility:hidden;}}
+  .mic-match-flash{animation:mic-flash .4s ease;}
+  @keyframes mic-flash{0%{background:#ffe082;}100%{background:var(--card);}}
+  .start-row{display:flex;gap:6px;align-items:stretch;}
+  .start-btn{
+    flex:2;padding:16px 8px;border:none;border-radius:13px;
+    background:linear-gradient(180deg, #2c6358, var(--board));
+    color:var(--chalk);font-family:'Inter',sans-serif;font-weight:800;font-size:17px;
+    letter-spacing:.02em;cursor:pointer;box-shadow:0 10px 18px -8px rgba(31,77,68,.6);
+    transition:transform .12s ease;
+  }
+  .start-btn:active{transform:scale(.98);}
+  .vis-btns{display:contents;}
+  .vis-btn{
+    flex:1;padding:10px 4px;border-radius:13px;border:2px solid var(--card-edge);
+    background:#fbf8ee;color:#7a8278;font-family:'Inter',sans-serif;font-weight:700;font-size:13px;
+    cursor:pointer;transition:background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .vis-btn.active{background:var(--board);color:var(--chalk);border-color:var(--board);}
+  .vis-btn:not(.active){text-decoration:line-through;opacity:.6;}
+  .sound-note{
+    text-align:center;font-size:12px;color:#8b9389;margin-top:12px;
+  }
+
+  /* ---- Game screen ---- */
+  .hud{
+    display:flex;align-items:center;
+    margin:0 4px 16px;gap:6px;
+  }
+  .hud-left{display:flex;gap:6px;flex:3;}
+  .hud-left .pill{flex:1;justify-content:center;}
+  .pill{
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+    border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600;
+    display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums;
+  }
+  .pill .dot{width:7px;height:7px;border-radius:50%;}
+  .pill.timer .dot{background:var(--pin-yellow);}
+  .pill.matched .dot{background:var(--good);}
+  .pill.miss .dot{background:var(--bad);}
+  .hud-right{display:flex;gap:6px;flex:2;}
+  .quit-btn{
+    flex:1;background:transparent;border:1px solid rgba(255,255,255,.25);color:var(--chalk);
+    border-radius:999px;padding:7px 6px;font-size:13px;cursor:pointer;font-weight:600;text-align:center;
+  }
+
+  .board{
+    display:grid;
+    grid-template-columns:repeat(var(--cols,4),1fr);
+    gap:10px;
+  }
+  .card{
+    position:relative;
+    aspect-ratio:1/1;
+    background:var(--card);
+    border-radius:12px;
+    border:1px solid var(--card-edge);
+    display:flex;align-items:center;justify-content:center;
+    text-align:center;
+    padding:8px 6px;
+    cursor:pointer;
+    overflow:hidden;
+    box-shadow:0 6px 14px -8px rgba(0,0,0,.5);
+    transform:rotate(var(--r,0deg));
+    transition:transform .15s ease, box-shadow .15s ease, background .18s ease, opacity .35s ease, visibility .35s;
+    user-select:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .card .txt{
+    font-size:clamp(12px,2.6vw,16px);
+    line-height:1.3;color:var(--ink);font-weight:600;
+    overflow-wrap:normal;word-break:normal;white-space:normal;text-align:center;
+  }
+  .card.zh .txt{font-family:'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', 'Heiti TC', sans-serif;font-weight:700;font-size:clamp(15px,3.2vw,20px);display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .zh-line{font-size:clamp(13px,2.8vw,17px);font-weight:700;white-space:normal;word-break:keep-all;overflow-wrap:normal;}
+  .ph-text{font-size:clamp(14px,3.1vw,19px);font-weight:500;color:#444;font-family:'Noto Serif','Times New Roman',serif;white-space:normal;word-break:break-word;line-height:1.2;letter-spacing:.03em;}
+  .bracket-text{font-size:.85em;opacity:.75;font-style:italic;}
+  .zh-ta-rotate{display:inline-flex;flex-direction:column;align-items:center;gap:2px;transform:rotate(-45deg);}
+  .card.en .txt{font-family:var(--en-font-family);font-size:clamp(19px,4.4vw,28px);font-weight:400;letter-spacing:.04em;overflow-wrap:normal;word-break:normal;}
+  .card.en .txt.diagonal{
+    display:inline-block;
+    white-space:nowrap;
+    transform:rotate(-45deg);
+    font-size:clamp(17px,4vw,23px);
+    letter-spacing:.02em;
+  }
+  .v-a{color:var(--vowel-color-a);font-weight:var(--vowel-weight,800);}
+  .v-e{color:var(--vowel-color-e);font-weight:var(--vowel-weight,800);}
+  .v-i{color:var(--vowel-color-i);font-weight:var(--vowel-weight,800);}
+  .v-o{color:var(--vowel-color-o);font-weight:var(--vowel-weight,800);}
+  .v-u{color:var(--vowel-color-u);font-weight:var(--vowel-weight,800);}
+  .card:hover{transform:rotate(var(--r,0deg)) translateY(-3px);}
+  .card.selected{
+    background:#fff3b0;border:3px solid #c98a00;
+    box-shadow:0 0 0 4px rgba(232,179,57,.55), 0 10px 20px -8px rgba(0,0,0,.55);
+    transform:rotate(0deg) translateY(-4px) scale(1.06);
+  }
+  .card.correct{
+    background:#e3f9ee;border-color:var(--good);
+    box-shadow:0 0 0 3px rgba(95,199,138,.5);
+  }
+  .card.wrong{
+    background:#fde7e2;border-color:var(--bad);
+    animation:shake .35s ease;
+    box-shadow:0 0 0 3px rgba(224,101,79,.5);
+  }
+  .card.cleared{
+    opacity:0;visibility:hidden;pointer-events:none;transform:scale(.7) rotate(0deg);
+  }
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-6px);}
+    40%{transform:translateX(6px);}
+    60%{transform:translateX(-4px);}
+    80%{transform:translateX(4px);}
+  }
+  .speaker{
+    position:absolute;bottom:4px;right:6px;font-size:10px;opacity:.35;
+  }
+
+  /* ---- End modal ---- */
+  .modal-bg{
+    position:fixed;inset:0;background:rgba(10,20,18,.72);
+    display:none;align-items:center;justify-content:center;padding:20px;z-index:50;
+  }
+  .modal-bg.active{display:flex;}
+  .modal{
+    background:var(--card);color:var(--ink);border-radius:18px;
+    padding:30px 26px;max-width:380px;width:100%;text-align:center;
+    box-shadow:0 20px 50px -16px rgba(0,0,0,.6);
+    position:relative;
+  }
+  .modal .emoji{font-size:42px;display:block;margin-bottom:6px;}
+  .modal h2{font-family:'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;font-size:30px;margin:0 0 18px;}
+  .result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px;}
+  .result-item{background:#fbf8ee;border:1px solid var(--card-edge);border-radius:11px;padding:12px 8px;}
+  .result-item b{display:block;font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;}
+  .result-item span{font-size:11px;color:#7a8278;text-transform:uppercase;letter-spacing:.06em;}
+  .modal-btns{display:flex;gap:10px;}
+  .modal-btns button{
+    flex:1;padding:13px;border-radius:11px;border:none;font-weight:700;font-size:14.5px;cursor:pointer;
+  }
+  .btn-again{background:var(--board);color:var(--chalk);}
+  .btn-home{background:#eee7d4;color:var(--ink);}
+
+  @media (max-width:560px){
+    .board{--cols:3 !important;}
+    .count-grid{grid-template-columns:repeat(4,1fr);}
+  }
+  @media (max-width:380px){
+    .board{--cols:3 !important; gap:8px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <span class="tag">Word Match Game</span>
+      <h1>中英文<span class="accent">單字配對</span>遊戲</h1>
+    </div>
+    <div class="stat-strip" id="headerStats"></div>
+  </header>
+
+  <!-- START SCREEN -->
+  <section class="screen active" id="screen-start">
+    <div class="start-card">
+      <h2>開始挑戰</h2>
+      <p class="sub">點英文方格再點中文翻譯，配對正確會消除，每格按下會發音。</p>
+
+      <p class="field-label">選擇難度</p>
+      <div class="count-grid diff-grid diff-grid-4" id="diffGrid">
+        <button class="count-btn diff-btn" data-d="easy">易<br><span class="diff-sub">1–4字母</span></button>
+        <button class="count-btn diff-btn" data-d="medium">中<br><span class="diff-sub">5–7字母</span></button>
+        <button class="count-btn diff-btn" data-d="hard">難<br><span class="diff-sub">8字母以上</span></button>
+        <button class="count-btn diff-btn selected" data-d="all">全部<br><span class="diff-sub">不限字母</span></button>
+      </div>
+      <p class="pool-note" id="diffNote"></p>
+
+      <p class="field-label">設定字母</p>
+      <div class="toggle-row-3">
+        <button class="toggle3-btn" id="letterToggle"><span id="letterToggleLabel">字母</span><span class="arrow">▾</span></button>
+        <button class="toggle3-btn" id="fontToggle"><span class="toggle-label" id="fontToggleLabel" style="font-family:'Patrick Hand',cursive;">AEIOU</span><span class="arrow">▾</span></button>
+        <button class="toggle3-btn" id="vowelToggle"><span class="toggle-label" id="vowelToggleLabel">顏色</span><span class="arrow">▾</span></button>
+      </div>
+
+      <div class="letter-grid" id="letterGrid">
+        <button class="letter-btn selected" data-l="all">全部</button>
+      </div>
+
+      <!-- Color settings panel: separate from letter grid -->
+      <div class="color-settings-panel" id="colorSettingsPanel">
+        <div class="color-letter-grid" id="colorLetterGrid"></div>
+        <div class="vowel-inline-picker open" id="vowelInlinePicker">
+          <span class="vowel-picker-title" id="vowelPickerLabel">Aa 的顏色</span>
+          <div class="vowel-swatch-row" id="vowelSwatchRow"></div>
+        </div>
+      </div>
+
+      <div class="font-grid-3x3" id="fontGrid">
+        <button class="count-btn font-btn" data-f="schoolbell"  style="font-family:'Schoolbell',cursive;font-size:13px;">ABC<br><span class="diff-sub">手寫1</span></button>
+        <button class="count-btn font-btn" data-f="architects"           style="font-family:'Architects Daughter',cursive;font-size:12px;">ABC<br><span class="diff-sub">手寫2</span></button>
+        <button class="count-btn font-btn selected" data-f="patrick"              style="font-family:'Patrick Hand',cursive;font-size:13px;">ABC<br><span class="diff-sub">手寫3</span></button>
+        <button class="count-btn font-btn" data-f="shortstack"           style="font-family:'Short Stack',cursive;font-size:13px;">ABC<br><span class="diff-sub">手寫4</span></button>
+        <button class="count-btn font-btn" data-f="caveat"               style="font-family:'Caveat',cursive;font-size:14px;">ABC<br><span class="diff-sub">手寫5</span></button>
+        <button class="count-btn font-btn" data-f="fredoka"              style="font-family:'Fredoka One',cursive;font-size:13px;">ABC<br><span class="diff-sub">圓潤</span></button>
+        <button class="count-btn font-btn" data-f="nunito"               style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;">ABC<br><span class="diff-sub">圓黑</span></button>
+        <button class="count-btn font-btn" data-f="inter"                style="font-family:'Inter',sans-serif;font-weight:700;font-size:13px;">ABC<br><span class="diff-sub">現代</span></button>
+        <button class="count-btn font-btn" data-f="standard"             style="font-family:-apple-system,sans-serif;font-weight:700;font-size:13px;">ABC<br><span class="diff-sub">系統</span></button>
+      </div>
+
+      <p class="field-label">選擇音節數</p>
+      <div class="count-grid diff-grid diff-grid-4" id="syllGrid">
+        <button class="count-btn syll-btn selected" data-s="all">全部</button>
+        <button class="count-btn syll-btn" data-s="1">單音節</button>
+        <button class="count-btn syll-btn" data-s="2">雙音節</button>
+        <button class="count-btn syll-btn" data-s="3">三音節</button>
+      </div>
+
+      <p class="field-label">選擇單字數量</p>
+      <div class="count-grid count-grid-4" id="countGrid">
+        <button class="count-btn selected" data-n="6">6</button>
+        <button class="count-btn" data-n="12">12</button>
+        <button class="count-btn" data-n="21">21</button>
+        <input type="number" id="customN" class="count-btn custom-input" min="4" max="2239" placeholder="自訂">
+      </div>
+
+      <p class="pool-note">題庫共 2239 個基礎英文單字，每次隨機抽取。</p>
+      <p class="warn-note" id="countWarning"></p>
+
+      <div class="start-row">
+        <button class="start-btn" id="startBtn">開始遊戲 ▶</button>
+        <button class="vis-btn active" id="toggleZh">中</button>
+        <button class="vis-btn active" id="togglePh">音</button>
+        <button class="vis-btn active" id="toggleMute">🔊</button>
+      </div>
+
+      <button class="custom-words-toggle" id="customWordsToggle">＋ 自訂單字／片語 <span class="arrow">▾</span></button>
+      <div class="custom-words-panel" id="customWordsPanel">
+        <p class="custom-words-hint">每行一個，格式：<b>英文 | 中文 | [音標]</b>（用 <b>|</b> 分隔）</p>
+        <textarea id="customWordsInput" class="custom-words-textarea" placeholder="在這裡輸入自訂單字&#10;格式：英文 | 中文 | [音標]&#10;&#10;例：&#10;Can you help me? | 你能幫我嗎&#10;Check, please | 請買單&#10;I'm sorry | 對不起 | [aɪm ˈsɒri]" rows="6"></textarea>
+        <div class="custom-words-btns">
+          <button class="custom-words-clear" id="customWordsClear">清除</button>
+          <span class="custom-words-count" id="customWordsCount">0 個自訂單字</span>
+          <label class="custom-words-only-label">
+            <input type="checkbox" id="customWordsOnly"> 只用自訂單字
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME SCREEN -->
+  <section class="screen" id="screen-game">
+    <div class="hud">
+      <div class="hud-left">
+        <div class="pill timer"><span class="dot"></span><span id="timerVal">00:00</span></div>
+        <div class="pill matched"><span class="dot"></span><span id="matchedVal">0</span>/<span id="totalVal">0</span></div>
+        <div class="pill miss"><span class="dot"></span><span id="missVal">0</span> 錯</div>
+      </div>
+      <div class="hud-right">
+        <button class="quit-btn" id="quitBtn">結束 ✕</button>
+        <button class="mic-btn" id="micBtn" title="語音輸入">🎤</button>
+      </div>
+    </div>
+    <div class="board" id="board"></div>
+  </section>
+
+</div>
+
+<!-- END MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <span class="emoji">🎉</span>
+    <h2>完成！</h2>
+    <div class="result-grid">
+      <div class="result-item"><b id="rTime">00:00</b><span>完成秒數</span></div>
+      <div class="result-item"><b id="rCount">0</b><span>完成數量</span></div>
+      <div class="result-item"><b id="rMiss">0</b><span>按錯次數</span></div>
+    </div>
+    <div id="wrongWordsSection" style="display:none;margin-bottom:14px;">
+      <p style="font-size:12px;color:#7a8278;margin:0 0 6px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">按錯的單字</p>
+      <div id="wrongWordsList" style="font-size:13px;line-height:1.8;color:#22302c;background:#fbf8ee;border-radius:9px;padding:10px 12px;text-align:left;max-height:120px;overflow-y:auto;"></div>
+      <button id="copyWrongBtn" style="margin-top:8px;width:100%;padding:10px;border-radius:9px;border:1px solid var(--card-edge);background:#fbf8ee;font-weight:700;font-size:13px;cursor:pointer;">📋 複製到剪貼簿</button>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-home" id="homeBtn">回首頁</button>
+      <button class="btn-again" id="againBtn">再玩一次</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const WORDS = [{"en": "a", "zh": "一個", "ph": "eɪ"}, {"en": "a few", "zh": "一些", "ph": "ə fjuː"}, {"en": "a little", "zh": "一些", "ph": "ə ˈlɪt.əl"}, {"en": "a lot", "zh": "許多", "ph": "ə lɒt"}, {"en": "able", "zh": "能夠的", "ph": "ˈeɪ.bəl"}, {"en": "about", "zh": "關於", "ph": "əˈbaʊt"}, {"en": "above", "zh": "在...上方", "ph": "əˈbʌv"}, {"en": "abroad", "zh": "在國外", "ph": "əˈbrɔːd"}, {"en": "across", "zh": "在...對面", "ph": "əˈkrɒs"}, {"en": "actress", "zh": "女演員", "ph": "ˈæk.trəs"}, {"en": "afraid", "zh": "害怕的", "ph": "əˈfreɪd"}, {"en": "after", "zh": "在...之後", "ph": "ˈɑːf.tər"}, {"en": "afternoon", "zh": "下午", "ph": "ˌɑːf.təˈnuːn"}, {"en": "again", "zh": "再一次", "ph": "əˈɡen"}, {"en": "age", "zh": "年齡", "ph": "eɪdʒ"}, {"en": "ago", "zh": "以前", "ph": "əˈɡəʊ"}, {"en": "agree", "zh": "同意", "ph": "əˈɡriː"}, {"en": "ahead", "zh": "在前方", "ph": "əˈhed"}, {"en": "air", "zh": "空氣", "ph": "eər"}, {"en": "airplane", "zh": "飛機", "ph": "ˈeə.pleɪn"}, {"en": "airport", "zh": "機場", "ph": "ˈeə.pɔːt"}, {"en": "all", "zh": "全部的", "ph": "ɔːl"}, {"en": "almost", "zh": "幾乎", "ph": "ˈɔːl.məʊst"}, {"en": "along", "zh": "沿著", "ph": "əˈlɒŋ"}, {"en": "already", "zh": "已經", "ph": "ɔːlˈred.i"}, {"en": "also", "zh": "也", "ph": "ˈɔːl.səʊ"}, {"en": "always", "zh": "總是", "ph": "ˈɔːl.weɪz"}, {"en": "a.m.", "zh": "上午", "ph": "ˌeɪˈem"}, {"en": "America", "zh": "美國", "ph": "əˈmer.ɪ.kə"}, {"en": "American", "zh": "美國人/美國的", "ph": "əˈmer.ɪ.kən"}, {"en": "and", "zh": "和", "ph": "ænd"}, {"en": "angry", "zh": "生氣的", "ph": "ˈæŋ.ɡri"}, {"en": "animal", "zh": "動物", "ph": "ˈæn.ɪ.məl"}, {"en": "another", "zh": "另一個的", "ph": "əˈnʌð.ər"}, {"en": "answer", "zh": "回答", "ph": "ˈɑːn.sər"}, {"en": "ant", "zh": "螞蟻", "ph": "ænt"}, {"en": "any", "zh": "任何的", "ph": "ˈen.i"}, {"en": "anyone", "zh": "任何人", "ph": "ˈen.i.wʌn"}, {"en": "anything", "zh": "任何事物", "ph": "ˈen.i.θɪŋ"}, {"en": "apartment", "zh": "公寓", "ph": "əˈpɑːt.mənt"}, {"en": "appear", "zh": "出現", "ph": "əˈpɪər"}, {"en": "apple", "zh": "蘋果", "ph": "ˈæp.əl"}, {"en": "April", "zh": "四月", "ph": "ˈeɪ.prəl"}, {"en": "are", "zh": "是", "ph": "ɑːr"}, {"en": "arm", "zh": "手臂", "ph": "ɑːm"}, {"en": "around", "zh": "在...周圍", "ph": "əˈraʊnd"}, {"en": "arrive", "zh": "到達", "ph": "əˈraɪv"}, {"en": "art", "zh": "藝術", "ph": "ɑːt"}, {"en": "as", "zh": "如同", "ph": "æz"}, {"en": "ask", "zh": "詢問", "ph": "ɑːsk"}, {"en": "at", "zh": "在", "ph": "æt"}, {"en": "August", "zh": "八月", "ph": "ˈɔː.ɡəst"}, {"en": "aunt", "zh": "伯母/嬸嬸/阿姨", "ph": "ɑːnt"}, {"en": "autumn", "zh": "秋天", "ph": "ˈɔː.təm"}, {"en": "away", "zh": "遠離", "ph": "əˈweɪ"}, {"en": "baby", "zh": "嬰兒", "ph": "ˈbeɪ.bi"}, {"en": "back", "zh": "背後/後面的", "ph": "bæk"}, {"en": "bad", "zh": "壞的", "ph": "bæd"}, {"en": "badminton", "zh": "羽毛球", "ph": "ˈbæd.mɪn.tən"}, {"en": "bag", "zh": "袋子", "ph": "bæɡ"}, {"en": "bake", "zh": "烘烤", "ph": "beɪk"}, {"en": "bakery", "zh": "麵包店", "ph": "ˈbeɪ.kər.i"}, {"en": "ball", "zh": "球", "ph": "bɔːl"}, {"en": "banana", "zh": "香蕉", "ph": "bəˈnɑː.nə"}, {"en": "band", "zh": "樂團", "ph": "bænd"}, {"en": "bank", "zh": "銀行", "ph": "bæŋk"}, {"en": "bar", "zh": "酒吧/條狀物", "ph": "bɑːr"}, {"en": "baseball", "zh": "棒球", "ph": "ˈbeɪs.bɔːl"}, {"en": "basket", "zh": "籃子", "ph": "ˈbɑːs.kɪt"}, {"en": "basketball", "zh": "籃球", "ph": "ˈbɑːs.kɪt.bɔːl"}, {"en": "bath", "zh": "洗澡", "ph": "bɑːθ"}, {"en": "bathroom", "zh": "浴室", "ph": "ˈbɑːθ.ruːm"}, {"en": "be", "zh": "是", "ph": "biː"}, {"en": "beach", "zh": "海灘", "ph": "biːtʃ"}, {"en": "bear", "zh": "熊", "ph": "beər"}, {"en": "beautiful", "zh": "美麗的", "ph": "ˈbjuː.tə.fəl"}, {"en": "because", "zh": "因為", "ph": "bɪˈkɒz"}, {"en": "become", "zh": "變成", "ph": "bɪˈkʌm"}, {"en": "bed", "zh": "床", "ph": "bed"}, {"en": "bedroom", "zh": "臥室", "ph": "ˈbed.ruːm"}, {"en": "bee", "zh": "蜜蜂", "ph": "biː"}, {"en": "beef", "zh": "牛肉", "ph": "biːf"}, {"en": "beer", "zh": "啤酒", "ph": "bɪər"}, {"en": "before", "zh": "在...之前", "ph": "bɪˈfɔːr"}, {"en": "begin", "zh": "開始", "ph": "bɪˈɡɪn"}, {"en": "behind", "zh": "在...後面", "ph": "bɪˈhaɪnd"}, {"en": "believe", "zh": "相信", "ph": "bɪˈliːv"}, {"en": "bell", "zh": "鈴鐺", "ph": "bel"}, {"en": "belong", "zh": "屬於", "ph": "bɪˈlɒŋ"}, {"en": "below", "zh": "在...下方", "ph": "bɪˈləʊ"}, {"en": "belt", "zh": "皮帶", "ph": "belt"}, {"en": "bench", "zh": "長椅", "ph": "bentʃ"}, {"en": "beside", "zh": "在...旁邊", "ph": "bɪˈsaɪd"}, {"en": "between", "zh": "在...之間", "ph": "bɪˈtwiːn"}, {"en": "bicycle", "zh": "腳踏車", "ph": "ˈbaɪ.sɪ.kəl"}, {"en": "big", "zh": "大的", "ph": "bɪɡ"}, {"en": "bike", "zh": "腳踏車", "ph": "baɪk"}, {"en": "bird", "zh": "鳥", "ph": "bɜːd"}, {"en": "birthday", "zh": "生日", "ph": "ˈbɜːθ.deɪ"}, {"en": "bite", "zh": "咬", "ph": "baɪt"}, {"en": "black", "zh": "黑色的", "ph": "blæk"}, {"en": "blackboard", "zh": "黑板", "ph": "ˈblæk.bɔːd"}, {"en": "blanket", "zh": "毯子", "ph": "ˈblæŋ.kɪt"}, {"en": "blind", "zh": "瞎的", "ph": "blaɪnd"}, {"en": "block", "zh": "街區", "ph": "blɒk"}, {"en": "blow", "zh": "吹", "ph": "bləʊ"}, {"en": "blue", "zh": "藍色的", "ph": "bluː"}, {"en": "boat", "zh": "船", "ph": "bəʊt"}, {"en": "body", "zh": "身體", "ph": "ˈbɒd.i"}, {"en": "boil", "zh": "煮沸", "ph": "bɔɪl"}, {"en": "book", "zh": "書本", "ph": "bʊk"}, {"en": "bookstore", "zh": "書店", "ph": "ˈbʊk.stɔːr"}, {"en": "bored", "zh": "感到無聊的", "ph": "bɔːd"}, {"en": "boring", "zh": "無聊的", "ph": "ˈbɔː.rɪŋ"}, {"en": "born", "zh": "出生的", "ph": "bɔːn"}, {"en": "borrow", "zh": "借入", "ph": "ˈbɒr.əʊ"}, {"en": "boss", "zh": "老闆", "ph": "bɒs"}, {"en": "both", "zh": "兩者都", "ph": "bəʊθ"}, {"en": "bottle", "zh": "瓶子", "ph": "ˈbɒt.əl"}, {"en": "bottom", "zh": "底部", "ph": "ˈbɒt.əm"}, {"en": "bow", "zh": "敬禮/弓", "ph": "baʊ"}, {"en": "bowl", "zh": "碗", "ph": "bəʊl"}, {"en": "box", "zh": "箱子", "ph": "bɒks"}, {"en": "boy", "zh": "男孩", "ph": "bɔɪ"}, {"en": "bread", "zh": "麵包", "ph": "bred"}, {"en": "break", "zh": "打破/休息", "ph": "breɪk"}, {"en": "breakfast", "zh": "早餐", "ph": "ˈbrek.fəst"}, {"en": "bridge", "zh": "橋梁", "ph": "brɪdʒ"}, {"en": "bright", "zh": "明亮的", "ph": "braɪt"}, {"en": "bring", "zh": "帶來", "ph": "brɪŋ"}, {"en": "brother", "zh": "兄弟", "ph": "ˈbrʌð.ər"}, {"en": "brown", "zh": "褐色的", "ph": "braʊn"}, {"en": "brush", "zh": "刷子", "ph": "brʌʃ"}, {"en": "bug", "zh": "昆蟲", "ph": "bʌɡ"}, {"en": "build", "zh": "建造", "ph": "bɪld"}, {"en": "building", "zh": "建築物", "ph": "ˈbɪl.dɪŋ"}, {"en": "bun", "zh": "小圓麵包", "ph": "bʌn"}, {"en": "burn", "zh": "燃燒", "ph": "bɜːn"}, {"en": "bus", "zh": "公車", "ph": "bʌs"}, {"en": "business", "zh": "生意", "ph": "ˈbɪz.nɪs"}, {"en": "businessman", "zh": "商人", "ph": "ˈbɪz.nɪs.mən"}, {"en": "busy", "zh": "忙碌的", "ph": "ˈbɪz.i"}, {"en": "but", "zh": "但是", "ph": "bʌt"}, {"en": "butter", "zh": "奶油", "ph": "ˈbʌt.ər"}, {"en": "buy", "zh": "購買", "ph": "baɪ"}, {"en": "by", "zh": "透過/在...旁邊", "ph": "baɪ"}, {"en": "cabbage", "zh": "包心菜", "ph": "ˈkæb.ɪdʒ"}, {"en": "cafe", "zh": "咖啡廳", "ph": "ˈkæf.eɪ"}, {"en": "cake", "zh": "蛋糕", "ph": "keɪk"}, {"en": "call", "zh": "打電話/稱呼", "ph": "kɔːl"}, {"en": "camel", "zh": "駱駝", "ph": "ˈkæm.əl"}, {"en": "camera", "zh": "相機", "ph": "ˈkæm.rə"}, {"en": "camp", "zh": "露營", "ph": "kæmp"}, {"en": "can", "zh": "能夠/罐頭", "ph": "kæn"}, {"en": "candle", "zh": "蠟燭", "ph": "ˈkæn.dəl"}, {"en": "candy", "zh": "糖果", "ph": "ˈkæn.di"}, {"en": "cap", "zh": "鴨舌帽", "ph": "kæp"}, {"en": "captain", "zh": "隊長/船長", "ph": "ˈkæp.tɪn"}, {"en": "car", "zh": "汽車", "ph": "kɑːr"}, {"en": "card", "zh": "卡片", "ph": "kɑːd"}, {"en": "care", "zh": "關心/照顧", "ph": "keər"}, {"en": "careful", "zh": "小心的", "ph": "ˈkeə.fəl"}, {"en": "careless", "zh": "粗心的", "ph": "ˈkeə.ləs"}, {"en": "carrot", "zh": "紅蘿蔔", "ph": "ˈkær.ət"}, {"en": "carry", "zh": "攜帶/搬運", "ph": "ˈkær.i"}, {"en": "case", "zh": "案件/箱子", "ph": "keɪs"}, {"en": "cash", "zh": "現金", "ph": "kæʃ"}, {"en": "cassette", "zh": "卡帶", "ph": "kəˈset"}, {"en": "cat", "zh": "貓", "ph": "kæt"}, {"en": "catch", "zh": "接住/捕捉", "ph": "kætʃ"}, {"en": "celebrate", "zh": "慶祝", "ph": "ˈsel.ə.breɪt"}, {"en": "cell phone", "zh": "手機", "ph": "ˈsel fəʊn"}, {"en": "cent", "zh": "分(貨幣單位)", "ph": "sent"}, {"en": "center", "zh": "中心", "ph": "ˈsen.tər"}, {"en": "century", "zh": "世紀", "ph": "ˈsen.tʃər.i"}, {"en": "cereal", "zh": "麥片", "ph": "ˈsɪə.ri.əl"}, {"en": "certain", "zh": "確定的", "ph": "ˈsɜː.tən"}, {"en": "chair", "zh": "椅子", "ph": "tʃeər"}, {"en": "chalk", "zh": "粉筆", "ph": "tʃɔːk"}, {"en": "chance", "zh": "機會", "ph": "tʃɑːns"}, {"en": "change", "zh": "改變/零錢", "ph": "tʃeɪndʒ"}, {"en": "cheap", "zh": "便宜的", "ph": "tʃiːp"}, {"en": "cheat", "zh": "欺騙/作弊", "ph": "tʃiːt"}, {"en": "check", "zh": "檢查/支票", "ph": "tʃek"}, {"en": "cheer", "zh": "歡呼", "ph": "tʃɪər"}, {"en": "cheese", "zh": "起司", "ph": "tʃiːz"}, {"en": "chess", "zh": "西洋棋", "ph": "tʃes"}, {"en": "chicken", "zh": "雞肉/雞", "ph": "ˈtʃɪk.ɪn"}, {"en": "chief", "zh": "首領/主要的", "ph": "tʃiːf"}, {"en": "child", "zh": "小孩", "ph": "tʃaɪld"}, {"en": "childhood", "zh": "童年", "ph": "ˈtʃaɪld.hʊd"}, {"en": "chin", "zh": "下巴", "ph": "tʃɪn"}, {"en": "China", "zh": "中國", "ph": "ˈtʃaɪ.nə"}, {"en": "Chinese", "zh": "中國人/中文/中國的", "ph": "ˌtʃaɪˈniːz"}, {"en": "chocolate", "zh": "巧克力", "ph": "ˈtʃɒk.lət"}, {"en": "choose", "zh": "選擇", "ph": "tʃuːz"}, {"en": "chopsticks", "zh": "筷子", "ph": "ˈtʃɒp.stɪks"}, {"en": "Christmas", "zh": "聖誕節", "ph": "ˈkrɪs.məs"}, {"en": "church", "zh": "教堂", "ph": "tʃɜːtʃ"}, {"en": "circle", "zh": "圓圈", "ph": "ˈsɜː.kəl"}, {"en": "city", "zh": "城市", "ph": "ˈsɪt.i"}, {"en": "clap", "zh": "拍手", "ph": "klæp"}, {"en": "class", "zh": "班級/課堂", "ph": "klɑːs"}, {"en": "classmate", "zh": "同學", "ph": "ˈklɑːs.meɪt"}, {"en": "classroom", "zh": "教室", "ph": "ˈklɑːs.ruːm"}, {"en": "clean", "zh": "清潔/乾淨的", "ph": "kliːn"}, {"en": "clear", "zh": "清晰的/明白的", "ph": "klɪər"}, {"en": "clerk", "zh": "店員", "ph": "klɑːk"}, {"en": "smart", "zh": "聰明的", "ph": "smɑːt"}, {"en": "climb", "zh": "爬", "ph": "klaɪm"}, {"en": "clock", "zh": "時鐘", "ph": "klɒk"}, {"en": "close", "zh": "關閉/接近的", "ph": "kləʊz"}, {"en": "clothes", "zh": "衣服", "ph": "kləʊðz"}, {"en": "cloud", "zh": "雲", "ph": "klaʊd"}, {"en": "cloudy", "zh": "多雲的", "ph": "ˈklaʊ.di"}, {"en": "club", "zh": "社團/俱樂部", "ph": "klʌb"}, {"en": "coat", "zh": "外套", "ph": "kəʊt"}, {"en": "coaching", "zh": "教練(指導)", "ph": "ˈkəʊ.tʃɪŋ"}, {"en": "coffee", "zh": "咖啡", "ph": "ˈkɒf.i"}, {"en": "coin", "zh": "硬幣", "ph": "kɔɪn"}, {"en": "coke", "zh": "可樂", "ph": "kəʊk"}, {"en": "cold", "zh": "寒冷的/感冒", "ph": "kəʊld"}, {"en": "collect", "zh": "收集", "ph": "kəˈlekt"}, {"en": "color", "zh": "顏色", "ph": "ˈkʌl.ər"}, {"en": "comb", "zh": "梳子", "ph": "kəʊm"}, {"en": "come", "zh": "來", "ph": "kʌm"}, {"en": "comfortable", "zh": "舒適的", "ph": "ˈkʌm.fə.tə.bəl"}, {"en": "comic", "zh": "漫畫的/漫畫", "ph": "ˈkɒm.ɪk"}, {"en": "common", "zh": "常見的/共同的", "ph": "ˈkɒm.ən"}, {"en": "computer", "zh": "電腦", "ph": "kəmˈpjuː.tər"}, {"en": "confident", "zh": "有信心的", "ph": "ˈkɒn.fɪ.dənt"}, {"en": "congratulate", "zh": "祝賀", "ph": "kənˈɡrætʃ.ə.leɪt"}, {"en": "convenient", "zh": "方便的", "ph": "kənˈviː.ni.ənt"}, {"en": "cook", "zh": "煮飯/廚師", "ph": "kʊk"}, {"en": "cookie", "zh": "餅乾", "ph": "ˈkʊk.i"}, {"en": "cool", "zh": "涼爽的/酷的", "ph": "kuːl"}, {"en": "copy", "zh": "複製/複本", "ph": "ˈkɒp.i"}, {"en": "corner", "zh": "角落", "ph": "ˈkɔː.nər"}, {"en": "correct", "zh": "正確的", "ph": "kəˈrekt"}, {"en": "cost", "zh": "花費/成本", "ph": "kɒst"}, {"en": "couch", "zh": "沙發", "ph": "kaʊtʃ"}, {"en": "cough", "zh": "咳嗽", "ph": "kɒf"}, {"en": "count", "zh": "計算", "ph": "kaʊnt"}, {"en": "country", "zh": "國家/鄉村", "ph": "ˈkʌn.tri"}, {"en": "cousin", "zh": "堂表兄弟姊妹", "ph": "ˈkʌz.ən"}, {"en": "cover", "zh": "覆蓋/封面", "ph": "ˈkʌv.ər"}, {"en": "cow", "zh": "母牛", "ph": "kaʊ"}, {"en": "crazy", "zh": "發瘋的", "ph": "ˈkreɪ.zi"}, {"en": "cream", "zh": "奶油", "ph": "kriːm"}, {"en": "create", "zh": "創造", "ph": "kriˈeɪt"}, {"en": "credit card", "zh": "信用卡", "ph": "ˈkred.ɪt kɑːd"}, {"en": "cricket", "zh": "蟋蟀", "ph": "ˈkrɪk.ɪt"}, {"en": "cry", "zh": "哭泣", "ph": "kraɪ"}, {"en": "culture", "zh": "文化", "ph": "ˈkʌl.tʃər"}, {"en": "cup", "zh": "杯子", "ph": "kʌp"}, {"en": "cure", "zh": "治療", "ph": "kjʊər"}, {"en": "curious", "zh": "好奇的", "ph": "ˈkjʊə.ri.əs"}, {"en": "current", "zh": "目前的/水流", "ph": "ˈkʌr.ənt"}, {"en": "curtain", "zh": "窗簾", "ph": "ˈkɜː.tən"}, {"en": "customer", "zh": "顧客", "ph": "ˈkʌs.tə.mər"}, {"en": "cut", "zh": "切/割", "ph": "kʌt"}, {"en": "cute", "zh": "可愛的", "ph": "kjuːt"}, {"en": "daily", "zh": "每日的", "ph": "ˈdeɪ.li"}, {"en": "dance", "zh": "跳舞", "ph": "dɑːns"}, {"en": "danger", "zh": "危險", "ph": "ˈdeɪn.dʒər"}, {"en": "dangerous", "zh": "危險的", "ph": "ˈdeɪn.dʒər.əs"}, {"en": "dark", "zh": "黑暗的", "ph": "dɑːk"}, {"en": "date", "zh": "日期/約會", "ph": "deɪt"}, {"en": "daughter", "zh": "女兒", "ph": "ˈdɔː.tər"}, {"en": "day", "zh": "日/天", "ph": "deɪ"}, {"en": "dead", "zh": "死去的", "ph": "ded"}, {"en": "deaf", "zh": "聾的", "ph": "def"}, {"en": "deal", "zh": "交易/處理", "ph": "diːl"}, {"en": "dear", "zh": "親愛的", "ph": "dɪər"}, {"en": "December", "zh": "十二月", "ph": "dɪˈsem.bər"}, {"en": "decide", "zh": "決定", "ph": "dɪˈsaɪd"}, {"en": "decrease", "zh": "減少", "ph": "dɪˈkriːs"}, {"en": "deep", "zh": "深的", "ph": "diːp"}, {"en": "deer", "zh": "鹿", "ph": "dɪər"}, {"en": "delicious", "zh": "美味的", "ph": "dɪˈlɪʃ.əs"}, {"en": "dentist", "zh": "牙醫", "ph": "ˈden.tɪst"}, {"en": "department store", "zh": "百貨公司", "ph": "dɪˈpɑːt.mənt stɔːr"}, {"en": "depend", "zh": "依靠", "ph": "dɪˈpend"}, {"en": "describe", "zh": "描述", "ph": "dɪˈskraɪb"}, {"en": "desert", "zh": "沙漠", "ph": "ˈdez.ət"}, {"en": "design", "zh": "設計", "ph": "dɪˈzaɪn"}, {"en": "desk", "zh": "書桌", "ph": "desk"}, {"en": "destroy", "zh": "破壞", "ph": "dɪˈstrɔɪ"}, {"en": "developer", "zh": "開發者", "ph": "dɪˈvel.ə.pər"}, {"en": "diary", "zh": "日記", "ph": "ˈdaɪə.ri"}, {"en": "dictionary", "zh": "字典", "ph": "ˈdɪk.ʃən.er.i"}, {"en": "die", "zh": "死亡", "ph": "daɪ"}, {"en": "diet", "zh": "飲食", "ph": "ˈdaɪ.ət"}, {"en": "different", "zh": "不同的", "ph": "ˈdɪf.ər.ənt"}, {"en": "difficult", "zh": "困難的", "ph": "ˈdɪf.ɪ.kəlt"}, {"en": "dig", "zh": "挖", "ph": "dɪɡ"}, {"en": "digital", "zh": "數位的", "ph": "ˈdɪdʒ.ɪ.təl"}, {"en": "dinner", "zh": "晚餐", "ph": "ˈdɪn.ər"}, {"en": "dinosaur", "zh": "恐龍", "ph": "ˈdaɪ.nə.sɔːr"}, {"en": "dirty", "zh": "髒的", "ph": "ˈdɜː.ti"}, {"en": "discover", "zh": "發現", "ph": "dɪˈskʌv.ər"}, {"en": "discuss", "zh": "討論", "ph": "dɪˈskʌs"}, {"en": "dish", "zh": "盤子/菜餚", "ph": "dɪʃ"}, {"en": "distance", "zh": "距離", "ph": "ˈdɪs.təns"}, {"en": "distant", "zh": "遙遠的", "ph": "ˈdɪs.tənt"}, {"en": "divide", "zh": "分割/除以", "ph": "dɪˈvaɪd"}, {"en": "do", "zh": "做", "ph": "duː"}, {"en": "doctor", "zh": "醫生/博士", "ph": "ˈdɒk.tər"}, {"en": "dog", "zh": "狗", "ph": "dɒɡ"}, {"en": "doll", "zh": "玩偶", "ph": "dɒl"}, {"en": "dollar", "zh": "元", "ph": "ˈdɒl.ər"}, {"en": "donkey", "zh": "驢子", "ph": "ˈdɒŋ.ki"}, {"en": "door", "zh": "門", "ph": "dɔːr"}, {"en": "dot", "zh": "點", "ph": "dɒt"}, {"en": "double", "zh": "雙倍的", "ph": "ˈdʌb.əl"}, {"en": "doubt", "zh": "懷疑", "ph": "daʊt"}, {"en": "doughnut", "zh": "甜甜圈", "ph": "ˈdəʊ.nʌt"}, {"en": "down", "zh": "向下", "ph": "daʊn"}, {"en": "downstairs", "zh": "在樓下", "ph": "ˌdaʊnˈsteəz"}, {"en": "dozen", "zh": "一打", "ph": "ˈdʌz.ən"}, {"en": "drama", "zh": "戲劇", "ph": "ˈdrɑː.mə"}, {"en": "draw", "zh": "畫/拉", "ph": "drɔː"}, {"en": "drawer", "zh": "抽屜", "ph": "drɔːr"}, {"en": "dream", "zh": "夢/做夢", "ph": "driːm"}, {"en": "dress", "zh": "洋裝/穿衣", "ph": "dres"}, {"en": "drink", "zh": "喝/飲料", "ph": "drɪŋk"}, {"en": "drive", "zh": "開車", "ph": "draɪv"}, {"en": "driver", "zh": "司機", "ph": "ˈdraɪ.vər"}, {"en": "drop", "zh": "掉落/滴", "ph": "drɒp"}, {"en": "drug", "zh": "藥物/毒品", "ph": "drʌɡ"}, {"en": "drum", "zh": "鼓", "ph": "drʌm"}, {"en": "dry", "zh": "乾的", "ph": "draɪ"}, {"en": "duck", "zh": "鴨子", "ph": "dʌk"}, {"en": "dumpling", "zh": "水餃", "ph": "ˈdʌm.plɪŋ"}, {"en": "during", "zh": "在...期間", "ph": "ˈdjʊə.rɪŋ"}, {"en": "duty", "zh": "職責/關稅", "ph": "ˈdʒuː.ti"}, {"en": "each", "zh": "每個", "ph": "iːtʃ"}, {"en": "eagle", "zh": "老鷹", "ph": "ˈiː.ɡəl"}, {"en": "ear", "zh": "耳朵", "ph": "ɪər"}, {"en": "early", "zh": "早的/早地", "ph": "ˈɜː.li"}, {"en": "earn", "zh": "賺取", "ph": "ɜːn"}, {"en": "earth", "zh": "地球/土地", "ph": "ɜːθ"}, {"en": "earthquake", "zh": "地震", "ph": "ˈɜːθ.kweɪk"}, {"en": "east", "zh": "東方", "ph": "iːst"}, {"en": "Easter", "zh": "復活節", "ph": "ˈiː.stər"}, {"en": "easy", "zh": "容易的", "ph": "ˈiː.zi"}, {"en": "eat", "zh": "吃", "ph": "iːt"}, {"en": "edge", "zh": "邊緣", "ph": "edʒ"}, {"en": "education", "zh": "教育", "ph": "ˌedʒ.jʊˈkeɪ.ʃən"}, {"en": "effort", "zh": "努力", "ph": "ˈef.ət"}, {"en": "egg", "zh": "蛋", "ph": "eɡ"}, {"en": "eight", "zh": "八", "ph": "eɪt"}, {"en": "eighteen", "zh": "十八", "ph": "ˌeɪˈtiːn"}, {"en": "eighty", "zh": "八十", "ph": "ˈeɪ.ti"}, {"en": "either", "zh": "兩者之一/也(用於否定)", "ph": "ˈaɪ.ðər"}, {"en": "elder", "zh": "年長者/年長的", "ph": "ˈel.dər"}, {"en": "elect", "zh": "選舉", "ph": "ɪˈlekt"}, {"en": "electric", "zh": "電動的", "ph": "iˈlek.trɪk"}, {"en": "element", "zh": "元素", "ph": "ˈel.ɪ.mənt"}, {"en": "elephant", "zh": "大象", "ph": "ˈel.ɪ.fənt"}, {"en": "eleven", "zh": "十一", "ph": "ɪˈlev.ən"}, {"en": "else", "zh": "其他的", "ph": "els"}, {"en": "e-mail", "zh": "電子郵件", "ph": "ˈiː.meɪl"}, {"en": "embarrass", "zh": "使尷尬", "ph": "ɪmˈbær.əs"}, {"en": "emotion", "zh": "情緒", "ph": "ɪˈməʊ.ʃən"}, {"en": "employ", "zh": "雇用", "ph": "ɪmˈplɔɪ"}, {"en": "empty", "zh": "空的", "ph": "ˈemp.ti"}, {"en": "end", "zh": "結束", "ph": "end"}, {"en": "enemy", "zh": "敵人", "ph": "ˈen.ə.mi"}, {"en": "energy", "zh": "能量/精力", "ph": "ˈen.ə.dʒi"}, {"en": "engine", "zh": "引擎", "ph": "ˈen.dʒɪn"}, {"en": "engineer", "zh": "工程師", "ph": "ˌen.dʒɪˈnɪər"}, {"en": "England", "zh": "英國", "ph": "ˈɪŋ.ɡlənd"}, {"en": "English", "zh": "英文/英國的", "ph": "ˈɪŋ.ɡlɪʃ"}, {"en": "enjoy", "zh": "享受", "ph": "ɪnˈdʒɔɪ"}, {"en": "enough", "zh": "足夠的", "ph": "ɪˈnʌf"}, {"en": "enter", "zh": "進入", "ph": "ˈen.tər"}, {"en": "environment", "zh": "環境", "ph": "ɪnˈvaɪ.rən.mənt"}, {"en": "equal", "zh": "平等的", "ph": "ˈiː.kwəl"}, {"en": "erase", "zh": "擦掉", "ph": "ɪˈreɪz"}, {"en": "eraser", "zh": "橡皮擦", "ph": "ɪˈreɪ.zər"}, {"en": "error", "zh": "錯誤", "ph": "ˈer.ər"}, {"en": "escape", "zh": "逃跑/逃脫", "ph": "ɪˈskeɪp"}, {"en": "especially", "zh": "特別是", "ph": "ɪˈspeʃ.əl.i"}, {"en": "European", "zh": "歐洲的/歐洲人", "ph": "ˌjʊə.rəˈpiː.ən"}, {"en": "even", "zh": "甚至", "ph": "ˈiː.vən"}, {"en": "evening", "zh": "傍晚/晚上", "ph": "ˈiːv.nɪŋ"}, {"en": "event", "zh": "事件/活動", "ph": "ɪˈvent"}, {"en": "ever", "zh": "曾經", "ph": "ˈev.ər"}, {"en": "every", "zh": "每一個", "ph": "ˈev.ri"}, {"en": "everyone", "zh": "每個人", "ph": "ˈev.ri.wʌn"}, {"en": "everything", "zh": "每件事", "ph": "ˈev.ri.θɪŋ"}, {"en": "everywhere", "zh": "到處", "ph": "ˈev.ri.weər"}, {"en": "exact", "zh": "精確的", "ph": "ɪɡˈzækt"}, {"en": "examine", "zh": "檢查/考試", "ph": "ɪɡˈzæm.ɪn"}, {"en": "example", "zh": "例子", "ph": "ɪɡˈzɑːm.pəl"}, {"en": "excellent", "zh": "優秀的", "ph": "ˈek.səl.ənt"}, {"en": "except", "zh": "除了...之外", "ph": "ɪkˈsept"}, {"en": "excite", "zh": "使興奮", "ph": "ɪkˈsaɪt"}, {"en": "excited", "zh": "感到興奮的", "ph": "ɪkˈsaɪ.tɪd"}, {"en": "exciting", "zh": "令人興奮的", "ph": "ɪkˈsaɪ.tɪŋ"}, {"en": "excuse", "zh": "藉口/原諒", "ph": "ɪkˈskjuːs"}, {"en": "exercise", "zh": "運動/練習", "ph": "ˈek.sə.saɪz"}, {"en": "exist", "zh": "存在", "ph": "ɪɡˈzɪst"}, {"en": "expect", "zh": "期待", "ph": "ɪkˈspekt"}, {"en": "expensive", "zh": "貴的", "ph": "ɪkˈspen.sɪv"}, {"en": "experience", "zh": "經驗", "ph": "ɪkˈspɪə.ri.əns"}, {"en": "expert", "zh": "專家", "ph": "ˈek.spɜːt"}, {"en": "explain", "zh": "解釋", "ph": "ɪkˈspleɪn"}, {"en": "express", "zh": "表達/快遞", "ph": "ɪkˈspres"}, {"en": "extra", "zh": "額外的", "ph": "ˈek.strə"}, {"en": "eye", "zh": "眼睛", "ph": "aɪ"}, {"en": "face", "zh": "臉/面對", "ph": "feɪs"}, {"en": "fact", "zh": "事實", "ph": "fækt"}, {"en": "factory", "zh": "工廠", "ph": "ˈfæk.tər.i"}, {"en": "fail", "zh": "失敗/不及格", "ph": "feɪl"}, {"en": "fair", "zh": "公平的/市集", "ph": "feər"}, {"en": "fall", "zh": "落下/秋天", "ph": "fɔːl"}, {"en": "false", "zh": "錯誤的", "ph": "fɒls"}, {"en": "family", "zh": "家庭/家人", "ph": "ˈfæm.əl.i"}, {"en": "famous", "zh": "有名的", "ph": "ˈfeɪ.məs"}, {"en": "fan", "zh": "風扇/迷", "ph": "fæn"}, {"en": "far", "zh": "遠的", "ph": "fɑːr"}, {"en": "farm", "zh": "農場", "ph": "fɑːm"}, {"en": "farmer", "zh": "農夫", "ph": "ˈfɑː.mər"}, {"en": "fast", "zh": "快的", "ph": "fɑːst"}, {"en": "fat", "zh": "胖的", "ph": "fæt"}, {"en": "father", "zh": "父親", "ph": "ˈfɑː.ðər"}, {"en": "fault", "zh": "錯誤/缺點", "ph": "fɔːlt"}, {"en": "favor", "zh": "恩惠/贊同", "ph": "ˈfeɪ.vər"}, {"en": "favorite", "zh": "最喜愛的", "ph": "ˈfeɪ.vər.ɪt"}, {"en": "fear", "zh": "害怕", "ph": "fɪər"}, {"en": "February", "zh": "二月", "ph": "ˈfeb.ru.er.i"}, {"en": "feed", "zh": "餵食", "ph": "fiːd"}, {"en": "feel", "zh": "感覺", "ph": "fiːl"}, {"en": "feeling", "zh": "感覺/情感", "ph": "ˈfiː.lɪŋ"}, {"en": "female", "zh": "女性的", "ph": "ˈfiː.meɪl"}, {"en": "fence", "zh": "籬笆", "ph": "fens"}, {"en": "festival", "zh": "節日", "ph": "ˈfes.tə.vəl"}, {"en": "fever", "zh": "發燒", "ph": "ˈfiː.vər"}, {"en": "few", "zh": "很少的", "ph": "fjuː"}, {"en": "fifteen", "zh": "十五", "ph": "ˌfɪfˈtiːn"}, {"en": "fifty", "zh": "五十", "ph": "ˈfɪf.ti"}, {"en": "fight", "zh": "打架/戰鬥", "ph": "faɪt"}, {"en": "figure", "zh": "數字/人物", "ph": "ˈfɪɡ.ər"}, {"en": "fill", "zh": "填滿", "ph": "fɪl"}, {"en": "film", "zh": "電影/底片", "ph": "fɪlm"}, {"en": "final", "zh": "最後的", "ph": "ˈfaɪ.nəl"}, {"en": "find", "zh": "尋找/發現", "ph": "faɪnd"}, {"en": "fine", "zh": "好的/罰款", "ph": "faɪn"}, {"en": "finger", "zh": "手指", "ph": "ˈfɪŋ.ɡər"}, {"en": "finish", "zh": "完成", "ph": "ˈfɪn.ɪʃ"}, {"en": "fire", "zh": "火/解雇", "ph": "ˈfaɪər"}, {"en": "fisherman", "zh": "漁夫", "ph": "ˈfɪʃ.ə.mən"}, {"en": "fish", "zh": "魚/釣魚", "ph": "fɪʃ"}, {"en": "fit", "zh": "合適的", "ph": "fɪt"}, {"en": "five", "zh": "五", "ph": "faɪv"}, {"en": "fix", "zh": "修理/固定", "ph": "fɪks"}, {"en": "flag", "zh": "旗幟", "ph": "flæɡ"}, {"en": "flashlight", "zh": "手電筒", "ph": "ˈflæʃ.laɪt"}, {"en": "flat", "zh": "平的/公寓", "ph": "flæt"}, {"en": "flight", "zh": "班機/飛行", "ph": "flaɪt"}, {"en": "floor", "zh": "地板/樓層", "ph": "flɔːr"}, {"en": "flour", "zh": "麵粉", "ph": "ˈflaʊər"}, {"en": "flower", "zh": "花", "ph": "ˈflaʊ.ər"}, {"en": "flu", "zh": "流行性感冒", "ph": "fluː"}, {"en": "flute", "zh": "長笛", "ph": "fluːt"}, {"en": "fly", "zh": "飛/蒼蠅", "ph": "flaɪ"}, {"en": "focus", "zh": "焦點/聚焦", "ph": "ˈfəʊ.kəs"}, {"en": "fog", "zh": "霧", "ph": "fɒɡ"}, {"en": "foggy", "zh": "有霧的", "ph": "ˈfɒɡ.i"}, {"en": "follow", "zh": "跟隨", "ph": "ˈfɒl.əʊ"}, {"en": "food", "zh": "食物", "ph": "fuːd"}, {"en": "fool", "zh": "傻瓜", "ph": "fuːl"}, {"en": "foolish", "zh": "愚蠢的", "ph": "ˈfuː.lɪʃ"}, {"en": "foot", "zh": "腳/英尺", "ph": "fʊt"}, {"en": "football", "zh": "美式足球", "ph": "ˈfʊt.bɔːl"}, {"en": "for", "zh": "為了/給", "ph": "fɔːr"}, {"en": "foreign", "zh": "外國的", "ph": "ˈfɒr.ən"}, {"en": "foreigner", "zh": "外國人", "ph": "ˈfɒr.ə.nər"}, {"en": "forest", "zh": "森林", "ph": "ˈfɒr.ɪst"}, {"en": "forget", "zh": "忘記", "ph": "fəˈɡet"}, {"en": "forgive", "zh": "原諒", "ph": "fəˈɡɪv"}, {"en": "fork", "zh": "叉子", "ph": "fɔːk"}, {"en": "form", "zh": "表格/形式", "ph": "fɔːm"}, {"en": "former", "zh": "前者的", "ph": "ˈfɔː.mər"}, {"en": "forty", "zh": "四十", "ph": "ˈfɔː.ti"}, {"en": "forward", "zh": "向前", "ph": "ˈfɔː.wəd"}, {"en": "four", "zh": "四", "ph": "fɔːr"}, {"en": "fourteen", "zh": "十四", "ph": "ˌfɔːˈtiːn"}, {"en": "fox", "zh": "狐狸", "ph": "fɒks"}, {"en": "frame", "zh": "框架", "ph": "freɪm"}, {"en": "free", "zh": "自由的/免費的", "ph": "friː"}, {"en": "freedom", "zh": "自由", "ph": "ˈfriː.dəm"}, {"en": "freeze", "zh": "結冰", "ph": "friːz"}, {"en": "French", "zh": "法國的/法語/法國人", "ph": "frentʃ"}, {"en": "fresh", "zh": "新鮮的", "ph": "freʃ"}, {"en": "Friday", "zh": "星期五", "ph": "ˈfraɪ.deɪ"}, {"en": "friend", "zh": "朋友", "ph": "frend"}, {"en": "friendly", "zh": "有好的", "ph": "ˈfrend.li"}, {"en": "frighten", "zh": "嚇唬", "ph": "ˈfraɪ.tən"}, {"en": "frightened", "zh": "感到害怕的", "ph": "ˈfraɪ.tənd"}, {"en": "frisbee", "zh": "飛盤", "ph": "ˈfrɪz.bi"}, {"en": "frog", "zh": "青蛙", "ph": "frɒɡ"}, {"en": "from", "zh": "來自", "ph": "frɒm"}, {"en": "front", "zh": "前面", "ph": "frʌnt"}, {"en": "fruit", "zh": "水果", "ph": "fruːt"}, {"en": "fry", "zh": "油炸", "ph": "fraɪ"}, {"en": "full", "zh": "滿的", "ph": "fʊl"}, {"en": "fun", "zh": "樂趣", "ph": "fʌn"}, {"en": "funny", "zh": "好笑的", "ph": "ˈfʌn.i"}, {"en": "furniture", "zh": "傢俱", "ph": "ˈfɜː.nɪ.tʃər"}, {"en": "future", "zh": "未來", "ph": "ˈfjuː.tʃər"}, {"en": "gain", "zh": "獲得", "ph": "ɡeɪn"}, {"en": "game", "zh": "遊戲/比賽", "ph": "ɡeɪm"}, {"en": "garage", "zh": "車庫", "ph": "ˈɡær.ɑːʒ"}, {"en": "garden", "zh": "花園", "ph": "ˈɡɑː.dən"}, {"en": "garbage", "zh": "垃圾", "ph": "ˈɡɑː.bɪdʒ"}, {"en": "gas", "zh": "瓦斯/汽油", "ph": "ɡæs"}, {"en": "gate", "zh": "大門", "ph": "ɡeɪt"}, {"en": "gather", "zh": "聚集", "ph": "ˈɡæð.ər"}, {"en": "general", "zh": "一般的/將軍", "ph": "ˈdʒen.ər.əl"}, {"en": "generation", "zh": "世代", "ph": "ˌdʒen.əˈreɪ.ʃən"}, {"en": "generous", "zh": "慷慨的", "ph": "ˈdʒen.ər.əs"}, {"en": "genius", "zh": "天才", "ph": "ˈdʒiː.ni.əs"}, {"en": "gentle", "zh": "溫柔的", "ph": "ˈdʒen.təl"}, {"en": "gentleman", "zh": "紳士", "ph": "ˈdʒen.təl.mən"}, {"en": "geography", "zh": "地理", "ph": "dʒiˈɒɡ.rə.fi"}, {"en": "gesture", "zh": "手勢", "ph": "ˈdʒes.tʃər"}, {"en": "get", "zh": "得到/變成", "ph": "ɡet"}, {"en": "ghost", "zh": "鬼", "ph": "ɡəʊst"}, {"en": "giant", "zh": "巨大的/巨人", "ph": "ˈdʒaɪ.ənt"}, {"en": "gift", "zh": "禮物/天賦", "ph": "ɡɪft"}, {"en": "girl", "zh": "女孩", "ph": "ɡɜːl"}, {"en": "give", "zh": "給", "ph": "ɡɪv"}, {"en": "glad", "zh": "高興的", "ph": "ɡlæd"}, {"en": "glass", "zh": "玻璃/玻璃杯", "ph": "ɡlɑːs"}, {"en": "glasses", "zh": "眼鏡", "ph": "ˈɡlɑː.sɪz"}, {"en": "glove", "zh": "手套", "ph": "ɡlʌv"}, {"en": "glue", "zh": "膠水", "ph": "ɡluː"}, {"en": "go", "zh": "去", "ph": "ɡəʊ"}, {"en": "goal", "zh": "目標", "ph": "ɡəʊl"}, {"en": "goat", "zh": "山羊", "ph": "ɡəʊt"}, {"en": "god", "zh": "神", "ph": "ɡɒd"}, {"en": "gold", "zh": "黃金", "ph": "ɡəʊld"}, {"en": "golden", "zh": "金色的", "ph": "ˈɡəʊl.dən"}, {"en": "golf", "zh": "高爾夫球", "ph": "ɡɒlf"}, {"en": "good", "zh": "好的", "ph": "ɡʊd"}, {"en": "good-bye", "zh": "再見", "ph": "ˌɡʊdˈbaɪ"}, {"en": "goose", "zh": "鵝", "ph": "ɡuːs"}, {"en": "government", "zh": "政府", "ph": "ˈɡʌv.ən.mənt"}, {"en": "grade", "zh": "年級/成績", "ph": "ɡreɪd"}, {"en": "grandchild", "zh": "孫子女", "ph": "ˈɡræn.tʃaɪld"}, {"en": "granddaughter", "zh": "孫女", "ph": "ˈɡræn.dɔː.tər"}, {"en": "grandfather", "zh": "祖父", "ph": "ˈɡræn.fɑː.ðər"}, {"en": "grandma", "zh": "祖母", "ph": "ˈɡræn.mɑː"}, {"en": "grandmother", "zh": "祖母", "ph": "ˈɡræn.mʌð.ər"}, {"en": "grandpa", "zh": "祖父", "ph": "ˈɡræn.pɑː"}, {"en": "grandson", "zh": "孫子", "ph": "ˈɡræn.sʌn"}, {"en": "grape", "zh": "葡萄", "ph": "ɡreɪp"}, {"en": "grass", "zh": "草", "ph": "ɡrɑːs"}, {"en": "gray", "zh": "灰色的", "ph": "ɡreɪ"}, {"en": "great", "zh": "棒的/偉大的", "ph": "ɡreɪt"}, {"en": "greedy", "zh": "貪心的", "ph": "ˈɡriː.di"}, {"en": "green", "zh": "綠色的", "ph": "ɡriːn"}, {"en": "greet", "zh": "打招呼", "ph": "ɡriːt"}, {"en": "ground", "zh": "地面", "ph": "ɡraʊnd"}, {"en": "group", "zh": "群組/團隊", "ph": "ɡruːp"}, {"en": "grow", "zh": "生長/種植", "ph": "ɡrəʊ"}, {"en": "guard", "zh": "警衛/防衛", "ph": "ɡɑːd"}, {"en": "guava", "zh": "芭樂", "ph": "ˈɡwɑː.və"}, {"en": "guest", "zh": "客人", "ph": "ɡest"}, {"en": "guide", "zh": "導遊/指南", "ph": "ɡaɪd"}, {"en": "guitar", "zh": "吉他", "ph": "ɡɪˈtɑːr"}, {"en": "gun", "zh": "槍", "ph": "ɡʌn"}, {"en": "guy", "zh": "家伙/男子", "ph": "ɡaɪ"}, {"en": "gym", "zh": "體育館", "ph": "dʒɪm"}, {"en": "habit", "zh": "習慣", "ph": "ˈhæb.ɪt"}, {"en": "hair", "zh": "頭髮", "ph": "heər"}, {"en": "haircut", "zh": "理髮", "ph": "ˈheə.kʌt"}, {"en": "half", "zh": "一半", "ph": "hɑːf"}, {"en": "ham", "zh": "火腿", "ph": "hæm"}, {"en": "hamburger", "zh": "漢堡", "ph": "ˈhæm.bɜː.ɡər"}, {"en": "hand", "zh": "手/遞交", "ph": "hænd"}, {"en": "handbag", "zh": "手提包", "ph": "ˈhænd.bæɡ"}, {"en": "handkerchief", "zh": "手帕", "ph": "ˈhæŋ.kə.tʃɪf"}, {"en": "handle", "zh": "處理/把手", "ph": "ˈhæn.dəl"}, {"en": "handsome", "zh": "英俊的", "ph": "ˈhæn.səm"}, {"en": "hang", "zh": "懸掛", "ph": "hæŋ"}, {"en": "happen", "zh": "發生", "ph": "ˈhæp.ən"}, {"en": "happy", "zh": "快樂的", "ph": "ˈhæp.i"}, {"en": "hard", "zh": "硬的/困難的/努力地", "ph": "hɑːd"}, {"en": "hardly", "zh": "幾乎不", "ph": "ˈhɑːd.li"}, {"en": "hardworking", "zh": "勤奮的", "ph": "ˌhɑːdˈwɜː.kɪŋ"}, {"en": "hat", "zh": "帽子", "ph": "hæt"}, {"en": "hate", "zh": "討厭", "ph": "heɪt"}, {"en": "have", "zh": "有/吃", "ph": "hæv"}, {"en": "he", "zh": "他", "ph": "hiː"}, {"en": "head", "zh": "頭/首長", "ph": "hed"}, {"en": "headache", "zh": "頭痛", "ph": "ˈhed.eɪk"}, {"en": "health", "zh": "健康", "ph": "helθ"}, {"en": "healthy", "zh": "健康的", "ph": "ˈhel.θi"}, {"en": "hear", "zh": "聽見", "ph": "hɪər"}, {"en": "heart", "zh": "心臟/心", "ph": "hɑːt"}, {"en": "heat", "zh": "熱度/加熱", "ph": "hiːt"}, {"en": "heater", "zh": "電暖器", "ph": "ˈhiː.tər"}, {"en": "heavy", "zh": "重的", "ph": "ˈhev.i"}, {"en": "height", "zh": "高度", "ph": "haɪt"}, {"en": "helicopter", "zh": "直飛機", "ph": "ˈhel.ɪˌkɒp.tər"}, {"en": "hello", "zh": "哈囉", "ph": "həˈləʊ"}, {"en": "help", "zh": "幫忙", "ph": "help"}, {"en": "helpful", "zh": "有幫助的", "ph": "ˈhelp.fəl"}, {"en": "hen", "zh": "母雞", "ph": "hen"}, {"en": "her", "zh": "她的/她(受格)", "ph": "hɜːr"}, {"en": "here", "zh": "這裡", "ph": "hɪər"}, {"en": "hero", "zh": "英雄", "ph": "ˈhɪə.rəʊ"}, {"en": "hers", "zh": "她的(所有格代名詞)", "ph": "hɜːz"}, {"en": "herself", "zh": "她自己", "ph": "hɜːˈself"}, {"en": "hey", "zh": "嘿", "ph": "heɪ"}, {"en": "hi", "zh": "嗨", "ph": "haɪ"}, {"en": "hide", "zh": "躲藏", "ph": "haɪd"}, {"en": "high", "zh": "高的", "ph": "haɪ"}, {"en": "highway", "zh": "公路", "ph": "ˈhaɪ.weɪ"}, {"en": "hike", "zh": "健行", "ph": "haɪk"}, {"en": "hill", "zh": "小山", "ph": "hɪl"}, {"en": "him", "zh": "他(受格)", "ph": "hɪm"}, {"en": "himself", "zh": "他自己", "ph": "hɪmˈself"}, {"en": "hippo", "zh": "河馬", "ph": "ˈhɪp.əʊ"}, {"en": "hire", "zh": "雇用", "ph": "ˈhaɪər"}, {"en": "his", "zh": "他的", "ph": "hɪz"}, {"en": "history", "zh": "歷史", "ph": "ˈhɪs.tər.i"}, {"en": "hit", "zh": "打擊", "ph": "hɪt"}, {"en": "hobby", "zh": "嗜好", "ph": "ˈhɒb.i"}, {"en": "hold", "zh": "握住/舉辦", "ph": "həʊld"}, {"en": "holiday", "zh": "假日", "ph": "ˈhɒl.ɪ.deɪ"}, {"en": "home", "zh": "家", "ph": "həʊm"}, {"en": "homework", "zh": "家庭作業", "ph": "ˈhəʊm.wɜːk"}, {"en": "honest", "zh": "誠實的", "ph": "ˈɒn.ɪst"}, {"en": "honey", "zh": "蜂蜜/親愛的", "ph": "ˈhʌn.i"}, {"en": "hong kong", "zh": "香港", "ph": "ˌhɒŋ ˈkɒŋ"}, {"en": "hope", "zh": "希望", "ph": "həʊp"}, {"en": "hopeless", "zh": "絕望的", "ph": "ˈhəʊp.ləs"}, {"en": "horse", "zh": "馬", "ph": "hɔːs"}, {"en": "hospital", "zh": "醫院", "ph": "ˈhɒs.pɪ.təl"}, {"en": "host", "zh": "主人", "ph": "həʊst"}, {"en": "hot", "zh": "熱的/辣的", "ph": "hɒt"}, {"en": "hot dog", "zh": "熱狗", "ph": "ˌhɒt ˈdɒɡ"}, {"en": "hotel", "zh": "飯店", "ph": "həʊˈtel"}, {"en": "hour", "zh": "小時", "ph": "ˈaʊər"}, {"en": "house", "zh": "房子", "ph": "haʊs"}, {"en": "housewife", "zh": "全職家庭主婦", "ph": "ˈhaʊs.waɪf"}, {"en": "housework", "zh": "家事", "ph": "ˈhaʊs.wɜːk"}, {"en": "how", "zh": "如何", "ph": "haʊ"}, {"en": "however", "zh": "然而", "ph": "haʊˈev.ər"}, {"en": "hug", "zh": "擁抱", "ph": "hʌɡ"}, {"en": "human", "zh": "人類", "ph": "ˈhjuː.mən"}, {"en": "humble", "zh": "謙虛的", "ph": "ˈhʌm.bəl"}, {"en": "humid", "zh": "潮濕的", "ph": "ˈhjuː.mɪd"}, {"en": "humor", "zh": "幽默", "ph": "ˈhjuː.mər"}, {"en": "humorous", "zh": "幽默的", "ph": "ˈhjuː.mər.əs"}, {"en": "hundred", "zh": "百", "ph": "ˈhʌn.drəd"}, {"en": "hunger", "zh": "飢餓", "ph": "ˈhʌŋ.ɡər"}, {"en": "hungry", "zh": "飢餓的", "ph": "ˈhʌŋ.ɡri"}, {"en": "hunt", "zh": "打獵", "ph": "hʌnt"}, {"en": "hunter", "zh": "獵人", "ph": "ˈhʌn.tər"}, {"en": "hurry", "zh": "匆忙", "ph": "ˈhʌr.i"}, {"en": "hurt", "zh": "受傷/傷害", "ph": "hɜːt"}, {"en": "husband", "zh": "丈夫", "ph": "ˈhʌz.bənd"}, {"en": "i", "zh": "我", "ph": "aɪ"}, {"en": "ice", "zh": "冰", "ph": "aɪs"}, {"en": "ice cream", "zh": "冰淇淋", "ph": "ˌaɪs ˈkriːm"}, {"en": "idea", "zh": "想法/主意", "ph": "aɪˈdɪə"}, {"en": "if", "zh": "如果", "ph": "ɪf"}, {"en": "ignore", "zh": "忽略", "ph": "ɪɡˈnɔːr"}, {"en": "ill", "zh": "生病的", "ph": "ɪl"}, {"en": "image", "zh": "影像/形象", "ph": "ˈɪm.ɪdʒ"}, {"en": "imagine", "zh": "想像", "ph": "ɪˈmædʒ.ɪn"}, {"en": "imitate", "zh": "模仿", "ph": "ˈɪm.ɪ.teɪt"}, {"en": "immediate", "zh": "立即的", "ph": "ɪˈmiː.di.ət"}, {"en": "importance", "zh": "重要性", "ph": "ɪmˈpɔː.təns"}, {"en": "important", "zh": "重要的", "ph": "ɪmˈpɔː.tənt"}, {"en": "impossible", "zh": "不可能的", "ph": "ɪmˈpɒs.ə.bəl"}, {"en": "improve", "zh": "改善", "ph": "ɪmˈpruːv"}, {"en": "in", "zh": "在...裡面", "ph": "ɪn"}, {"en": "inch", "zh": "英吋", "ph": "ɪntʃ"}, {"en": "include", "zh": "包含", "ph": "ɪnˈkluːd"}, {"en": "income", "zh": "收入", "ph": "ˈɪŋ.kʌm"}, {"en": "increase", "zh": "增加", "ph": "ɪnˈkriːs"}, {"en": "independent", "zh": "獨立的", "ph": "ˌɪn.dɪˈpen.dənt"}, {"en": "indicate", "zh": "指出", "ph": "ˈɪn.dɪ.keɪt"}, {"en": "influence", "zh": "影響", "ph": "ˈɪn.flu.əns"}, {"en": "information", "zh": "資訊", "ph": "ˌɪn.fəˈmeɪ.ʃən"}, {"en": "injury", "zh": "受傷", "ph": "ˈɪn.dʒər.i"}, {"en": "ink", "zh": "墨水", "ph": "ɪŋk"}, {"en": "insect", "zh": "昆蟲", "ph": "ˈɪn.sekt"}, {"en": "inside", "zh": "在...裡面", "ph": "ɪnˈsaɪd"}, {"en": "insist", "zh": "堅持", "ph": "ɪnˈsɪst"}, {"en": "inspire", "zh": "啟發", "ph": "ɪnˈspaɪər"}, {"en": "instance", "zh": "例子", "ph": "ˈɪn.stəns"}, {"en": "instant", "zh": "立即的", "ph": "ˈɪn.stənt"}, {"en": "instrument", "zh": "儀器/樂器", "ph": "ˈɪn.strə.mənt"}, {"en": "intelligent", "zh": "聰明的", "ph": "ɪnˈtel.ɪ.dʒənt"}, {"en": "intent", "zh": "意圖", "ph": "ɪnˈtent"}, {"en": "interest", "zh": "興趣/利息", "ph": "ˈɪn.trəst"}, {"en": "interested", "zh": "感到有興趣的", "ph": "ˈɪn.trə.stɪd"}, {"en": "interesting", "zh": "有趣的", "ph": "ˈɪn.trə.stɪŋ"}, {"en": "international", "zh": "國際的", "ph": "ˌɪn.təˈnæʃ.ən.əl"}, {"en": "internet", "zh": "網路", "ph": "ˈɪn.tə.net"}, {"en": "interview", "zh": "面試/採訪", "ph": "ˈɪn.tə.vjuː"}, {"en": "introduce", "zh": "介紹", "ph": "ˌɪn.trəˈdjuːs"}, {"en": "invent", "zh": "發明", "ph": "ɪnˈvent"}, {"en": "invention", "zh": "發明物", "ph": "ɪnˈven.ʃən"}, {"en": "invitation", "zh": "邀請函", "ph": "ˌɪn.vɪˈteɪ.ʃən"}, {"en": "invite", "zh": "邀請", "ph": "ɪnˈvaɪt"}, {"en": "iron", "zh": "鐵/熨斗", "ph": "ˈaɪən"}, {"en": "island", "zh": "島嶼", "ph": "ˈaɪ.lənd"}, {"en": "it", "zh": "牠/它", "ph": "ɪt"}, {"en": "its", "zh": "牠的/它的", "ph": "ɪts"}, {"en": "itself", "zh": "牠自己/它自己", "ph": "ɪtˈself"}, {"en": "jacket", "zh": "夾克", "ph": "ˈdʒæk.ɪt"}, {"en": "jam", "zh": "果醬/卡住", "ph": "dʒæm"}, {"en": "January", "zh": "一月", "ph": "ˈdʒæn.ju.er.i"}, {"en": "Japan", "zh": "日本", "ph": "dʒəˈpæn"}, {"en": "Japanese", "zh": "日本人/日語/日本的", "ph": "ˌdʒæp.əˈniːz"}, {"en": "jeans", "zh": "牛仔褲", "ph": "dʒiːnz"}, {"en": "jeep", "zh": "吉普車", "ph": "dʒiːp"}, {"en": "job", "zh": "工作", "ph": "dʒɒb"}, {"en": "jog", "zh": "慢跑", "ph": "dʒɒɡ"}, {"en": "join", "zh": "加入", "ph": "dʒɔɪn"}, {"en": "joke", "zh": "笑話", "ph": "dʒəʊk"}, {"en": "journalist", "zh": "記者", "ph": "ˈdʒɜː.nə.lɪst"}, {"en": "journey", "zh": "旅程", "ph": "ˈdʒɜː.ni"}, {"en": "joy", "zh": "喜悅", "ph": "dʒɔɪ"}, {"en": "judge", "zh": "法官/裁判/評判", "ph": "dʒʌdʒ"}, {"en": "juice", "zh": "果汁", "ph": "dʒuːs"}, {"en": "July", "zh": "七月", "ph": "dʒuˈlaɪ"}, {"en": "jump", "zh": "跳躍", "ph": "dʒʌmp"}, {"en": "June", "zh": "六月", "ph": "dʒuːn"}, {"en": "junior", "zh": "初級的/年少的", "ph": "ˈdʒuː.ni.ər"}, {"en": "just", "zh": "剛剛/只是", "ph": "dʒʌst"}, {"en": "kangaroo", "zh": "袋鼠", "ph": "ˌkæŋ.ɡəˈruː"}, {"en": "keep", "zh": "保持/保留", "ph": "kiːp"}, {"en": "key", "zh": "鍵盤/鑰匙", "ph": "kiː"}, {"en": "kick", "zh": "踢", "ph": "kɪk"}, {"en": "kid", "zh": "小孩/開玩笑", "ph": "kɪd"}, {"en": "kill", "zh": "殺死", "ph": "kɪl"}, {"en": "kilogram", "zh": "公斤", "ph": "ˈkɪl.ə.ɡræm"}, {"en": "kilometer", "zh": "公里", "ph": "ˈkɪl.əˌmiː.tər"}, {"en": "kind", "zh": "仁慈的/種類", "ph": "kaɪnd"}, {"en": "king", "zh": "國王", "ph": "kɪŋ"}, {"en": "kingdom", "zh": "王國", "ph": "ˈkɪŋ.dəm"}, {"en": "kiss", "zh": "吻", "ph": "kɪs"}, {"en": "kitchen", "zh": "廚房", "ph": "ˈkɪtʃ.ən"}, {"en": "kite", "zh": "風箏", "ph": "kaɪt"}, {"en": "kitten", "zh": "小貓", "ph": "ˈkɪt.ən"}, {"en": "knee", "zh": "膝蓋", "ph": "niː"}, {"en": "knife", "zh": "刀子", "ph": "naɪf"}, {"en": "knight", "zh": "騎士", "ph": "naɪt"}, {"en": "knock", "zh": "敲擊", "ph": "nɒk"}, {"en": "know", "zh": "知道", "ph": "nəʊ"}, {"en": "knowledge", "zh": "知識", "ph": "ˈnɒl.ɪdʒ"}, {"en": "koala", "zh": "無尾熊", "ph": "kəʊˈɑː.lə"}, {"en": "Korea", "zh": "韓國", "ph": "kəˈrɪə"}, {"en": "Korean", "zh": "韓國人/韓語/韓國的", "ph": "kəˈriː.ən"}, {"en": "kwanzaa", "zh": "寬扎節", "ph": "ˈkwɑːn.zə"}, {"en": "labor", "zh": "勞動", "ph": "ˈleɪ.bər"}, {"en": "lack", "zh": "缺乏", "ph": "læk"}, {"en": "lady", "zh": "女士", "ph": "ˈleɪ.di"}, {"en": "lake", "zh": "湖泊", "ph": "leɪk"}, {"en": "lamb", "zh": "小羊肉", "ph": "læm"}, {"en": "lamp", "zh": "檯燈", "ph": "læmp"}, {"en": "land", "zh": "土地/著陸", "ph": "lænd"}, {"en": "language", "zh": "語言", "ph": "ˈlæŋ.ɡwɪdʒ"}, {"en": "lantern", "zh": "燈籠", "ph": "ˈlæn.tən"}, {"en": "large", "zh": "大的", "ph": "lɑːdʒ"}, {"en": "laser", "zh": "雷射", "ph": "ˈleɪ.zər"}, {"en": "last", "zh": "最後的/持續", "ph": "lɑːst"}, {"en": "late", "zh": "遲的", "ph": "leɪt"}, {"en": "lately", "zh": "最近", "ph": "ˈleɪt.li"}, {"en": "later", "zh": "稍後", "ph": "ˈleɪ.tər"}, {"en": "latest", "zh": "最新的", "ph": "ˈleɪ.tɪst"}, {"en": "laugh", "zh": "笑", "ph": "lɑːf"}, {"en": "law", "zh": "法律", "ph": "lɔː"}, {"en": "lawyer", "zh": "律師", "ph": "ˈlɔː.jər"}, {"en": "lay", "zh": "產卵/擺放", "ph": "leɪ"}, {"en": "lazy", "zh": "懶惰的", "ph": "ˈleɪ.zi"}, {"en": "lead", "zh": "引導/領導", "ph": "liːd"}, {"en": "leader", "zh": "領導者", "ph": "ˈliː.dər"}, {"en": "leadership", "zh": "領導能力", "ph": "ˈliː.də.ʃɪp"}, {"en": "leaf", "zh": "樹葉", "ph": "liːf"}, {"en": "league", "zh": "聯盟", "ph": "liːɡ"}, {"en": "learn", "zh": "學習", "ph": "lɜːn"}, {"en": "least", "zh": "最少的", "ph": "liːst"}, {"en": "leather", "zh": "皮革", "ph": "ˈleð.ər"}, {"en": "leave", "zh": "離開/留下", "ph": "liːv"}, {"en": "legal", "zh": "合法的", "ph": "ˈliː.ɡəl"}, {"en": "lemon", "zh": "檸檬", "ph": "ˈlem.ən"}, {"en": "lend", "zh": "借出", "ph": "lend"}, {"en": "length", "zh": "長度", "ph": "leŋθ"}, {"en": "less", "zh": "較少的", "ph": "les"}, {"en": "lesson", "zh": "課/教訓", "ph": "ˈles.ən"}, {"en": "let", "zh": "讓", "ph": "let"}, {"en": "letter", "zh": "信件/字母", "ph": "ˈlet.ər"}, {"en": "lettuce", "zh": "萵苣", "ph": "ˈlet.ɪs"}, {"en": "level", "zh": "水平/等級", "ph": "ˈlev.əl"}, {"en": "library", "zh": "圖書館", "ph": "ˈlaɪ.brər.i"}, {"en": "lick", "zh": "舔", "ph": "lɪk"}, {"en": "lid", "zh": "蓋子", "ph": "lɪd"}, {"en": "lie", "zh": "躺/說謊", "ph": "laɪ"}, {"en": "life", "zh": "生命/生活", "ph": "laɪf"}, {"en": "lift", "zh": "舉起/電梯", "ph": "lɪft"}, {"en": "light", "zh": "光線/輕的/點燃", "ph": "laɪt"}, {"en": "like", "zh": "喜歡/像", "ph": "laɪk"}, {"en": "limit", "zh": "限制", "ph": "ˈlɪm.ɪt"}, {"en": "line", "zh": "線/排隊", "ph": "laɪn"}, {"en": "link", "zh": "連結", "ph": "lɪŋk"}, {"en": "lion", "zh": "獅子", "ph": "ˈlaɪ.ən"}, {"en": "lip", "zh": "嘴唇", "ph": "lɪp"}, {"en": "liquid", "zh": "液體", "ph": "ˈlɪk.wɪd"}, {"en": "list", "zh": "清單", "ph": "lɪst"}, {"en": "listen", "zh": "傾聽", "ph": "ˈlɪs.ən"}, {"en": "liter", "zh": "公升", "ph": "ˈliː.tər"}, {"en": "little", "zh": "小的/很少的", "ph": "ˈlɪt.əl"}, {"en": "live", "zh": "居住/活的/直播", "ph": "lɪv"}, {"en": "lively", "zh": "熱鬧的/有生氣的", "ph": "ˈlaɪv.li"}, {"en": "liver", "zh": "肝臟", "ph": "ˈlɪv.ər"}, {"en": "load", "zh": "裝載/負荷", "ph": "ləʊd"}, {"en": "loaf", "zh": "條(麵包)", "ph": "ləʊf"}, {"en": "local", "zh": "在地的/當地的", "ph": "ˈləʊ.kəl"}, {"en": "location", "zh": "位置", "ph": "ləʊˈkeɪ.ʃən"}, {"en": "lock", "zh": "鎖", "ph": "lɒk"}, {"en": "log", "zh": "原木/日誌", "ph": "lɒɡ"}, {"en": "lonely", "zh": "孤獨的", "ph": "ˈləʊn.li"}, {"en": "long", "zh": "長的", "ph": "lɒŋ"}, {"en": "look", "zh": "看/看起來", "ph": "lʊk"}, {"en": "lose", "zh": "失去/輸掉", "ph": "luːz"}, {"en": "loser", "zh": "輸家", "ph": "ˈluː.zər"}, {"en": "loss", "zh": "損失", "ph": "lɒs"}, {"en": "lot", "zh": "許多", "ph": "lɒt"}, {"en": "loud", "zh": "大聲的", "ph": "laʊd"}, {"en": "love", "zh": "愛", "ph": "lʌv"}, {"en": "lovely", "zh": "可愛的", "ph": "ˈlʌv.li"}, {"en": "lover", "zh": "情人", "ph": "ˈlʌv.ər"}, {"en": "low", "zh": "低的", "ph": "ləʊ"}, {"en": "loyal", "zh": "忠誠的", "ph": "ˈlɔɪ.əl"}, {"en": "luck", "zh": "運氣", "ph": "lʌk"}, {"en": "lucky", "zh": "幸運的", "ph": "ˈlʌk.i"}, {"en": "lunch", "zh": "午餐", "ph": "lʌntʃ"}, {"en": "lung", "zh": "肺", "ph": "lʌŋ"}, {"en": "machine", "zh": "機器", "ph": "məˈʃiːn"}, {"en": "mad", "zh": "瘋狂的/生氣的", "ph": "mæd"}, {"en": "magazine", "zh": "雜誌", "ph": "ˌmæɡ.əˈziːn"}, {"en": "magic", "zh": "魔術/神奇的", "ph": "ˈmædʒ.ɪk"}, {"en": "magician", "zh": "魔術師", "ph": "məˈdʒɪʃ.ən"}, {"en": "mail", "zh": "郵件", "ph": "meɪl"}, {"en": "mailman", "zh": "郵差", "ph": "ˈmeɪl.mæn"}, {"en": "main", "zh": "主要的", "ph": "meɪn"}, {"en": "major", "zh": "主要的/主修", "ph": "ˈmeɪ.dʒər"}, {"en": "make", "zh": "製造/使得", "ph": "meɪk"}, {"en": "male", "zh": "男性的", "ph": "meɪl"}, {"en": "mall", "zh": "購物中心", "ph": "mɔːl"}, {"en": "mammal", "zh": "哺乳動物", "ph": "ˈmæm.əl"}, {"en": "man", "zh": "男人", "ph": "mæn"}, {"en": "manage", "zh": "管理/經營", "ph": "ˈmæn.ɪdʒ"}, {"en": "manager", "zh": "經理", "ph": "ˈmæn.ɪ.dʒər"}, {"en": "mandarin", "zh": "國語/普通話", "ph": "ˈmæn.də.rɪn"}, {"en": "mango", "zh": "芒果", "ph": "ˈmæŋ.ɡəʊ"}, {"en": "manner", "zh": "禮貌/方式", "ph": "ˈmæn.ər"}, {"en": "many", "zh": "許多的", "ph": "ˈmen.i"}, {"en": "map", "zh": "地圖", "ph": "mæp"}, {"en": "maple", "zh": "楓樹", "ph": "ˈmeɪ.pəl"}, {"en": "marathon", "zh": "馬拉松", "ph": "ˈmær.ə.θən"}, {"en": "marble", "zh": "大理石/彈珠", "ph": "ˈmɑː.bəl"}, {"en": "March", "zh": "三月", "ph": "mɑːtʃ"}, {"en": "mark", "zh": "分數/標記", "ph": "mɑːk"}, {"en": "market", "zh": "市場", "ph": "ˈmɑː.kɪt"}, {"en": "marriage", "zh": "婚姻", "ph": "ˈmær.ɪdʒ"}, {"en": "marry", "zh": "結婚", "ph": "ˈmær.i"}, {"en": "marvel", "zh": "奇蹟/驚嘆", "ph": "ˈmɑː.vəl"}, {"en": "mask", "zh": "面具/口罩", "ph": "mɑːsk"}, {"en": "mass", "zh": "大量/群眾", "ph": "mæs"}, {"en": "master", "zh": "主人/大師", "ph": "ˈmɑː.stər"}, {"en": "match", "zh": "比賽/火柴/配對", "ph": "mætʃ"}, {"en": "mate", "zh": "夥伴", "ph": "meɪt"}, {"en": "material", "zh": "材料", "ph": "məˈtɪə.ri.əl"}, {"en": "math", "zh": "數學", "ph": "mæθ"}, {"en": "mathematics", "zh": "數學", "ph": "ˌmæθ.əˈmæt.ɪks"}, {"en": "matter", "zh": "事情/重要", "ph": "ˈmæt.ər"}, {"en": "maximum", "zh": "最大值", "ph": "ˈmæk.sɪ.məm"}, {"en": "May", "zh": "五月/可以", "ph": "meɪ"}, {"en": "maybe", "zh": "也許", "ph": "ˈmeɪ.biː"}, {"en": "me", "zh": "我(受格)", "ph": "miː"}, {"en": "meal", "zh": "一餐", "ph": "miːl"}, {"en": "mean", "zh": "意思是/刻薄的", "ph": "miːn"}, {"en": "meaning", "zh": "意義", "ph": "ˈmiː.nɪŋ"}, {"en": "measure", "zh": "測量", "ph": "ˈmeʒ.ər"}, {"en": "meat", "zh": "肉類", "ph": "miːt"}, {"en": "mechanic", "zh": "技工", "ph": "məˈkæn.ɪk"}, {"en": "medal", "zh": "獎牌", "ph": "ˈmed.əl"}, {"en": "media", "zh": "媒體", "ph": "ˈmiː.di.ə"}, {"en": "medical", "zh": "醫療的", "ph": "ˈmed.ɪ.kəl"}, {"en": "medicine", "zh": "藥", "ph": "ˈmed.ɪ.sɪn"}, {"en": "meet", "zh": "遇見", "ph": "miːt"}, {"en": "meeting", "zh": "會議", "ph": "ˈmiː.tɪŋ"}, {"en": "melon", "zh": "瓜類", "ph": "ˈmel.ən"}, {"en": "member", "zh": "會員/成員", "ph": "ˈmem.bər"}, {"en": "memory", "zh": "記憶", "ph": "ˈmem.ər.i"}, {"en": "men", "zh": "男人們(複數)", "ph": "men"}, {"en": "mental", "zh": "心理的", "ph": "ˈmen.təl"}, {"en": "mention", "zh": "提及", "ph": "ˈmen.ʃən"}, {"en": "menu", "zh": "菜單", "ph": "ˈmen.juː"}, {"en": "merchant", "zh": "商人", "ph": "ˈmɜː.tʃənt"}, {"en": "mercy", "zh": "慈悲", "ph": "ˈmɜː.si"}, {"en": "merely", "zh": "僅僅", "ph": "ˈmɪə.li"}, {"en": "merit", "zh": "優點", "ph": "ˈmer.ɪt"}, {"en": "merry", "zh": "快樂的", "ph": "ˈmer.i"}, {"en": "mess", "zh": "混亂", "ph": "mes"}, {"en": "message", "zh": "訊息", "ph": "ˈmes.ɪdʒ"}, {"en": "metal", "zh": "金屬", "ph": "ˈmet.əl"}, {"en": "method", "zh": "方法", "ph": "ˈmeθ.əd"}, {"en": "metric", "zh": "公制的", "ph": "ˈmet.rɪk"}, {"en": "microphone", "zh": "麥克風", "ph": "ˈmaɪ.krə.fəʊn"}, {"en": "microwave", "zh": "微波爐", "ph": "ˈmaɪ.krə.weɪv"}, {"en": "middle", "zh": "中間的", "ph": "ˈmɪd.əl"}, {"en": "midnight", "zh": "午夜", "ph": "ˈmɪd.naɪt"}, {"en": "might", "zh": "可能", "ph": "maɪt"}, {"en": "mighty", "zh": "強大的", "ph": "ˈmaɪ.ti"}, {"en": "mild", "zh": "溫和的", "ph": "maɪld"}, {"en": "mile", "zh": "英哩", "ph": "maɪl"}, {"en": "military", "zh": "軍事的", "ph": "ˈmɪl.ɪ.tər.i"}, {"en": "milk", "zh": "牛奶", "ph": "mɪlk"}, {"en": "million", "zh": "百萬", "ph": "ˈmɪl.jən"}, {"en": "mind", "zh": "頭腦/介意", "ph": "maɪnd"}, {"en": "mine", "zh": "我的(所有格代名詞)/礦坑", "ph": "maɪn"}, {"en": "miner", "zh": "礦工", "ph": "ˈmaɪ.nər"}, {"en": "mineral", "zh": "礦物", "ph": "ˈmɪn.ər.əl"}, {"en": "minimum", "zh": "最小值", "ph": "ˈmɪn.ɪ.məm"}, {"en": "minister", "zh": "部長", "ph": "ˈmɪn.ɪ.stər"}, {"en": "minor", "zh": "次要的/未成年人", "ph": "ˈmaɪ.nər"}, {"en": "minority", "zh": "少數", "ph": "maɪˈnɒr.ɪ.ti"}, {"en": "minus", "zh": "減去", "ph": "ˈmaɪ.nəs"}, {"en": "minute", "zh": "分鐘", "ph": "ˈmɪn.ɪt"}, {"en": "miracle", "zh": "奇蹟", "ph": "ˈmɪr.ə.kəl"}, {"en": "mirror", "zh": "鏡子", "ph": "ˈmɪr.ər"}, {"en": "miserable", "zh": "悲慘的", "ph": "ˈmɪz.ər.ə.bəl"}, {"en": "miss", "zh": "想念/錯過/小姐", "ph": "mɪs"}, {"en": "missile", "zh": "飛彈", "ph": "ˈmɪs.aɪl"}, {"en": "mission", "zh": "任務", "ph": "ˈmɪʃ.ən"}, {"en": "mist", "zh": "薄霧", "ph": "mɪst"}, {"en": "mistake", "zh": "錯誤", "ph": "mɪˈsteɪk"}, {"en": "mix", "zh": "混合", "ph": "mɪks"}, {"en": "mixture", "zh": "混合物", "ph": "ˈmɪks.tʃər"}, {"en": "moan", "zh": "呻吟", "ph": "məʊn"}, {"en": "mob", "zh": "暴民", "ph": "mɒb"}, {"en": "mobile", "zh": "可移動的", "ph": "ˈməʊ.baɪl"}, {"en": "model", "zh": "模型/模特兒", "ph": "ˈmɒd.əl"}, {"en": "moderate", "zh": "適度的", "ph": "ˈmɒd.ər.ət"}, {"en": "modern", "zh": "現代的", "ph": "ˈmɒd.ən"}, {"en": "modest", "zh": "謙虛的", "ph": "ˈmɒd.ɪst"}, {"en": "moist", "zh": "潮濕的", "ph": "mɔɪst"}, {"en": "moisture", "zh": "濕氣", "ph": "ˈmɔɪs.tʃər"}, {"en": "molecule", "zh": "分子", "ph": "ˈmɒl.ɪ.kjuːl"}, {"en": "moment", "zh": "片刻", "ph": "ˈməʊ.mənt"}, {"en": "monarch", "zh": "君主", "ph": "ˈmɒn.ək"}, {"en": "monastery", "zh": "修道院", "ph": "ˈmɒn.ə.stri"}, {"en": "Monday", "zh": "星期一", "ph": "ˈmʌn.deɪ"}, {"en": "money", "zh": "錢", "ph": "ˈmʌn.i"}, {"en": "monk", "zh": "僧侶", "ph": "mʌŋk"}, {"en": "monkey", "zh": "猴子", "ph": "ˈmʌŋ.ki"}, {"en": "monster", "zh": "怪物", "ph": "ˈmɒn.stər"}, {"en": "month", "zh": "月份", "ph": "mʌnθ"}, {"en": "monument", "zh": "紀念碑", "ph": "ˈmɒn.jʊ.mənt"}, {"en": "mood", "zh": "心情", "ph": "muːd"}, {"en": "moon", "zh": "月亮", "ph": "muːn"}, {"en": "moral", "zh": "道德的", "ph": "ˈmɒr.əl"}, {"en": "more", "zh": "更多的", "ph": "mɔːr"}, {"en": "morning", "zh": "早上", "ph": "ˈmɔː.nɪŋ"}, {"en": "mortal", "zh": "會死的/凡人", "ph": "ˈmɔː.təl"}, {"en": "mosquito", "zh": "蚊子", "ph": "məˈskiː.təʊ"}, {"en": "moss", "zh": "苔蘚", "ph": "mɒs"}, {"en": "most", "zh": "最多的", "ph": "məʊst"}, {"en": "mother", "zh": "母親", "ph": "ˈmʌð.ər"}, {"en": "motion", "zh": "動作", "ph": "ˈməʊ.ʃən"}, {"en": "motivate", "zh": "激勵", "ph": "ˈməʊ.tɪ.veɪt"}, {"en": "motive", "zh": "動機", "ph": "ˈməʊ.tɪv"}, {"en": "motor", "zh": "馬達", "ph": "ˈməʊ.tər"}, {"en": "motorcycle", "zh": "機車", "ph": "ˈməʊ.təˌsaɪ.kəl"}, {"en": "mountain", "zh": "山", "ph": "ˈmaʊn.tɪn"}, {"en": "mourn", "zh": "哀悼", "ph": "mɔːn"}, {"en": "mouse", "zh": "老鼠/滑鼠", "ph": "maʊs"}, {"en": "mouth", "zh": "嘴巴", "ph": "maʊθ"}, {"en": "move", "zh": "移動/搬家", "ph": "muːv"}, {"en": "movement", "zh": "運動/移動", "ph": "ˈmuːv.mənt"}, {"en": "movie", "zh": "電影", "ph": "ˈmuː.vi"}, {"en": "mr.", "zh": "先生", "ph": "ˈmɪs.tər"}, {"en": "mrs.", "zh": "太太", "ph": "ˈmɪs.ɪz"}, {"en": "ms.", "zh": "女士(未知婚否)", "ph": "mɪz"}, {"en": "much", "zh": "許多的", "ph": "mʌtʃ"}, {"en": "mud", "zh": "泥巴", "ph": "mʌd"}, {"en": "muddy", "zh": "泥濘的", "ph": "ˈmʌd.i"}, {"en": "mule", "zh": "騾子", "ph": "mjuːl"}, {"en": "multiple", "zh": "多個的", "ph": "ˈmʌl.tɪ.pəl"}, {"en": "multiply", "zh": "增加/乘以", "ph": "ˈmʌl.tɪ.plaɪ"}, {"en": "multitude", "zh": "多數", "ph": "ˈmʌl.tɪ.tjuːd"}, {"en": "murder", "zh": "謀殺", "ph": "ˈmɜː.dər"}, {"en": "music", "zh": "音樂", "ph": "ˈmjuː.zɪk"}, {"en": "museum", "zh": "博物館", "ph": "mjuˈziː.əm"}, {"en": "must", "zh": "必須", "ph": "mʌst"}, {"en": "mutton", "zh": "羊肉", "ph": "ˈmʌt.ən"}, {"en": "my", "zh": "我的", "ph": "maɪ"}, {"en": "myself", "zh": "我自己", "ph": "maɪˈself"}, {"en": "nail", "zh": "指甲/釘子", "ph": "neɪl"}, {"en": "name", "zh": "名字", "ph": "neɪm"}, {"en": "national", "zh": "國家的", "ph": "ˈnæʃ.ən.əl"}, {"en": "nature", "zh": "自然", "ph": "ˈneɪ.tʃər"}, {"en": "near", "zh": "靠近的", "ph": "nɪər"}, {"en": "nearby", "zh": "在附近", "ph": "ˈnɪə.baɪ"}, {"en": "neck", "zh": "脖子", "ph": "nek"}, {"en": "necklace", "zh": "項鍊", "ph": "ˈnek.ləs"}, {"en": "need", "zh": "需要", "ph": "niːd"}, {"en": "needle", "zh": "針", "ph": "ˈniː.dəl"}, {"en": "neighbor", "zh": "鄰居", "ph": "ˈneɪ.bər"}, {"en": "neither", "zh": "兩者皆非", "ph": "ˈnaɪ.ðər"}, {"en": "nervous", "zh": "緊張的", "ph": "ˈnɜː.vəs"}, {"en": "nest", "zh": "鳥巢", "ph": "nest"}, {"en": "net", "zh": "網子", "ph": "net"}, {"en": "never", "zh": "從不", "ph": "ˈnev.ər"}, {"en": "new", "zh": "新的", "ph": "njuː"}, {"en": "news", "zh": "新聞", "ph": "njuːz"}, {"en": "newspaper", "zh": "報紙", "ph": "ˈnjuːz.peɪ.pər"}, {"en": "next", "zh": "下一個", "ph": "nekst"}, {"en": "nice", "zh": "好的", "ph": "naɪs"}, {"en": "night", "zh": "夜晚", "ph": "naɪt"}, {"en": "nine", "zh": "九", "ph": "naɪn"}, {"en": "nineteen", "zh": "十九", "ph": "ˌnaɪnˈtiːn"}, {"en": "ninety", "zh": "九十", "ph": "ˈnaɪn.ti"}, {"en": "ninth", "zh": "第九", "ph": "naɪnθ"}, {"en": "no", "zh": "不", "ph": "nəʊ"}, {"en": "nobody", "zh": "無人", "ph": "ˈnəʊ.bə.di"}, {"en": "nod", "zh": "點頭", "ph": "nɒd"}, {"en": "noise", "zh": "噪音", "ph": "nɔɪz"}, {"en": "noisy", "zh": "吵鬧的", "ph": "ˈnɔɪ.zi"}, {"en": "none", "zh": "毫無", "ph": "nʌn"}, {"en": "noodle", "zh": "麵條", "ph": "ˈnuː.dəl"}, {"en": "noon", "zh": "中午", "ph": "nuːn"}, {"en": "nor", "zh": "也不", "ph": "nɔːr"}, {"en": "north", "zh": "北方", "ph": "nɔːθ"}, {"en": "nose", "zh": "鼻子", "ph": "nəʊz"}, {"en": "not", "zh": "不是", "ph": "nɒt"}, {"en": "note", "zh": "筆記/便條", "ph": "nəʊt"}, {"en": "notebook", "zh": "筆記本", "ph": "ˈnəʊt.bʊk"}, {"en": "nothing", "zh": "沒事", "ph": "ˈnʌθ.ɪŋ"}, {"en": "notice", "zh": "注意", "ph": "ˈnəʊ.tɪs"}, {"en": "November", "zh": "十一月", "ph": "nəʊˈvem.bər"}, {"en": "now", "zh": "現在", "ph": "naʊ"}, {"en": "number", "zh": "數字", "ph": "ˈnʌm.bər"}, {"en": "nurse", "zh": "護士", "ph": "nɜːs"}, {"en": "nut", "zh": "堅果", "ph": "nʌt"}, {"en": "o'clock", "zh": "點鐘", "ph": "əˈklɒk"}, {"en": "object", "zh": "物體/反對", "ph": "ˈɒb.dʒɪkt"}, {"en": "ocean", "zh": "海洋", "ph": "ˈəʊ.ʃən"}, {"en": "October", "zh": "十月", "ph": "ɒkˈtəʊ.bər"}, {"en": "of", "zh": "的", "ph": "ɒv"}, {"en": "off", "zh": "離開", "ph": "ɒf"}, {"en": "office", "zh": "辦公室", "ph": "ˈɒf.ɪs"}, {"en": "officer", "zh": "官員/警官", "ph": "ˈɒf.ɪ.sər"}, {"en": "often", "zh": "常常", "ph": "ˈɒf.ən"}, {"en": "oil", "zh": "油", "ph": "ɔɪl"}, {"en": "OK", "zh": "可以", "ph": "ˌəʊˈkeɪ"}, {"en": "old", "zh": "老的", "ph": "əʊld"}, {"en": "on", "zh": "在...之上", "ph": "ɒn"}, {"en": "once", "zh": "一次", "ph": "wʌns"}, {"en": "one", "zh": "一", "ph": "wʌn"}, {"en": "oneself", "zh": "自己", "ph": "wʌnˈself"}, {"en": "onion", "zh": "洋蔥", "ph": "ˈʌn.jən"}, {"en": "only", "zh": "只有", "ph": "ˈəʊn.li"}, {"en": "open", "zh": "打開", "ph": "ˈəʊ.pən"}, {"en": "or", "zh": "或者", "ph": "ɔːr"}, {"en": "orange", "zh": "橘子/橘色", "ph": "ˈɒr.ɪndʒ"}, {"en": "order", "zh": "命令/點餐", "ph": "ˈɔː.dər"}, {"en": "ordinary", "zh": "平常的", "ph": "ˈɔː.dɪn.er.i"}, {"en": "other", "zh": "其他的", "ph": "ˈʌð.ər"}, {"en": "our", "zh": "我們的", "ph": "ˈaʊər"}, {"en": "ours", "zh": "我們的(所有格代名詞)", "ph": "ˈaʊəz"}, {"en": "ourselves", "zh": "我們自己", "ph": "ˌaʊəˈselvz"}, {"en": "out", "zh": "在外", "ph": "aʊt"}, {"en": "outside", "zh": "在外面", "ph": "ˌaʊtˈsaɪd"}, {"en": "oven", "zh": "烤箱", "ph": "ˈʌv.ən"}, {"en": "over", "zh": "在...上方/結束", "ph": "ˈəʊ.vər"}, {"en": "overweight", "zh": "過重的", "ph": "ˌəʊ.vəˈweɪt"}, {"en": "own", "zh": "自己的", "ph": "əʊn"}, {"en": "ox", "zh": "公牛", "ph": "ɒks"}, {"en": "pack", "zh": "打包/包裝", "ph": "pæk"}, {"en": "package", "zh": "包裹", "ph": "ˈpæk.ɪdʒ"}, {"en": "page", "zh": "網頁/頁", "ph": "peɪdʒ"}, {"en": "pain", "zh": "痛苦", "ph": "peɪn"}, {"en": "painful", "zh": "痛苦的", "ph": "ˈpeɪn.fəl"}, {"en": "paint", "zh": "繪畫/油漆", "ph": "peɪnt"}, {"en": "painter", "zh": "畫家", "ph": "ˈpeɪn.tər"}, {"en": "pair", "zh": "一雙", "ph": "peər"}, {"en": "pale", "zh": "蒼白的", "ph": "peɪl"}, {"en": "pan", "zh": "平底鍋", "ph": "pæn"}, {"en": "pancake", "zh": "薄煎餅", "ph": "ˈpæn.keɪk"}, {"en": "pants", "zh": "褲子", "ph": "pænts"}, {"en": "papaya", "zh": "木瓜", "ph": "pəˈpaɪ.ə"}, {"en": "paper", "zh": "紙張", "ph": "ˈpeɪ.pər"}, {"en": "pardon", "zh": "原諒", "ph": "ˈpɑː.dən"}, {"en": "parent", "zh": "雙親之一", "ph": "ˈpeə.rənt"}, {"en": "park", "zh": "公園/停車", "ph": "pɑːk"}, {"en": "parlor", "zh": "店面/客廳", "ph": "ˈpɑː.lər"}, {"en": "part", "zh": "部份", "ph": "pɑːt"}, {"en": "party", "zh": "派對", "ph": "ˈpɑː.ti"}, {"en": "pass", "zh": "通過", "ph": "pɑːs"}, {"en": "passenger", "zh": "乘客", "ph": "ˈpæs.ɪn.dʒər"}, {"en": "passport", "zh": "護照", "ph": "ˈpɑːs.pɔːt"}, {"en": "past", "zh": "過去的", "ph": "pɑːst"}, {"en": "paste", "zh": "黏貼/麵糊", "ph": "peɪst"}, {"en": "path", "zh": "小徑", "ph": "pɑːθ"}, {"en": "patient", "zh": "有耐心的/病人", "ph": "ˈpeɪ.ʃənt"}, {"en": "pattern", "zh": "圖案/模式", "ph": "ˈpæt.ən"}, {"en": "pay", "zh": "付錢", "ph": "peɪ"}, {"en": "PE", "zh": "體育", "ph": "ˌpiːˈiː"}, {"en": "peace", "zh": "和平", "ph": "piːs"}, {"en": "peaceful", "zh": "和平的", "ph": "ˈpiːs.fəl"}, {"en": "peach", "zh": "桃子", "ph": "piːtʃ"}, {"en": "pear", "zh": "梨子", "ph": "peər"}, {"en": "pen", "zh": "鋼筆", "ph": "pen"}, {"en": "pencil", "zh": "鉛筆", "ph": "ˈpen.səl"}, {"en": "penny", "zh": "一分錢", "ph": "ˈpen.i"}, {"en": "people", "zh": "人們", "ph": "ˈpiː.pəl"}, {"en": "pepper", "zh": "胡椒粉", "ph": "ˈpep.ər"}, {"en": "perfect", "zh": "完美的", "ph": "ˈpɜː.fɪkt"}, {"en": "perhaps", "zh": "或許", "ph": "pəˈhæps"}, {"en": "period", "zh": "期間/句點", "ph": "ˈpɪə.ri.əd"}, {"en": "person", "zh": "人", "ph": "ˈpɜː.sən"}, {"en": "personal", "zh": "個人的", "ph": "ˈpɜː.sən.əl"}, {"en": "pet", "zh": "寵物", "ph": "pet"}, {"en": "photo", "zh": "照片", "ph": "ˈfəʊ.təʊ"}, {"en": "photograph", "zh": "照片", "ph": "ˈfəʊ.tə.ɡrɑːf"}, {"en": "piano", "zh": "鋼琴", "ph": "piˈæn.əʊ"}, {"en": "pick", "zh": "挑選/撿起", "ph": "pɪk"}, {"en": "picnic", "zh": "野餐", "ph": "ˈpɪk.nɪk"}, {"en": "picture", "zh": "圖片", "ph": "ˈpɪk.tʃər"}, {"en": "pie", "zh": "派", "ph": "paɪ"}, {"en": "piece", "zh": "一塊", "ph": "piːs"}, {"en": "pig", "zh": "豬", "ph": "pɪɡ"}, {"en": "pigeon", "zh": "鴿子", "ph": "ˈpɪdʒ.ən"}, {"en": "pile", "zh": "一堆", "ph": "paɪl"}, {"en": "pillow", "zh": "枕頭", "ph": "ˈpɪl.əʊ"}, {"en": "pin", "zh": "大頭針", "ph": "pɪn"}, {"en": "pineapple", "zh": "鳳梨", "ph": "ˈpaɪnˌæp.əl"}, {"en": "pink", "zh": "粉紅色", "ph": "pɪŋk"}, {"en": "pipe", "zh": "管子", "ph": "paɪp"}, {"en": "pizza", "zh": "披薩", "ph": "ˈpiːt.sə"}, {"en": "place", "zh": "地方", "ph": "pleɪs"}, {"en": "plain", "zh": "樸素的/平原", "ph": "pleɪn"}, {"en": "plan", "zh": "計畫", "ph": "plæn"}, {"en": "plane", "zh": "飛機", "ph": "pleɪn"}, {"en": "planet", "zh": "行星", "ph": "ˈplæn.ɪt"}, {"en": "plant", "zh": "植物/種植", "ph": "plɑːnt"}, {"en": "plate", "zh": "盤子", "ph": "pleɪt"}, {"en": "platform", "zh": "月台/平台", "ph": "ˈplæt.fɔːm"}, {"en": "play", "zh": "玩/戲劇", "ph": "pleɪ"}, {"en": "player", "zh": "玩者/球員", "ph": "ˈpleɪ.ər"}, {"en": "playground", "zh": "遊樂場", "ph": "ˈpleɪ.ɡraʊnd"}, {"en": "pleasant", "zh": "令人愉快的", "ph": "ˈplez.ənt"}, {"en": "please", "zh": "請/使高興", "ph": "pliːz"}, {"en": "pleased", "zh": "感到高興的", "ph": "pliːzd"}, {"en": "pleasure", "zh": "榮幸/快樂", "ph": "ˈpleʒ.ər"}, {"en": "plenty", "zh": "豐富", "ph": "ˈplen.ti"}, {"en": "pocket", "zh": "口袋", "ph": "ˈpɒk.ɪt"}, {"en": "poem", "zh": "詩", "ph": "ˈpəʊ.ɪm"}, {"en": "poetry", "zh": "詩歌", "ph": "ˈpəʊ.ɪ.tri"}, {"en": "point", "zh": "點/指向", "ph": "pɔɪnt"}, {"en": "poison", "zh": "毒藥", "ph": "ˈpɔɪ.zən"}, {"en": "police", "zh": "警察", "ph": "pəˈliːs"}, {"en": "policeman", "zh": "男警察", "ph": "pəˈliːs.mən"}, {"en": "polite", "zh": "有禮貌的", "ph": "pəˈlaɪt"}, {"en": "pollute", "zh": "污染", "ph": "pəˈluːt"}, {"en": "pollution", "zh": "污染", "ph": "pəˈluː.ʃən"}, {"en": "pond", "zh": "池塘", "ph": "pɒnd"}, {"en": "pool", "zh": "水池", "ph": "puːl"}, {"en": "poor", "zh": "貧窮的/可憐的", "ph": "pɔːr"}, {"en": "popcorn", "zh": "爆米花", "ph": "ˈpɒp.kɔːn"}, {"en": "popular", "zh": "受歡迎的", "ph": "ˈpɒp.jʊ.lər"}, {"en": "pork", "zh": "豬肉", "ph": "pɔːk"}, {"en": "position", "zh": "位置", "ph": "pəˈzɪʃ.ən"}, {"en": "positive", "zh": "積極的/正面的", "ph": "ˈpɒz.ə.tɪv"}, {"en": "possible", "zh": "可能的", "ph": "ˈpɒs.ə.bəl"}, {"en": "post", "zh": "郵寄/公布", "ph": "pəʊst"}, {"en": "post office", "zh": "郵局", "ph": "ˈpəʊst ˌɒf.ɪs"}, {"en": "postcard", "zh": "明信片", "ph": "ˈpəʊst.kɑːd"}, {"en": "pot", "zh": "鍋子", "ph": "pɒt"}, {"en": "potato", "zh": "馬鈴薯", "ph": "pəˈteɪ.təʊ"}, {"en": "pound", "zh": "磅", "ph": "paʊnd"}, {"en": "powder", "zh": "粉末", "ph": "ˈpaʊ.dər"}, {"en": "power", "zh": "力量", "ph": "ˈpaʊər"}, {"en": "powerful", "zh": "強有力的", "ph": "ˈpaʊə.fəl"}, {"en": "practice", "zh": "練習", "ph": "ˈpræk.tɪs"}, {"en": "praise", "zh": "讚美", "ph": "preɪz"}, {"en": "mule", "zh": "騾子", "ph": "mjuːl"}, {"en": "multiple", "zh": "多個的", "ph": "ˈmʌl.tɪ.pəl"}, {"en": "multiply", "zh": "增加/乘以", "ph": "ˈmʌl.tɪ.plaɪ"}, {"en": "multitude", "zh": "多數", "ph": "ˈmʌl.tɪ.tjuːd"}, {"en": "murder", "zh": "謀殺", "ph": "ˈmɜː.dər"}, {"en": "music", "zh": "音樂", "ph": "ˈmjuː.zɪk"}, {"en": "museum", "zh": "博物館", "ph": "mjuˈziː.əm"}, {"en": "must", "zh": "必須", "ph": "mʌst"}, {"en": "mutton", "zh": "羊肉", "ph": "ˈmʌt.ən"}, {"en": "my", "zh": "我的", "ph": "maɪ"}, {"en": "myself", "zh": "我自己", "ph": "maɪˈself"}, {"en": "nail", "zh": "指甲/釘子", "ph": "neɪl"}, {"en": "name", "zh": "名字", "ph": "neɪm"}, {"en": "national", "zh": "國家的", "ph": "ˈnæʃ.ən.əl"}, {"en": "nature", "zh": "自然", "ph": "ˈneɪ.tʃər"}, {"en": "near", "zh": "靠近的", "ph": "nɪər"}, {"en": "nearby", "zh": "在附近", "ph": "ˈnɪə.baɪ"}, {"en": "neck", "zh": "脖子", "ph": "nek"}, {"en": "necklace", "zh": "項鍊", "ph": "ˈnek.ləs"}, {"en": "need", "zh": "需要", "ph": "niːd"}, {"en": "needle", "zh": "針", "ph": "ˈniː.dəl"}, {"en": "neighbor", "zh": "鄰居", "ph": "ˈneɪ.bər"}, {"en": "neither", "zh": "兩者皆非", "ph": "ˈnaɪ.ðər"}, {"en": "nervous", "zh": "緊張的", "ph": "ˈnɜː.vəs"}, {"en": "nest", "zh": "鳥巢", "ph": "nest"}, {"en": "net", "zh": "網子", "ph": "net"}, {"en": "never", "zh": "從不", "ph": "ˈnev.ər"}, {"en": "new", "zh": "新的", "ph": "njuː"}, {"en": "news", "zh": "新聞", "ph": "njuːz"}, {"en": "newspaper", "zh": "報紙", "ph": "ˈnjuːz.peɪ.pər"}, {"en": "next", "zh": "下一個", "ph": "nekst"}, {"en": "nice", "zh": "好的", "ph": "naɪs"}, {"en": "night", "zh": "夜晚", "ph": "naɪt"}, {"en": "nine", "zh": "九", "ph": "naɪn"}, {"en": "nineteen", "zh": "十九", "ph": "ˌnaɪnˈtiːn"}, {"en": "ninety", "zh": "九十", "ph": "ˈnaɪn.ti"}, {"en": "ninth", "zh": "第九", "ph": "naɪnθ"}, {"en": "no", "zh": "不", "ph": "nəʊ"}, {"en": "nobody", "zh": "無人", "ph": "ˈnəʊ.bə.di"}, {"en": "nod", "zh": "點頭", "ph": "nɒd"}, {"en": "noise", "zh": "噪音", "ph": "nɔɪz"}, {"en": "noisy", "zh": "吵鬧的", "ph": "ˈnɔɪ.zi"}, {"en": "none", "zh": "毫無", "ph": "nʌn"}, {"en": "noodle", "zh": "麵條", "ph": "ˈnuː.dəl"}, {"en": "noon", "zh": "中午", "ph": "nuːn"}, {"en": "nor", "zh": "也不", "ph": "nɔːr"}, {"en": "north", "zh": "北方", "ph": "nɔːθ"}, {"en": "nose", "zh": "鼻子", "ph": "nəʊz"}, {"en": "not", "zh": "不是", "ph": "nɒt"}, {"en": "note", "zh": "筆記/便條", "ph": "nəʊt"}, {"en": "notebook", "zh": "筆記本", "ph": "ˈnəʊt.bʊk"}, {"en": "nothing", "zh": "沒事", "ph": "ˈnʌθ.ɪŋ"}, {"en": "notice", "zh": "注意", "ph": "ˈnəʊ.tɪs"}, {"en": "November", "zh": "十一月", "ph": "nəʊˈvem.bər"}, {"en": "now", "zh": "現在", "ph": "naʊ"}, {"en": "number", "zh": "數字", "ph": "ˈnʌm.bər"}, {"en": "nurse", "zh": "護士", "ph": "nɜːs"}, {"en": "nut", "zh": "堅果", "ph": "nʌt"}, {"en": "o'clock", "zh": "點鐘", "ph": "əˈklɒk"}, {"en": "object", "zh": "物體/反對", "ph": "ˈɒb.dʒɪkt"}, {"en": "ocean", "zh": "海洋", "ph": "ˈəʊ.ʃən"}, {"en": "October", "zh": "十月", "ph": "ɒkˈtəʊ.bər"}, {"en": "of", "zh": "的", "ph": "ɒv"}, {"en": "off", "zh": "離開", "ph": "ɒf"}, {"en": "office", "zh": "辦公室", "ph": "ˈɒf.ɪs"}, {"en": "officer", "zh": "官員/警官", "ph": "ˈɒf.ɪ.sər"}, {"en": "often", "zh": "常常", "ph": "ˈɒf.ən"}, {"en": "oil", "zh": "油", "ph": "ɔɪl"}, {"en": "OK", "zh": "可以", "ph": "ˌəʊˈkeɪ"}, {"en": "old", "zh": "老的", "ph": "əʊld"}, {"en": "on", "zh": "在...之上", "ph": "ɒn"}, {"en": "once", "zh": "一次", "ph": "wʌns"}, {"en": "one", "zh": "一", "ph": "wʌn"}, {"en": "oneself", "zh": "自己", "ph": "wʌnˈself"}, {"en": "onion", "zh": "洋蔥", "ph": "ˈʌn.jən"}, {"en": "only", "zh": "只有", "ph": "ˈəʊn.li"}, {"en": "open", "zh": "打開", "ph": "ˈəʊ.pən"}, {"en": "or", "zh": "或者", "ph": "ɔːr"}, {"en": "orange", "zh": "橘子/橘色", "ph": "ˈɒr.ɪndʒ"}, {"en": "order", "zh": "命令/點餐", "ph": "ˈɔː.dər"}, {"en": "ordinary", "zh": "平常的", "ph": "ˈɔː.dɪn.er.i"}, {"en": "other", "zh": "其他的", "ph": "ˈʌð.ər"}, {"en": "our", "zh": "我們的", "ph": "ˈaʊər"}, {"en": "ours", "zh": "我們的(所有格代名詞)", "ph": "ˈaʊəz"}, {"en": "ourselves", "zh": "我們自己", "ph": "ˌaʊəˈselvz"}, {"en": "out", "zh": "在外", "ph": "aʊt"}, {"en": "outside", "zh": "在外面", "ph": "ˌaʊtˈsaɪd"}, {"en": "oven", "zh": "烤箱", "ph": "ˈʌv.ən"}, {"en": "over", "zh": "在...上方/結束", "ph": "ˈəʊ.vər"}, {"en": "overweight", "zh": "過重的", "ph": "ˌəʊ.vəˈweɪt"}, {"en": "own", "zh": "自己的", "ph": "əʊn"}, {"en": "ox", "zh": "公牛", "ph": "ɒks"}, {"en": "pack", "zh": "打包/包裝", "ph": "pæk"}, {"en": "package", "zh": "包裹", "ph": "ˈpæk.ɪdʒ"}, {"en": "page", "zh": "網頁/頁", "ph": "peɪdʒ"}, {"en": "pain", "zh": "痛苦", "ph": "peɪn"}, {"en": "painful", "zh": "痛苦的", "ph": "ˈpeɪn.fəl"}, {"en": "paint", "zh": "繪畫/油漆", "ph": "peɪnt"}, {"en": "painter", "zh": "畫家", "ph": "ˈpeɪn.tər"}, {"en": "pair", "zh": "一雙", "ph": "peər"}, {"en": "pale", "zh": "蒼白的", "ph": "peɪl"}, {"en": "pan", "zh": "平底鍋", "ph": "pæn"}, {"en": "pancake", "zh": "薄煎餅", "ph": "ˈpæn.keɪk"}, {"en": "pants", "zh": "褲子", "ph": "pænts"}, {"en": "papaya", "zh": "木瓜", "ph": "pəˈpaɪ.ə"}, {"en": "paper", "zh": "紙張", "ph": "ˈpeɪ.pər"}, {"en": "pardon", "zh": "原諒", "ph": "ˈpɑː.dən"}, {"en": "parent", "zh": "雙親之一", "ph": "ˈpeə.rənt"}, {"en": "park", "zh": "公園/停車", "ph": "pɑːk"}, {"en": "parlor", "zh": "店面/客廳", "ph": "ˈpɑː.lər"}, {"en": "part", "zh": "部份", "ph": "pɑːt"}, {"en": "party", "zh": "派對", "ph": "ˈpɑː.ti"}, {"en": "pass", "zh": "通過", "ph": "pɑːs"}, {"en": "passenger", "zh": "乘客", "ph": "ˈpæs.ɪn.dʒər"}, {"en": "passport", "zh": "護照", "ph": "ˈpɑːs.pɔːt"}, {"en": "past", "zh": "過去的", "ph": "pɑːst"}, {"en": "paste", "zh": "黏貼/麵糊", "ph": "peɪst"}, {"en": "path", "zh": "小徑", "ph": "pɑːθ"}, {"en": "patient", "zh": "有耐心的/病人", "ph": "ˈpeɪ.ʃənt"}, {"en": "pattern", "zh": "圖案/模式", "ph": "ˈpæt.ən"}, {"en": "pay", "zh": "付錢", "ph": "peɪ"}, {"en": "PE", "zh": "體育", "ph": "ˌpiːˈiː"}, {"en": "peace", "zh": "和平", "ph": "piːs"}, {"en": "peaceful", "zh": "和平的", "ph": "ˈpiːs.fəl"}, {"en": "peach", "zh": "桃子", "ph": "piːtʃ"}, {"en": "pear", "zh": "梨子", "ph": "peər"}, {"en": "pen", "zh": "鋼筆", "ph": "pen"}, {"en": "pencil", "zh": "鉛筆", "ph": "ˈpen.səl"}, {"en": "penny", "zh": "一分錢", "ph": "ˈpen.i"}, {"en": "people", "zh": "人們", "ph": "ˈpiː.pəl"}, {"en": "pepper", "zh": "胡椒粉", "ph": "ˈpep.ər"}, {"en": "perfect", "zh": "完美的", "ph": "ˈpɜː.fɪkt"}, {"en": "perhaps", "zh": "或許", "ph": "pəˈhæps"}, {"en": "period", "zh": "期間/句點", "ph": "ˈpɪə.ri.əd"}, {"en": "person", "zh": "人", "ph": "ˈpɜː.sən"}, {"en": "personal", "zh": "個人的", "ph": "ˈpɜː.sən.əl"}, {"en": "pet", "zh": "寵物", "ph": "pet"}, {"en": "photo", "zh": "照片", "ph": "ˈfəʊ.təʊ"}, {"en": "photograph", "zh": "照片", "ph": "ˈfəʊ.tə.ɡrɑːf"}, {"en": "piano", "zh": "鋼琴", "ph": "piˈæn.əʊ"}, {"en": "pick", "zh": "挑選/撿起", "ph": "pɪk"}, {"en": "picnic", "zh": "野餐", "ph": "ˈpɪk.nɪk"}, {"en": "picture", "zh": "圖片", "ph": "ˈpɪk.tʃər"}, {"en": "pie", "zh": "派", "ph": "paɪ"}, {"en": "piece", "zh": "一塊", "ph": "piːs"}, {"en": "pig", "zh": "豬", "ph": "pɪɡ"}, {"en": "pigeon", "zh": "鴿子", "ph": "ˈpɪdʒ.ən"}, {"en": "pile", "zh": "一堆", "ph": "paɪl"}, {"en": "pillow", "zh": "枕頭", "ph": "ˈpɪl.əʊ"}, {"en": "pin", "zh": "大頭針", "ph": "pɪn"}, {"en": "pineapple", "zh": "鳳梨", "ph": "ˈpaɪnˌæp.əl"}, {"en": "pink", "zh": "粉紅色", "ph": "pɪŋk"}, {"en": "pipe", "zh": "管子", "ph": "paɪp"}, {"en": "pizza", "zh": "披薩", "ph": "ˈpiːt.sə"}, {"en": "place", "zh": "地方", "ph": "pleɪs"}, {"en": "plain", "zh": "樸素的/平原", "ph": "pleɪn"}, {"en": "plan", "zh": "計畫", "ph": "plæn"}, {"en": "plane", "zh": "飛機", "ph": "pleɪn"}, {"en": "planet", "zh": "行星", "ph": "ˈplæn.ɪt"}, {"en": "plant", "zh": "植物/種植", "ph": "plɑːnt"}, {"en": "plate", "zh": "盤子", "ph": "pleɪt"}, {"en": "platform", "zh": "月台/平台", "ph": "ˈplæt.fɔːm"}, {"en": "play", "zh": "玩/戲劇", "ph": "pleɪ"}, {"en": "player", "zh": "玩者/球員", "ph": "ˈpleɪ.ər"}, {"en": "playground", "zh": "遊樂場", "ph": "ˈpleɪ.ɡraʊnd"}, {"en": "pleasant", "zh": "令人愉快的", "ph": "ˈplez.ənt"}, {"en": "please", "zh": "請/使高興", "ph": "pliːz"}, {"en": "pleased", "zh": "感到高興的", "ph": "pliːzd"}, {"en": "pleasure", "zh": "榮幸/快樂", "ph": "ˈpleʒ.ər"}, {"en": "plenty", "zh": "豐富", "ph": "ˈplen.ti"}, {"en": "pocket", "zh": "口袋", "ph": "ˈpɒk.ɪt"}, {"en": "poem", "zh": "詩", "ph": "ˈpəʊ.ɪm"}, {"en": "poetry", "zh": "詩歌", "ph": "ˈpəʊ.ɪ.tri"}, {"en": "point", "zh": "點/指向", "ph": "pɔɪnt"}, {"en": "poison", "zh": "毒藥", "ph": "ˈpɔɪ.zən"}, {"en": "police", "zh": "警察", "ph": "pəˈliːs"}, {"en": "policeman", "zh": "男警察", "ph": "pəˈliːs.mən"}, {"en": "polite", "zh": "有禮貌的", "ph": "pəˈlaɪt"}, {"en": "pollute", "zh": "污染", "ph": "pəˈluːt"}, {"en": "pollution", "zh": "污染", "ph": "pəˈluː.ʃən"}, {"en": "pond", "zh": "池塘", "ph": "pɒnd"}, {"en": "pool", "zh": "水池", "ph": "puːl"}, {"en": "poor", "zh": "貧窮的/可憐的", "ph": "pɔːr"}, {"en": "popcorn", "zh": "爆米花", "ph": "ˈpɒp.kɔːn"}, {"en": "popular", "zh": "受歡迎的", "ph": "ˈpɒp.jʊ.lər"}, {"en": "pork", "zh": "豬肉", "ph": "pɔːk"}, {"en": "position", "zh": "位置", "ph": "pəˈzɪʃ.ən"}, {"en": "positive", "zh": "積極的/正面的", "ph": "ˈpɒz.ə.tɪv"}, {"en": "possible", "zh": "可能的", "ph": "ˈpɒs.ə.bəl"}, {"en": "post", "zh": "郵寄/公布", "ph": "pəʊst"}, {"en": "post office", "zh": "郵局", "ph": "ˈpəʊst ˌɒf.ɪs"}, {"en": "postcard", "zh": "明信片", "ph": "ˈpəʊst.kɑːd"}, {"en": "pot", "zh": "鍋子", "ph": "pɒt"}, {"en": "potato", "zh": "馬鈴薯", "ph": "pəˈteɪ.təʊ"}, {"en": "pound", "zh": "磅", "ph": "paʊnd"}, {"en": "powder", "zh": "粉末", "ph": "ˈpaʊ.dər"}, {"en": "power", "zh": "力量", "ph": "ˈpaʊər"}, {"en": "powerful", "zh": "強有力的", "ph": "ˈpaʊə.fəl"}, {"en": "practice", "zh": "練習", "ph": "ˈpræk.tɪs"}, {"en": "praise", "zh": "讚美", "ph": "preɪz"}, {"en": "select", "zh": "選擇", "ph": "sɪˈlekt"}, {"en": "selfish", "zh": "自私的", "ph": "ˈsel.fɪʃ"}, {"en": "sell", "zh": "賣", "ph": "sel"}, {"en": "semester", "zh": "學期", "ph": "sɪˈmes.tər"}, {"en": "send", "zh": "寄送", "ph": "send"}, {"en": "senior", "zh": "資深的/前輩", "ph": "ˈsiː.ni.ər"}, {"en": "sense", "zh": "感官/感覺", "ph": "sens"}, {"en": "sentence", "zh": "句子", "ph": "ˈsen.təns"}, {"en": "September", "zh": "九月", "ph": "sepˈtem.bər"}, {"en": "serious", "zh": "嚴肅的/嚴重的", "ph": "ˈsɪə.ri.əs"}, {"en": "servant", "zh": "僕人", "ph": "ˈsɜː.vənt"}, {"en": "serve", "zh": "服務/端上", "ph": "sɜːv"}, {"en": "service", "zh": "服務", "ph": "ˈsɜː.vɪs"}, {"en": "set", "zh": "安置/一套", "ph": "set"}, {"en": "seven", "zh": "七", "ph": "ˈsev.ən"}, {"en": "seventeen", "zh": "十七", "ph": "ˌsev.ənˈtiːn"}, {"en": "seventy", "zh": "七十", "ph": "ˈsev.ən.ti"}, {"en": "several", "zh": "幾個的", "ph": "ˈsev.ər.əl"}, {"en": "severe", "zh": "嚴重的", "ph": "sɪˈvɪər"}, {"en": "sew", "zh": "縫紉", "ph": "səʊ"}, {"en": "sex", "zh": "性別", "ph": "seks"}, {"en": "shade", "zh": "陰涼處", "ph": "ʃeɪd"}, {"en": "shadow", "zh": "影子", "ph": "ˈʃæd.əʊ"}, {"en": "shake", "zh": "搖晃", "ph": "ʃeɪk"}, {"en": "shall", "zh": "將要", "ph": "ʃæl"}, {"en": "shame", "zh": "羞恥/遺憾", "ph": "ʃeɪm"}, {"en": "shape", "zh": "形狀", "ph": "ʃeɪp"}, {"en": "share", "zh": "分享", "ph": "ʃeər"}, {"en": "shark", "zh": "鯊魚", "ph": "ʃɑːk"}, {"en": "sharp", "zh": "鋒利的", "ph": "ʃɑːp"}, {"en": "shave", "zh": "刮鬍子", "ph": "ʃeɪv"}, {"en": "she", "zh": "她", "ph": "ʃiː"}, {"en": "sheep", "zh": "綿羊", "ph": "ʃiːp"}, {"en": "sheet", "zh": "一張(紙)/床單", "ph": "ʃiːt"}, {"en": "shelf", "zh": "書架", "ph": "ʃelf"}, {"en": "shell", "zh": "貝殼", "ph": "ʃel"}, {"en": "shelter", "zh": "庇護所", "ph": "ˈʃel.tər"}, {"en": "shine", "zh": "發光", "ph": "ʃaɪn"}, {"en": "ship", "zh": "船", "ph": "ʃɪp"}, {"en": "shirt", "zh": "襯衫", "ph": "ʃɜːt"}, {"en": "shoe", "zh": "鞋子", "ph": "ʃuː"}, {"en": "shop", "zh": "商店/購物", "ph": "ʃɒp"}, {"en": "shopkeeper", "zh": "店主", "ph": "ˈʃɒpˌkiː.pər"}, {"en": "shoppe", "zh": "小商店", "ph": "ʃɒp"}, {"en": "shopping", "zh": "購物", "ph": "ˈʃɒp.ɪŋ"}, {"en": "shore", "zh": "岸邊", "ph": "ʃɔːr"}, {"en": "short", "zh": "短的/矮的", "ph": "ʃɔːt"}, {"en": "shorts", "zh": "短褲", "ph": "ʃɔːts"}, {"en": "should", "zh": "應該", "ph": "ʃʊd"}, {"en": "shoulder", "zh": "肩膀", "ph": "ˈʃəʊl.dər"}, {"en": "shout", "zh": "喊叫", "ph": "ʃaʊt"}, {"en": "show", "zh": "表演/展示", "ph": "ʃəʊ"}, {"en": "shower", "zh": "陣雨/淋浴", "ph": "ˈʃaʊər"}, {"en": "shrimp", "zh": "蝦子", "ph": "ʃrɪmp"}, {"en": "shrink", "zh": "縮水", "ph": "ʃrɪŋk"}, {"en": "shut", "zh": "關上", "ph": "ʃʌt"}, {"en": "shy", "zh": "害羞的", "ph": "ʃaɪ"}, {"en": "sick", "zh": "生病的", "ph": "sɪk"}, {"en": "side", "zh": "旁邊/側面", "ph": "saɪd"}, {"en": "sidewalk", "zh": "人行道", "ph": "ˈsaɪd.wɔːk"}, {"en": "sight", "zh": "視力/風景", "ph": "saɪt"}, {"en": "sign", "zh": "告示/簽名", "ph": "saɪn"}, {"en": "signal", "zh": "信號", "ph": "ˈsɪɡ.nəl"}, {"en": "silence", "zh": "安靜", "ph": "ˈsaɪ.ləns"}, {"en": "silent", "zh": "安靜的", "ph": "ˈsaɪ.lənt"}, {"en": "silk", "zh": "絲綢", "ph": "sɪlk"}, {"en": "silly", "zh": "傻的", "ph": "ˈsɪl.i"}, {"en": "silver", "zh": "銀/銀色的", "ph": "ˈsɪl.vər"}, {"en": "similar", "zh": "相似的", "ph": "ˈsɪm.ɪ.lər"}, {"en": "simple", "zh": "簡單的", "ph": "ˈsɪm.pəl"}, {"en": "since", "zh": "自從", "ph": "sɪns"}, {"en": "sincere", "zh": "真誠的", "ph": "sɪnˈsɪər"}, {"en": "sing", "zh": "唱歌", "ph": "sɪŋ"}, {"en": "singer", "zh": "歌手", "ph": "ˈsɪŋ.ər"}, {"en": "single", "zh": "單身的/單一的", "ph": "ˈsɪŋ.ɡəl"}, {"en": "sink", "zh": "水槽/沉入", "ph": "sɪŋk"}, {"en": "sir", "zh": "先生", "ph": "sɜːr"}, {"en": "sister", "zh": "姊妹", "ph": "ˈsɪs.tər"}, {"en": "sit", "zh": "坐", "ph": "sɪt"}, {"en": "site", "zh": "地點/網站", "ph": "saɪt"}, {"en": "situation", "zh": "情況", "ph": "ˌsɪtʃ.uˈeɪ.ʃən"}, {"en": "six", "zh": "六", "ph": "sɪks"}, {"en": "sixteen", "zh": "十六", "ph": "ˌsɪksˈtiːn"}, {"en": "sixty", "zh": "六十", "ph": "ˈsɪks.ti"}, {"en": "size", "zh": "尺寸", "ph": "saɪz"}, {"en": "skate", "zh": "溜冰", "ph": "skeɪt"}, {"en": "skirt", "zh": "裙子", "ph": "skɜːt"}, {"en": "ski", "zh": "滑雪", "ph": "skiː"}, {"en": "skill", "zh": "技巧", "ph": "skɪl"}, {"en": "skin", "zh": "皮膚", "ph": "skɪn"}, {"en": "skip", "zh": "跳過", "ph": "skɪp"}, {"en": "sky", "zh": "天空", "ph": "skaɪ"}, {"en": "slam", "zh": "砰然關上", "ph": "slæm"}, {"en": "slave", "zh": "奴隸", "ph": "sleɪv"}, {"en": "sleep", "zh": "睡覺", "ph": "sliːp"}, {"en": "sleepy", "zh": "昏昏欲睡的", "ph": "ˈsliː.pi"}, {"en": "sleeve", "zh": "袖子", "ph": "sliːv"}, {"en": "slice", "zh": "薄片", "ph": "slaɪs"}, {"en": "slide", "zh": "滑動/溜滑梯", "ph": "slaɪd"}, {"en": "slim", "zh": "苗條的", "ph": "slɪm"}, {"en": "slip", "zh": "滑倒", "ph": "slɪp"}, {"en": "slipper", "zh": "拖鞋", "ph": "ˈslɪp.ər"}, {"en": "slow", "zh": "慢的", "ph": "sləʊ"}, {"en": "small", "zh": "小的", "ph": "smɔːl"}, {"en": "smart", "zh": "聰明的", "ph": "smɑːt"}, {"en": "smell", "zh": "聞/氣味", "ph": "smel"}, {"en": "smile", "zh": "微笑", "ph": "smaɪl"}, {"en": "smoke", "zh": "煙/抽煙", "ph": "sməʊk"}, {"en": "smooth", "zh": "光滑的", "ph": "smuːð"}, {"en": "snack", "zh": "點心", "ph": "snæk"}, {"en": "snail", "zh": "蝸牛", "ph": "sneɪl"}, {"en": "snake", "zh": "蛇", "ph": "sneɪk"}, {"en": "sneaker", "zh": "球鞋", "ph": "ˈsniː.kər"}, {"en": "sneeze", "zh": "打噴嚏", "ph": "sniːz"}, {"en": "sniff", "zh": "嗅/聞", "ph": "snɪf"}, {"en": "snow", "zh": "下雪/雪", "ph": "snəʊ"}, {"en": "snowman", "zh": "雪人", "ph": "ˈsnəʊ.mæn"}, {"en": "snowy", "zh": "下雪的", "ph": "ˈsnəʊ.i"}, {"en": "so", "zh": "所以/如此", "ph": "səʊ"}, {"en": "soap", "zh": "肥皂", "ph": "səʊp"}, {"en": "soccer", "zh": "足球", "ph": "ˈsɒk.ər"}, {"en": "social", "zh": "社會的", "ph": "ˈsəʊ.ʃəl"}, {"en": "society", "zh": "社會", "ph": "səˈsaɪ.ə.ti"}, {"en": "sock", "zh": "短襪", "ph": "sɒk"}, {"en": "soda", "zh": "蘇打水", "ph": "ˈsəʊ.də"}, {"en": "sofa", "zh": "沙發", "ph": "ˈsəʊ.fə"}, {"en": "soft", "zh": "柔軟的", "ph": "sɒft"}, {"en": "soldier", "zh": "軍人", "ph": "ˈsəʊl.dʒər"}, {"en": "sole", "zh": "唯一的/鞋底", "ph": "səʊl"}, {"en": "solve", "zh": "解決", "ph": "sɒlv"}, {"en": "some", "zh": "一些", "ph": "sʌm"}, {"en": "somebody", "zh": "某人", "ph": "ˈsʌm.bɒd.i"}, {"en": "someone", "zh": "某人", "ph": "ˈsʌm.wʌn"}, {"en": "something", "zh": "某事", "ph": "ˈsʌm.θɪŋ"}, {"en": "sometimes", "zh": "有時候", "ph": "ˈsʌm.taɪmz"}, {"en": "somewhere", "zh": "某處", "ph": "ˈsʌm.weər"}, {"en": "son", "zh": "兒子", "ph": "sʌn"}, {"en": "song", "zh": "歌曲", "ph": "sɒŋ"}, {"en": "soon", "zh": "很快地", "ph": "suːn"}, {"en": "sore", "zh": "痛的", "ph": "sɔːr"}, {"en": "sorrow", "zh": "悲傷", "ph": "ˈsɒr.əʊ"}, {"en": "sorry", "zh": "抱歉的", "ph": "ˈsɒr.i"}, {"en": "sort", "zh": "分類/種類", "ph": "sɔːt"}, {"en": "soul", "zh": "靈魂", "ph": "səʊl"}, {"en": "sound", "zh": "聲音/聽起來", "ph": "saʊnd"}, {"en": "soup", "zh": "湯", "ph": "suːp"}, {"en": "sour", "zh": "酸的", "ph": "ˈsaʊər"}, {"en": "source", "zh": "來源", "ph": "sɔːs"}, {"en": "south", "zh": "南方", "ph": "saʊθ"}, {"en": "southern", "zh": "南方的", "ph": "ˈsʌð.ən"}, {"en": "souvenir", "zh": "紀念品", "ph": "ˌsuː.vəˈnɪər"}, {"en": "soy sauce", "zh": "醬油", "ph": "ˈsɔɪ ˌsɔːs"}, {"en": "space", "zh": "空間/太空", "ph": "speɪs"}, {"en": "spade", "zh": "鏟子", "ph": "speɪd"}, {"en": "spaghetti", "zh": "義大利麵", "ph": "spəˈɡet.i"}, {"en": "spare", "zh": "備用的/撥出(時間)", "ph": "speər"}, {"en": "speak", "zh": "說話", "ph": "spiːk"}, {"en": "speaker", "zh": "演講者/喇叭", "ph": "ˈspiː.kər"}, {"en": "special", "zh": "特別的", "ph": "ˈspeʃ.əl"}, {"en": "speech", "zh": "演講", "ph": "spiːtʃ"}, {"en": "speed", "zh": "速度", "ph": "spiːd"}, {"en": "spell", "zh": "拼字", "ph": "spel"}, {"en": "spend", "zh": "花費", "ph": "spend"}, {"en": "spicy", "zh": "辣的", "ph": "ˈspaɪ.si"}, {"en": "spider", "zh": "蜘蛛", "ph": "ˈspaɪ.dər"}, {"en": "spinach", "zh": "菠菜", "ph": "ˈspɪn.ɪdʒ"}, {"en": "spirit", "zh": "精神/靈魂", "ph": "ˈspɪr.ɪt"}, {"en": "spit", "zh": "吐(口水)", "ph": "spɪt"}, {"en": "splendid", "zh": "燦爛的/極好的", "ph": "ˈsplen.dɪd"}, {"en": "split", "zh": "分裂/分開", "ph": "splɪt"}, {"en": "spoil", "zh": "破壞/寵壞", "ph": "spɔɪl"}, {"en": "spoon", "zh": "湯匙", "ph": "spuːn"}, {"en": "sport", "zh": "運動", "ph": "spɔːt"}, {"en": "sportsman", "zh": "運動員", "ph": "ˈspɔːts.mən"}, {"en": "spot", "zh": "斑點/地點", "ph": "spɒt"}, {"en": "spread", "zh": "傳播/塗抹", "ph": "spred"}, {"en": "spring", "zh": "春天/彈簧", "ph": "sprɪŋ"}, {"en": "spy", "zh": "間諜", "ph": "spaɪ"}, {"en": "square", "zh": "正方形/廣場", "ph": "skweər"}, {"en": "squid", "zh": "烏賊", "ph": "skwɪd"}, {"en": "squirrel", "zh": "松鼠", "ph": "ˈskwɪr.əl"}, {"en": "stable", "zh": "穩定的/馬廄", "ph": "ˈsteɪ.bəl"}, {"en": "stage", "zh": "舞台", "ph": "steɪdʒ"}, {"en": "stain", "zh": "污漬", "ph": "steɪn"}, {"en": "stair", "zh": "樓梯", "ph": "steər"}, {"en": "stamp", "zh": "郵票", "ph": "stæmp"}, {"en": "stand", "zh": "站立", "ph": "stænd"}, {"en": "standard", "zh": "標準", "ph": "ˈstæn.dəd"}, {"en": "star", "zh": "星星/明星", "ph": "stɑːr"}, {"en": "stare", "zh": "凝視", "ph": "steər"}, {"en": "start", "zh": "開始", "ph": "stɑːt"}, {"en": "state", "zh": "狀態/國家/州", "ph": "steɪt"}, {"en": "station", "zh": "車站", "ph": "ˈsteɪ.ʃən"}, {"en": "stationary", "zh": "靜止的", "ph": "ˈsteɪ.ʃən.ər.i"}, {"en": "stationery", "zh": "文具", "ph": "ˈsteɪ.ʃən.ər.i"}, {"en": "statue", "zh": "雕像", "ph": "ˈstætʃ.uː"}, {"en": "stay", "zh": "停留", "ph": "steɪ"}, {"en": "steak", "zh": "牛排", "ph": "steɪk"}, {"en": "steal", "zh": "偷竊", "ph": "stiːl"}, {"en": "steam", "zh": "蒸汽", "ph": "stiːm"}, {"en": "steel", "zh": "鋼鐵", "ph": "stiːl"}, {"en": "steer", "zh": "駕駛/引導", "ph": "stɪər"}, {"en": "step", "zh": "腳步/跨步", "ph": "step"}, {"en": "steward", "zh": "男服務員", "ph": "ˈstjuː.əd"}, {"en": "stewardess", "zh": "女服務員", "ph": "ˈstjuː.ə.des"}, {"en": "stick", "zh": "棍子/黏貼", "ph": "stɪk"}, {"en": "sticky", "zh": "黏的", "ph": "ˈstɪk.i"}, {"en": "stiff", "zh": "硬的/僵直的", "ph": "stɪf"}, {"en": "still", "zh": "仍然", "ph": "stɪl"}, {"en": "sting", "zh": "叮/刺", "ph": "stɪŋ"}, {"en": "stir", "zh": "攪拌", "ph": "stɜːr"}, {"en": "stock", "zh": "庫存/股票", "ph": "stɒk"}, {"en": "stomach", "zh": "胃", "ph": "ˈstʌm.ək"}, {"en": "stomachache", "zh": "胃痛", "ph": "ˈstʌm.ək.eɪk"}, {"en": "stone", "zh": "石頭", "ph": "stəʊn"}, {"en": "stop", "zh": "停止/車站", "ph": "stɒp"}, {"en": "store", "zh": "商店", "ph": "stɔːr"}, {"en": "storm", "zh": "暴風雨", "ph": "stɔːm"}, {"en": "stormy", "zh": "暴風雨的", "ph": "ˈstɔː.mi"}, {"en": "story", "zh": "故事/樓層", "ph": "ˈstɔː.ri"}, {"en": "stove", "zh": "爐子", "ph": "stəʊv"}, {"en": "straight", "zh": "直的", "ph": "streɪt"}, {"en": "strange", "zh": "奇怪的", "ph": "streɪndʒ"}, {"en": "stranger", "zh": "陌生人", "ph": "ˈstreɪn.dʒər"}, {"en": "straw", "zh": "吸管/稻草", "ph": "strɔː"}, {"en": "strawberry", "zh": "草莓", "ph": "ˈstrɔː.bər.i"}, {"en": "stream", "zh": "小溪", "ph": "striːm"}, {"en": "street", "zh": "街道", "ph": "striːt"}, {"en": "strength", "zh": "力量", "ph": "streŋθ"}, {"en": "stress", "zh": "壓力/強調", "ph": "stres"}, {"en": "stretch", "zh": "伸展", "ph": "stretʃ"}, {"en": "strict", "zh": "嚴格的", "ph": "strɪkt"}, {"en": "strike", "zh": "打擊/罷工", "ph": "straɪk"}, {"en": "string", "zh": "細繩", "ph": "strɪŋ"}, {"en": "stripe", "zh": "條紋", "ph": "straɪp"}, {"en": "stroke", "zh": "中風/一筆畫", "ph": "strəʊk"}, {"en": "strong", "zh": "強壯的", "ph": "strɒŋ"}, {"en": "structure", "zh": "結構", "ph": "ˈstrʌk.tʃər"}, {"en": "stubborn", "zh": "固執的", "ph": "ˈstʌb.ən"}, {"en": "student", "zh": "學生", "ph": "ˈstjuː.dənt"}, {"en": "studio", "zh": "工作室", "ph": "ˈstjuː.di.əʊ"}, {"en": "study", "zh": "學習/書房", "ph": "ˈstʌd.i"}, {"en": "stuff", "zh": "東西", "ph": "stʌf"}, {"en": "stupid", "zh": "愚蠢的", "ph": "ˈstjuː.pɪd"}, {"en": "style", "zh": "風格", "ph": "staɪl"}, {"en": "subject", "zh": "科目/主題", "ph": "ˈsʌb.dʒɪkt"}, {"en": "submarine", "zh": "潛水艇", "ph": "ˌsʌb.məˈriːn"}, {"en": "subway", "zh": "地鐵", "ph": "ˈsʌb.weɪ"}, {"en": "succeed", "zh": "成功", "ph": "səkˈsiːd"}, {"en": "success", "zh": "成功", "ph": "səkˈses"}, {"en": "successful", "zh": "成功的", "ph": "səkˈses.fəl"}, {"en": "such", "zh": "如此的", "ph": "sʌtʃ"}, {"en": "sudden", "zh": "突然的", "ph": "ˈsʌd.ən"}, {"en": "suffer", "zh": "受苦", "ph": "ˈsʌf.ər"}, {"en": "sugar", "zh": "糖", "ph": "ˈʃʊɡ.ər"}, {"en": "suggest", "zh": "建議", "ph": "səˈdʒest"}, {"en": "suggestion", "zh": "建議", "ph": "səˈdʒes.tʃən"}, {"en": "suit", "zh": "西裝/適合", "ph": "suːt"}, {"en": "suitable", "zh": "適合的", "ph": "ˈsuː.tə.bəl"}, {"en": "suitcase", "zh": "行李箱", "ph": "ˈsuːt.keɪs"}, {"en": "summer", "zh": "夏天", "ph": "ˈsʌm.ər"}, {"en": "sun", "zh": "太陽", "ph": "sʌn"}, {"en": "Sunday", "zh": "星期日", "ph": "ˈsʌn.deɪ"}, {"en": "sunny", "zh": "晴朗的", "ph": "ˈsʌn.i"}, {"en": "super", "zh": "超級的", "ph": "ˈsuː.pər"}, {"en": "supermarket", "zh": "超級市場", "ph": "ˈsuː.pəˌmɑː.kɪt"}, {"en": "supper", "zh": "晚餐", "ph": "ˈsʌp.ər"}, {"en": "support", "zh": "支持", "ph": "səˈpɔːt"}, {"en": "suppose", "zh": "猜想/假定", "ph": "səˈpəʊz"}, {"en": "sure", "zh": "確定的", "ph": "ʃɔːr"}, {"en": "surface", "zh": "表面", "ph": "ˈsɜː.fɪs"}, {"en": "surprise", "zh": "使驚訝/驚喜", "ph": "səˈpraɪz"}, {"en": "surprised", "zh": "感到驚訝的", "ph": "səˈpraɪzd"}, {"en": "surprising", "zh": "令人驚訝的", "ph": "səˈpraɪ.zɪŋ"}, {"en": "surround", "zh": "環繞", "ph": "səˈraʊnd"}, {"en": "survive", "zh": "存活", "ph": "səˈvaɪv"}, {"en": "suspect", "zh": "懷疑/嫌疑犯", "ph": "səˈspekt"}, {"en": "swallow", "zh": "吞嚥/燕子", "ph": "ˈswɒl.əʊ"}, {"en": "swan", "zh": "天鵝", "ph": "swɒn"}, {"en": "swear", "zh": "發誓/咒罵", "ph": "sweər"}, {"en": "sweat", "zh": "流汗/汗水", "ph": "swet"}, {"en": "sweater", "zh": "毛衣", "ph": "ˈswet.ər"}, {"en": "sweep", "zh": "打掃", "ph": "swiːp"}, {"en": "sweet", "zh": "甜的", "ph": "swiːt"}, {"en": "swell", "zh": "腫脹", "ph": "swel"}, {"en": "swim", "zh": "游泳", "ph": "swɪm"}, {"en": "swimming", "zh": "游泳", "ph": "ˈswɪm.ɪŋ"}, {"en": "swing", "zh": "鞦韆/搖擺", "ph": "swɪŋ"}, {"en": "switch", "zh": "開關/切換", "ph": "swɪtʃ"}, {"en": "sword", "zh": "劍", "ph": "sɔːd"}, {"en": "symbol", "zh": "象徵", "ph": "ˈsɪm.bəl"}, {"en": "sympathy", "zh": "同情心", "ph": "ˈsɪm.pə.θi"}, {"en": "system", "zh": "系統", "ph": "ˈsɪs.təm"}, {"en": "table", "zh": "桌子", "ph": "ˈteɪ.bəl"}, {"en": "table tennis", "zh": "桌球", "ph": "ˈteɪ.bəl ˌten.ɪs"}, {"en": "tadpole", "zh": "蝌蚪", "ph": "ˈtæd.pəʊl"}, {"en": "tail", "zh": "尾巴", "ph": "teɪl"}, {"en": "tailor", "zh": "裁縫師", "ph": "ˈteɪ.lər"}, {"en": "take", "zh": "拿/搭乘", "ph": "teɪk"}, {"en": "talent", "zh": "天賦", "ph": "ˈtæl.ənt"}, {"en": "talk", "zh": "談話", "ph": "tɔːk"}, {"en": "talkative", "zh": "多話的", "ph": "ˈtɔː.kə.tɪv"}, {"en": "tall", "zh": "高的", "ph": "tɔːl"}, {"en": "tangerine", "zh": "柑橘", "ph": "ˈtæn.dʒə.riːn"}, {"en": "tank", "zh": "坦克/水槽", "ph": "tæŋk"}, {"en": "tap", "zh": "水龍頭/輕拍", "ph": "tæp"}, {"en": "tape", "zh": "膠帶/錄音帶", "ph": "teɪp"}, {"en": "taste", "zh": "嚐起來/味道", "ph": "teɪst"}, {"en": "tasty", "zh": "美味可味的", "ph": "ˈteɪ.sti"}, {"en": "taxi", "zh": "計程車", "ph": "ˈtæk.si"}, {"en": "tea", "zh": "茶", "ph": "tiː"}, {"en": "teach", "zh": "教導", "ph": "tiːtʃ"}, {"en": "teacher", "zh": "老師", "ph": "ˈtiː.tʃər"}, {"en": "team", "zh": "團隊", "ph": "tiːm"}, {"en": "teapot", "zh": "茶壺", "ph": "ˈtiː.pɒt"}, {"en": "tear", "zh": "眼淚/撕開", "ph": "tɪər"}, {"en": "technique", "zh": "技術", "ph": "tekˈniːk"}, {"en": "technology", "zh": "科技", "ph": "tekˈnɒl.ə.dʒi"}, {"en": "teen", "zh": "青少年", "ph": "tiːn"}, {"en": "teenager", "zh": "青少年", "ph": "ˈtiːnˌeɪ.dʒər"}, {"en": "telephone", "zh": "電話", "ph": "ˈtel.ɪ.fəʊn"}, {"en": "television", "zh": "電視", "ph": "ˈtel.ɪˌvɪʒ.ən"}, {"en": "tell", "zh": "告訴", "ph": "tel"}, {"en": "temperature", "zh": "溫度", "ph": "ˈtem.prə.tʃər"}, {"en": "temple", "zh": "寺廟", "ph": "ˈtem.pəl"}, {"en": "ten", "zh": "十", "ph": "ten"}, {"en": "tennis", "zh": "網球", "ph": "ˈten.ɪs"}, {"en": "tent", "zh": "帳篷", "ph": "tent"}, {"en": "term", "zh": "學期/術語", "ph": "tɜːm"}, {"en": "terrible", "zh": "可怕的", "ph": "ˈter.ə.bəl"}, {"en": "terrify", "zh": "使害怕", "ph": "ˈter.ɪ.faɪ"}, {"en": "test", "zh": "考試", "ph": "test"}, {"en": "textbook", "zh": "教科書", "ph": "ˈtekst.bʊk"}, {"en": "than", "zh": "比", "ph": "ðæn"}, {"en": "thank", "zh": "感謝", "ph": "θæŋk"}, {"en": "thanks", "zh": "感謝", "ph": "θæŋks"}, {"en": "Thanksgiving", "zh": "感恩節", "ph": "ˌθæŋksˈɡɪv.ɪŋ"}, {"en": "that", "zh": "那個", "ph": "ðæt"}, {"en": "the", "zh": "這/那", "ph": "ðə"}, {"en": "theater", "zh": "戲院", "ph": "ˈθɪə.tər"}, {"en": "their", "zh": "他們的", "ph": "ðeər"}, {"en": "theirs", "zh": "他們的(所有格代名詞)", "ph": "ðeəz"}, {"en": "them", "zh": "他們(受格)", "ph": "ðem"}, {"en": "themselves", "zh": "他們自己", "ph": "ðəmˈselvz"}, {"en": "then", "zh": "然後", "ph": "ðen"}, {"en": "there", "zh": "在那裡", "ph": "ðeər"}, {"en": "therefore", "zh": "因此", "ph": "ˈðeə.fɔːr"}, {"en": "these", "zh": "這些", "ph": "ðiːz"}, {"en": "they", "zh": "他們", "ph": "ðeɪ"}, {"en": "thick", "zh": "厚的", "ph": "θɪk"}, {"en": "thief", "zh": "小偷", "ph": "θiːf"}, {"en": "thin", "zh": "薄的/瘦的", "ph": "θɪn"}, {"en": "thing", "zh": "東西", "ph": "θɪŋ"}, {"en": "think", "zh": "想", "ph": "θɪŋk"}, {"en": "third", "zh": "第三", "ph": "θɜːd"}, {"en": "thirteen", "zh": "十三", "ph": "ˌθɜːˈtiːn"}, {"en": "thirty", "zh": "三十", "ph": "ˈθɜː.ti"}, {"en": "this", "zh": "這個", "ph": "ðɪs"}, {"en": "those", "zh": "那些", "ph": "ðəʊz"}, {"en": "though", "zh": "雖然", "ph": "ðəʊ"}, {"en": "thought", "zh": "想法/思考", "ph": "θɔːt"}, {"en": "thousand", "zh": "千", "ph": "ˈθaʊ.zənd"}, {"en": "thread", "zh": "線", "ph": "θred"}, {"en": "three", "zh": "三", "ph": "θriː"}, {"en": "throat", "zh": "喉嚨", "ph": "θrəʊt"}, {"en": "throne", "zh": "王位", "ph": "θrəʊn"}, {"en": "through", "zh": "穿過", "ph": "θruː"}, {"en": "throw", "zh": "丟", "ph": "θrəʊ"}, {"en": "thumb", "zh": "大拇指", "ph": "θʌm"}, {"en": "thunder", "zh": "打雷", "ph": "ˈθʌn.dər"}, {"en": "Thursday", "zh": "星期四", "ph": "ˈθɜːz.deɪ"}, {"en": "thus", "zh": "因此", "ph": "ðʌs"}, {"en": "ticket", "zh": "票", "ph": "ˈtɪk.ɪt"}, {"en": "tidy", "zh": "整潔的", "ph": "ˈtaɪ.di"}, {"en": "tie", "zh": "領帶/綁", "ph": "taɪ"}, {"en": "tiger", "zh": "老虎", "ph": "ˈtaɪ.ɡər"}, {"en": "tight", "zh": "緊的", "ph": "taɪt"}, {"en": "till", "zh": "直到", "ph": "tɪl"}, {"en": "time", "zh": "時間/次數", "ph": "taɪm"}, {"en": "tiny", "zh": "微小的", "ph": "ˈtaɪ.ni"}, {"en": "tip", "zh": "小費/提示", "ph": "tɪp"}, {"en": "tired", "zh": "疲倦的", "ph": "ˈtaɪəd"}, {"en": "tire", "zh": "車胎/使疲倦", "ph": "taɪər"}, {"en": "tiring", "zh": "令人疲倦的", "ph": "ˈtaɪə.rɪŋ"}, {"en": "tissue", "zh": "面紙/組織", "ph": "ˈtɪʃ.uː"}, {"en": "title", "zh": "標題", "ph": "ˈtaɪ.təl"}, {"en": "to", "zh": "到/給", "ph": "tuː"}, {"en": "toast", "zh": "吐司/乾杯", "ph": "təʊst"}, {"en": "tobacco", "zh": "菸草", "ph": "təˈbæk.əʊ"}, {"en": "today", "zh": "今天", "ph": "təˈdeɪ"}, {"en": "toe", "zh": "腳趾", "ph": "təʊ"}, {"en": "tofu", "zh": "豆腐", "ph": "ˈtəʊ.fuː"}, {"en": "together", "zh": "一起", "ph": "təˈɡeð.ər"}, {"en": "toilet", "zh": "廁所", "ph": "ˈtɔɪ.lət"}, {"en": "tomato", "zh": "番茄", "ph": "təˈmɑː.təʊ"}, {"en": "tomorrow", "zh": "明天", "ph": "təˈmɒr.əʊ"}, {"en": "ton", "zh": "噸", "ph": "tʌn"}, {"en": "tongue", "zh": "舌頭", "ph": "tʌŋ"}, {"en": "tonight", "zh": "今晚", "ph": "təˈnaɪt"}, {"en": "too", "zh": "也/太", "ph": "tuː"}, {"en": "tool", "zh": "工具", "ph": "tuːl"}, {"en": "tooth", "zh": "牙齒", "ph": "tuːθ"}, {"en": "toothache", "zh": "牙痛", "ph": "ˈtuːθ.eɪk"}, {"en": "toothbrush", "zh": "牙刷", "ph": "ˈtuːθ.brʌʃ"}, {"en": "toothpaste", "zh": "牙膏", "ph": "ˈtuːθ.peɪst"}, {"en": "top", "zh": "頂部", "ph": "tɒp"}, {"en": "topic", "zh": "主題", "ph": "ˈtɒp.ɪk"}, {"en": "torch", "zh": "火把/手電筒", "ph": "tɔːtʃ"}, {"en": "tortoise", "zh": "陸龜", "ph": "ˈtɔː.təs"}, {"en": "total", "zh": "總共的", "ph": "ˈtəʊ.təl"}, {"en": "touch", "zh": "觸摸", "ph": "tʌtʃ"}, {"en": "tough", "zh": "堅韌的/棘手的", "ph": "tʌf"}, {"en": "tour", "zh": "旅遊", "ph": "tʊər"}, {"en": "tourist", "zh": "觀光客", "ph": "ˈtʊə.rɪst"}, {"en": "toward", "zh": "朝向", "ph": "təˈwɔːd"}, {"en": "towel", "zh": "毛巾", "ph": "ˈtaʊ.əl"}, {"en": "tower", "zh": "塔", "ph": "ˈtaʊər"}, {"en": "town", "zh": "城鎮", "ph": "taʊn"}, {"en": "toy", "zh": "玩具", "ph": "tɔɪ"}, {"en": "trace", "zh": "追蹤/痕跡", "ph": "treɪs"}, {"en": "track", "zh": "軌道/跑道", "ph": "træk"}, {"en": "trade", "zh": "貿易", "ph": "treɪd"}, {"en": "tradition", "zh": "傳統", "ph": "trəˈdɪʃ.ən"}, {"en": "traditional", "zh": "傳統的", "ph": "trəˈdɪʃ.ən.əl"}, {"en": "traffic", "zh": "交通", "ph": "ˈtræf.ɪk"}, {"en": "train", "zh": "火車/訓練", "ph": "treɪn"}, {"en": "trainer", "zh": "教練", "ph": "ˈtreɪ.nər"}, {"en": "training", "zh": "訓練", "ph": "ˈtreɪ.nɪŋ"}, {"en": "translate", "zh": "翻譯", "ph": "trænsˈleɪt"}, {"en": "translation", "zh": "翻譯", "ph": "trænsˈleɪ.ʃən"}, {"en": "transport", "zh": "運輸", "ph": "trænsˈpɔːt"}, {"en": "transportation", "zh": "交通工具", "ph": "ˌtræn.spɔːˈteɪ.ʃən"}, {"en": "trap", "zh": "陷阱", "ph": "træp"}, {"en": "travel", "zh": "旅遊", "ph": "ˈtræv.əl"}, {"en": "traveler", "zh": "旅客", "ph": "ˈtræv.əl.ər"}, {"en": "treasure", "zh": "寶藏", "ph": "ˈtreʒ.ər"}, {"en": "treat", "zh": "對待/請客", "ph": "triːt"}, {"en": "treatment", "zh": "治療/對待", "ph": "ˈtriːt.mənt"}, {"en": "tree", "zh": "樹木", "ph": "triː"}, {"en": "triangle", "zh": "三角形", "ph": "ˈtraɪ.æŋ.ɡəl"}, {"en": "trick", "zh": "惡作劇/把戲", "ph": "trɪk"}, {"en": "trip", "zh": "旅行", "ph": "trɪp"}, {"en": "trousers", "zh": "褲子", "ph": "ˈtraʊ.zəz"}, {"en": "truck", "zh": "卡車", "ph": "trʌk"}, {"en": "true", "zh": "真實的", "ph": "truː"}, {"en": "trumpet", "zh": "小喇叭", "ph": "ˈtrʌm.pɪt"}, {"en": "trust", "zh": "信任", "ph": "trʌst"}, {"en": "truth", "zh": "真相", "ph": "truːθ"}, {"en": "try", "zh": "嘗試", "ph": "traɪ"}, {"en": "T-shirt", "zh": "T恤", "ph": "ˈtiː.ʃɜːt"}, {"en": "tub", "zh": "浴缸", "ph": "tʌb"}, {"en": "Tuesday", "zh": "星期二", "ph": "ˈtjuːz.deɪ"}, {"en": "tunnel", "zh": "隧道", "ph": "ˈtʌn.əl"}, {"en": "turkey", "zh": "火雞", "ph": "ˈtɜː.ki"}, {"en": "turn", "zh": "轉動/輪流", "ph": "tɜːn"}, {"en": "turtle", "zh": "烏龜", "ph": "ˈtɜː.təl"}, {"en": "TV", "zh": "電視", "ph": "ˌtiːˈviː"}, {"en": "twelfth", "zh": "第十二", "ph": "twelfθ"}, {"en": "twelve", "zh": "十二", "ph": "twelv"}, {"en": "twenty", "zh": "二十", "ph": "ˈtwen.ti"}, {"en": "twice", "zh": "兩次", "ph": "twaɪs"}, {"en": "twin", "zh": "雙胞胎", "ph": "twɪn"}, {"en": "two", "zh": "二", "ph": "tuː"}, {"en": "type", "zh": "類型/打字", "ph": "taɪp"}, {"en": "typewriter", "zh": "打字機", "ph": "ˈtaɪpˌraɪ.tər"}, {"en": "typhoon", "zh": "颱風", "ph": "taɪˈfuːn"}, {"en": "typical", "zh": "典型的", "ph": "ˈtɪp.ɪ.kəl"}, {"en": "ugly", "zh": "醜陋的", "ph": "ˈʌɡ.li"}, {"en": "umbrella", "zh": "雨傘", "ph": "ʌmˈbrel.ə"}, {"en": "uncle", "zh": "伯父/叔叔/舅舅", "ph": "ˈʌŋ.kəl"}, {"en": "under", "zh": "在...下方", "ph": "ˈʌn.dər"}, {"en": "underground", "zh": "地下的", "ph": "ˌʌn.dəˈɡraʊnd"}, {"en": "underline", "zh": "劃底線", "ph": "ˌʌn.dəˈlaɪn"}, {"en": "underpants", "zh": "內褲", "ph": "ˈʌn.də.pænts"}, {"en": "understand", "zh": "明白", "ph": "ˌʌn.dəˈstænd"}, {"en": "underwear", "zh": "內衣", "ph": "ˈʌn.də.weər"}, {"en": "unhappy", "zh": "不快樂的", "ph": "ʌnˈhæp.i"}, {"en": "uniform", "zh": "制服", "ph": "ˈjuː.nɪ.fɔːm"}, {"en": "unique", "zh": "獨特的", "ph": "juːˈniːk"}, {"en": "unit", "zh": "單元", "ph": "ˈjuː.nɪt"}, {"en": "universe", "zh": "宇宙", "ph": "ˈjuː.nɪ.vɜːs"}, {"en": "university", "zh": "大學", "ph": "ˌjuː.nɪˈvɜː.sə.ti"}, {"en": "unknown", "zh": "未知的", "ph": "ʌnˈnəʊn"}, {"en": "unless", "zh": "除非", "ph": "ʌnˈles"}, {"en": "until", "zh": "直到", "ph": "ʌnˈtɪl"}, {"en": "unusual", "zh": "不尋常的", "ph": "ʌnˈjuː.ʒu.əl"}, {"en": "up", "zh": "向上", "ph": "ʌp"}, {"en": "upon", "zh": "在...之上", "ph": "əˈpɒn"}, {"en": "upper", "zh": "較高的", "ph": "ˈʌp.ər"}, {"en": "stairs", "zh": "樓梯", "ph": "steəz"}, {"en": "upstairs", "zh": "在樓上", "ph": "ˌʌpˈsteəz"}, {"en": "urban", "zh": "都市的", "ph": "ˈɜː.bən"}, {"en": "urge", "zh": "催促/渴望", "ph": "ɜːdʒ"}, {"en": "urgent", "zh": "緊急的", "ph": "ˈɜː.dʒənt"}, {"en": "us", "zh": "我們(受格)", "ph": "ʌs"}, {"en": "use", "zh": "使用", "ph": "juːz"}, {"en": "used", "zh": "習慣於/舊的", "ph": "juːzd"}, {"en": "useful", "zh": "有用的", "ph": "ˈjuːs.fəl"}, {"en": "user", "zh": "使用者", "ph": "ˈjuː.zər"}, {"en": "usual", "zh": "通常的", "ph": "ˈjuː.ʒu.əl"}, {"en": "vacation", "zh": "假期", "ph": "vəˈkeɪ.ʃən"}, {"en": "vaccine", "zh": "疫苗", "ph": "ˈvæk.siːn"}, {"en": "vague", "zh": "模糊的", "ph": "veɪɡ"}, {"en": "valley", "zh": "山谷", "ph": "ˈvæl.i"}, {"en": "valuable", "zh": "有價值的", "ph": "ˈvæl.jʊ.ə.bəl"}, {"en": "value", "zh": "價值", "ph": "ˈvæl.juː"}, {"en": "van", "zh": "箱型車", "ph": "væn"}, {"en": "vanish", "zh": "消失", "ph": "ˈvæn.ɪʃ"}, {"en": "variety", "zh": "多樣性", "ph": "vəˈraɪ.ə.ti"}, {"en": "various", "zh": "各種各樣的", "ph": "ˈveə.ri.əs"}, {"en": "vase", "zh": "花瓶", "ph": "vɑːz"}, {"en": "vast", "zh": "廣大的", "ph": "vɑːst"}, {"en": "vegetable", "zh": "蔬菜", "ph": "ˈvedʒ.tə.bəl"}, {"en": "vehicle", "zh": "車輛", "ph": "ˈvɪə.kəl"}, {"en": "vein", "zh": "靜脈/葉脈", "ph": "veɪn"}, {"en": "velvet", "zh": "天鵝絨", "ph": "ˈvel.vɪt"}, {"en": "venture", "zh": "冒險", "ph": "ˈven.tʃər"}, {"en": "verb", "zh": "動詞", "ph": "vɜːb"}, {"en": "verdict", "zh": "判決", "ph": "ˈvɜː.dɪkt"}, {"en": "verse", "zh": "詩節", "ph": "vɜːs"}, {"en": "version", "zh": "版本", "ph": "ˈvɜː.ʒən"}, {"en": "vertical", "zh": "垂直的", "ph": "ˈvɜː.tɪ.kəl"}, {"en": "very", "zh": "非常", "ph": "ˈver.i"}, {"en": "vessel", "zh": "船隻/容器/血管", "ph": "ˈves.əl"}, {"en": "vest", "zh": "背心", "ph": "vest"}, {"en": "veteran", "zh": "退伍軍人/老手", "ph": "ˈvet.ər.ən"}, {"en": "vet", "zh": "獸醫", "ph": "vet"}, {"en": "via", "zh": "經由", "ph": "ˈvaɪ.ə"}, {"en": "vibrate", "zh": "震動", "ph": "vaɪˈbreɪt"}, {"en": "vibration", "zh": "震動", "ph": "vaɪˈbreɪ.ʃən"}, {"en": "vice", "zh": "惡行/副的", "ph": "vaɪs"}, {"en": "vicious", "zh": "惡意的", "ph": "ˈvɪʃ.əs"}, {"en": "victim", "zh": "受害者", "ph": "ˈvɪk.tɪm"}, {"en": "victory", "zh": "勝利", "ph": "ˈvɪk.tər.i"}, {"en": "video", "zh": "影片", "ph": "ˈvɪd.i.əʊ"}, {"en": "view", "zh": "觀點/風景", "ph": "vjuː"}, {"en": "viewer", "zh": "觀眾", "ph": "ˈvjuː.ər"}, {"en": "vigor", "zh": "活力", "ph": "ˈvɪɡ.ər"}, {"en": "vigorous", "zh": "精力充沛的", "ph": "ˈvɪɡ.ər.əs"}, {"en": "viking", "zh": "維京人", "ph": "ˈvaɪ.kɪŋ"}, {"en": "villa", "zh": "別墅", "ph": "ˈvɪl.ə"}, {"en": "village", "zh": "村莊", "ph": "ˈvɪl.ɪdʒ"}, {"en": "villager", "zh": "村民", "ph": "ˈvɪl.ɪ.dʒər"}, {"en": "villain", "zh": "反派角色", "ph": "ˈvɪl.ən"}, {"en": "vine", "zh": "藤蔓", "ph": "vaɪn"}, {"en": "vinegar", "zh": "醋", "ph": "ˈvɪn.ɪ.ɡər"}, {"en": "vineyard", "zh": "葡萄園", "ph": "ˈvɪn.jɑːd"}, {"en": "vintage", "zh": "古典的/珍藏的", "ph": "ˈvɪn.tɪdʒ"}, {"en": "violate", "zh": "違反", "ph": "ˈvaɪ.ə.leɪt"}, {"en": "violence", "zh": "暴力", "ph": "ˈvaɪ.ə.ləns"}, {"en": "violent", "zh": "暴力的", "ph": "ˈvaɪ.ə.lənt"}, {"en": "violet", "zh": "紫羅蘭", "ph": "ˈvaɪ.ə.lət"}, {"en": "violin", "zh": "小提琴", "ph": "ˌvaɪəˈlɪn"}, {"en": "violinist", "zh": "小提琴家", "ph": "ˌvaɪəˈlɪn.ɪst"}, {"en": "virgin", "zh": "處女/純潔的", "ph": "ˈvɜː.dʒɪn"}, {"en": "virtual", "zh": "虛擬的", "ph": "ˈvɜː.tʃu.əl"}, {"en": "virtue", "zh": "美德", "ph": "ˈvɜː.tʃuː"}, {"en": "virus", "zh": "病毒", "ph": "ˈvaɪə.rəs"}, {"en": "visa", "zh": "簽證", "ph": "ˈviː.zə"}, {"en": "visible", "zh": "可見的", "ph": "ˈvɪz.ə.bəl"}, {"en": "vision", "zh": "視力/願景", "ph": "ˈvɪʒ.ən"}, {"en": "visit", "zh": "拜訪", "ph": "ˈvɪz.ɪt"}, {"en": "visitor", "zh": "訪客", "ph": "ˈvɪz.ɪ.tər"}, {"en": "visual", "zh": "視覺的", "ph": "ˈvɪʒ.u.əl"}, {"en": "vital", "zh": "至關重要的", "ph": "ˈvaɪ.təl"}, {"en": "vitamin", "zh": "維他命", "ph": "ˈvaɪ.tə.mɪn"}, {"en": "vivid", "zh": "生動的", "ph": "ˈvɪv.ɪd"}, {"en": "vocabulary", "zh": "字彙", "ph": "vəˈkæb.jʊ.lər.i"}, {"en": "vocal", "zh": "聲音的/直言不諱的", "ph": "ˈvəʊ.kəl"}, {"en": "vocation", "zh": "職業", "ph": "vəʊˈkeɪ.ʃən"}, {"en": "vocational", "zh": "職業的", "ph": "vəʊˈkeɪ.ʃən.əl"}, {"en": "vogue", "zh": "時尚", "ph": "vəʊɡ"}, {"en": "voice", "zh": "聲音", "ph": "vɔɪs"}, {"en": "void", "zh": "空虛/無效的", "ph": "vɔɪd"}, {"en": "volcano", "zh": "火山", "ph": "vɒlˈkeɪ.nəʊ"}, {"en": "volleyball", "zh": "排球", "ph": "ˈvɒl.i.bɔːl"}, {"en": "volt", "zh": "伏特", "ph": "vəʊlt"}, {"en": "voltage", "zh": "電壓", "ph": "ˈvəʊl.tɪdʒ"}, {"en": "volume", "zh": "音量/體積/卷", "ph": "ˈvɒl.juːm"}, {"en": "voluntary", "zh": "自願的", "ph": "ˈvɒl.ən.tər.i"}, {"en": "volunteer", "zh": "志工", "ph": "ˌvɒl.ənˈtɪər"}, {"en": "vomit", "zh": "嘔吐", "ph": "ˈvɒm.ɪt"}, {"en": "vote", "zh": "投票", "ph": "vəʊt"}, {"en": "voter", "zh": "投票者", "ph": "ˈvəʊ.tər"}, {"en": "vow", "zh": "誓言", "ph": "vaʊ"}, {"en": "vowel", "zh": "元音", "ph": "ˈvaʊ.əl"}, {"en": "voyage", "zh": "航海", "ph": "ˈvɔɪ.ɪdʒ"}, {"en": "vulgar", "zh": "粗俗的", "ph": "ˈvʌl.ɡər"}, {"en": "vulnerable", "zh": "易受傷的", "ph": "ˈvʌl.nər.ə.bəl"}, {"en": "wade", "zh": "涉水", "ph": "weɪd"}, {"en": "wag", "zh": "搖擺", "ph": "wæɡ"}, {"en": "wage", "zh": "薪水", "ph": "weɪdʒ"}, {"en": "wagon", "zh": "貨車", "ph": "ˈwæɡ.ən"}, {"en": "wail", "zh": "痛哭", "ph": "weɪl"}, {"en": "waist", "zh": "腰部", "ph": "weɪst"}, {"en": "wait", "zh": "等待", "ph": "weɪt"}, {"en": "waiter", "zh": "男服務生", "ph": "ˈweɪ.tər"}, {"en": "waitress", "zh": "女服務生", "ph": "ˈweɪ.trəs"}, {"en": "wake", "zh": "醒來", "ph": "weɪk"}, {"en": "waken", "zh": "醒來/喚醒", "ph": "ˈweɪ.kən"}, {"en": "walk", "zh": "走路", "ph": "wɔːk"}, {"en": "walker", "zh": "散步者/助行器", "ph": "ˈwɔː.kər"}, {"en": "wall", "zh": "牆壁", "ph": "wɔːl"}, {"en": "wallet", "zh": "皮夾", "ph": "ˈwɒl.ɪt"}, {"en": "walnut", "zh": "核桃", "ph": "ˈwɔːl.nʌt"}, {"en": "wander", "zh": "漫遊/流浪", "ph": "ˈwɒn.dər"}, {"en": "want", "zh": "想要", "ph": "wɒnt"}, {"en": "war", "zh": "戰爭", "ph": "wɔːr"}, {"en": "ward", "zh": "病房", "ph": "wɔːd"}, {"en": "wardrobe", "zh": "衣櫃", "ph": "ˈwɔː.drəʊb"}, {"en": "warehouse", "zh": "倉庫", "ph": "ˈweə.haʊs"}, {"en": "warfare", "zh": "戰爭狀態", "ph": "ˈwɔː.feər"}, {"en": "warm", "zh": "溫暖的", "ph": "wɔːm"}, {"en": "warmth", "zh": "溫暖", "ph": "wɔːmθ"}, {"en": "warn", "zh": "警告", "ph": "wɔːn"}, {"en": "warning", "zh": "警告", "ph": "ˈwɔː.nɪŋ"}, {"en": "warrant", "zh": "授權令", "ph": "ˈwɒr.ənt"}, {"en": "warrior", "zh": "戰士", "ph": "ˈwɒr.i.ər"}, {"en": "wary", "zh": "謹慎的", "ph": "ˈweə.ri"}, {"en": "wash", "zh": "洗滌", "ph": "wɒʃ"}, {"en": "washroom", "zh": "洗手間", "ph": "ˈwɒʃ.ruːm"}, {"en": "waste", "zh": "浪費/廢棄物", "ph": "weɪst"}, {"en": "watch", "zh": "手錶/觀看", "ph": "wɒtʃ"}, {"en": "watchman", "zh": "看門人", "ph": "ˈwɒtʃ.mən"}, {"en": "water", "zh": "水/澆水", "ph": "ˈwɔː.tər"}, {"en": "waterfall", "zh": "瀑布", "ph": "ˈwɔː.tə.fɔːl"}, {"en": "watermelon", "zh": "西瓜", "ph": "ˈwɔː.təˌmel.ən"}, {"en": "waterproof", "zh": "防水的", "ph": "ˈwɔː.tə.pruːf"}, {"en": "watertight", "zh": "防水的/嚴密的", "ph": "ˈwɔː.tə.taɪt"}, {"en": "wave", "zh": "海浪/揮手", "ph": "weɪv"}, {"en": "wax", "zh": "蠟", "ph": "wæks"}, {"en": "way", "zh": "方法/道路", "ph": "weɪ"}, {"en": "we", "zh": "我們", "ph": "wiː"}, {"en": "weak", "zh": "虛弱的", "ph": "wiːk"}, {"en": "weaken", "zh": "削弱", "ph": "ˈwiː.kən"}, {"en": "weakness", "zh": "弱點", "ph": "ˈwiːk.nəs"}, {"en": "wealth", "zh": "財富", "ph": "welθ"}, {"en": "wealthy", "zh": "富有的", "ph": "ˈwel.θi"}, {"en": "weapon", "zh": "武器", "ph": "ˈwep.ən"}, {"en": "wear", "zh": "穿戴", "ph": "weər"}, {"en": "weary", "zh": "疲憊的", "ph": "ˈwɪə.ri"}, {"en": "weather", "zh": "天氣", "ph": "ˈweð.ər"}, {"en": "weave", "zh": "編織", "ph": "wiːv"}, {"en": "weaver", "zh": "織工", "ph": "ˈwiː.vər"}, {"en": "web", "zh": "網", "ph": "web"}, {"en": "website", "zh": "網站", "ph": "ˈweb.saɪt"}, {"en": "wed", "zh": "結婚", "ph": "wed"}, {"en": "wedding", "zh": "婚禮", "ph": "ˈwed.ɪŋ"}, {"en": "Wednesday", "zh": "星期三", "ph": "ˈwenz.deɪ"}, {"en": "weed", "zh": "雜草", "ph": "wiːd"}, {"en": "week", "zh": "星期", "ph": "wiːk"}, {"en": "weekday", "zh": "工作日", "ph": "ˈwiːk.deɪ"}, {"en": "weekend", "zh": "週末", "ph": "ˈwiːk.end"}, {"en": "weekly", "zh": "每週的", "ph": "ˈwiːk.li"}, {"en": "weep", "zh": "哭泣", "ph": "wiːp"}, {"en": "weigh", "zh": "稱重", "ph": "weɪ"}, {"en": "weight", "zh": "重量", "ph": "weɪt"}, {"en": "weird", "zh": "怪異的", "ph": "wɪəd"}, {"en": "welcome", "zh": "歡迎", "ph": "ˈwel.kəm"}, {"en": "welfare", "zh": "福利", "ph": "ˈwel.feər"}, {"en": "well", "zh": "好的/井", "ph": "wel"}, {"en": "west", "zh": "西方", "ph": "west"}, {"en": "western", "zh": "西方的", "ph": "ˈwes.tərn"}, {"en": "wet", "zh": "濕的", "ph": "wet"}, {"en": "whale", "zh": "鯨魚", "ph": "weɪl"}, {"en": "wharf", "zh": "碼頭", "ph": "wɔːf"}, {"en": "what", "zh": "什麼", "ph": "wɒt"}, {"en": "whatever", "zh": "無論什麼", "ph": "wɒtˈev.ər"}, {"en": "wheat", "zh": "小麥", "ph": "wiːt"}, {"en": "wheel", "zh": "車輪", "ph": "wiːl"}, {"en": "wheelchair", "zh": "輪椅", "ph": "ˈwiːl.tʃeər"}, {"en": "when", "zh": "當...時", "ph": "wen"}, {"en": "whenever", "zh": "無論何時", "ph": "wenˈev.ər"}, {"en": "where", "zh": "在哪裡", "ph": "weər"}, {"en": "whereabouts", "zh": "下落", "ph": "ˈweə.rə.baʊts"}, {"en": "whereas", "zh": "然而", "ph": "ˌweərˈæz"}, {"en": "whereby", "zh": "藉以", "ph": "weəˈbaɪ"}, {"en": "wherever", "zh": "無論哪裡", "ph": "weərˈev.ər"}, {"en": "whether", "zh": "是否", "ph": "ˈweð.ər"}, {"en": "which", "zh": "哪一個", "ph": "wɪtʃ"}, {"en": "whichever", "zh": "無論哪一個", "ph": "wɪtʃˈev.ər"}, {"en": "while", "zh": "當...時候", "ph": "waɪl"}, {"en": "whip", "zh": "鞭子", "ph": "wɪp"}, {"en": "whirl", "zh": "旋轉", "ph": "wɜːl"}, {"en": "whiskey", "zh": "威士忌", "ph": "ˈwɪs.ki"}, {"en": "whisper", "zh": "低語", "ph": "ˈwɪs.pər"}, {"en": "whistle", "zh": "口哨/哨子", "ph": "ˈwɪs.əl"}, {"en": "white", "zh": "白色", "ph": "waɪt"}, {"en": "who", "zh": "誰", "ph": "huː"}, {"en": "whoever", "zh": "無論誰", "ph": "huːˈev.ər"}, {"en": "whole", "zh": "全部的", "ph": "həʊl"}, {"en": "wholesale", "zh": "批發", "ph": "ˈhəʊl.seɪl"}, {"en": "wholesaler", "zh": "批發商", "ph": "ˈhəʊlˌseɪ.lər"}, {"en": "wholesome", "zh": "有益健康的", "ph": "ˈhəʊl.səm"}, {"en": "whom", "zh": "誰(受格)", "ph": "huːm"}, {"en": "whose", "zh": "誰的", "ph": "huːz"}, {"en": "why", "zh": "為什麼", "ph": "waɪ"}, {"en": "wicked", "zh": "邪惡的", "ph": "ˈwɪk.ɪd"}, {"en": "wide", "zh": "寬的", "ph": "waɪd"}, {"en": "widen", "zh": "變寬", "ph": "ˈwaɪ.dən"}, {"en": "widespread", "zh": "廣泛的", "ph": "ˈwaɪd.spred"}, {"en": "widow", "zh": "寡婦", "ph": "ˈwɪd.əʊ"}, {"en": "widower", "zh": "鳏夫", "ph": "ˈwɪd.əʊ.ər"}, {"en": "width", "zh": "寬度", "ph": "wɪdθ"}, {"en": "wield", "zh": "揮舞/掌握", "ph": "wiːld"}, {"en": "wife", "zh": "妻子", "ph": "waɪf"}, {"en": "wig", "zh": "假髮", "ph": "wɪɡ"}, {"en": "wild", "zh": "野生的", "ph": "waɪld"}, {"en": "wilderness", "zh": "荒野", "ph": "ˈwɪl.də.nəs"}, {"en": "wildlife", "zh": "野生動物", "ph": "ˈwaɪld.laɪf"}, {"en": "will", "zh": "將要/意志", "ph": "wɪl"}, {"en": "willing", "zh": "願意的", "ph": "ˈwɪl.ɪŋ"}, {"en": "willow", "zh": "柳樹", "ph": "ˈwɪl.əʊ"}, {"en": "win", "zh": "贏", "ph": "wɪn"}, {"en": "wind", "zh": "風", "ph": "wɪnd"}, {"en": "wind", "zh": "纏繞", "ph": "waɪnd"}, {"en": "window", "zh": "窗戶", "ph": "ˈwɪn.dəʊ"}, {"en": "windscreen", "zh": "擋風玻璃", "ph": "ˈwɪnd.skriːn"}, {"en": "windshield", "zh": "擋風玻璃", "ph": "ˈwɪnd.ʃiːld"}, {"en": "windy", "zh": "風大的", "ph": "ˈwɪn.di"}, {"en": "wine", "zh": "葡萄酒", "ph": "waɪn"}, {"en": "wing", "zh": "翅膀", "ph": "wɪŋ"}, {"en": "wink", "zh": "眨眼", "ph": "wɪŋk"}, {"en": "winner", "zh": "贏家", "ph": "ˈwɪn.ər"}, {"en": "winter", "zh": "冬天", "ph": "ˈwɪn.tər"}, {"en": "wipe", "zh": "擦拭", "ph": "waɪp"}, {"en": "wire", "zh": "電線", "ph": "ˈwaɪər"}, {"en": "wisdom", "zh": "智慧", "ph": "ˈwɪz.dəm"}, {"en": "wise", "zh": "聰明的", "ph": "waɪz"}, {"en": "wish", "zh": "祝福/願望", "ph": "wɪʃ"}, {"en": "wit", "zh": "機智", "ph": "wɪt"}, {"en": "witch", "zh": "巫婆", "ph": "wɪtʃ"}, {"en": "with", "zh": "和...一起/隨著", "ph": "wɪð"}, {"en": "withdraw", "zh": "撤回/提款", "ph": "wɪðˈdrɔː"}, {"en": "withdrawal", "zh": "提款/撤退", "ph": "wɪðˈdrɔː.əl"}, {"en": "wither", "zh": "枯萎", "ph": "ˈwɪð.ər"}, {"en": "withhold", "zh": "扣留/隱瞞", "ph": "wɪðˈhəʊld"}, {"en": "within", "zh": "在...之內", "ph": "wɪðˈɪn"}, {"en": "without", "zh": "沒有", "ph": "wɪðˈaʊt"}, {"en": "witness", "zh": "目擊者/證人", "ph": "ˈwɪt.nəs"}, {"en": "witty", "zh": "機智幽默的", "ph": "ˈwɪt.i"}, {"en": "wizard", "zh": "巫師", "ph": "ˈwɪz.əd"}, {"en": "woe", "zh": "悲痛", "ph": "wəʊ"}, {"en": "wolf", "zh": "狼", "ph": "wʊlf"}, {"en": "woman", "zh": "女人", "ph": "ˈwʊm.ən"}, {"en": "wonder", "zh": "想知道/奇蹟", "ph": "ˈwʌn.dər"}, {"en": "wonderful", "zh": "棒極了的", "ph": "ˈwʌn.də.fəl"}, {"en": "woo", "zh": "求愛/爭取", "ph": "wuː"}, {"en": "wood", "zh": "木材", "ph": "wʊd"}, {"en": "wooden", "zh": "木製的", "ph": "ˈwʊd.ən"}, {"en": "woodland", "zh": "林地", "ph": "ˈwʊd.lənd"}, {"en": "woodpecker", "zh": "啄木鳥", "ph": "ˈwʊdˌpek.ər"}, {"en": "woods", "zh": "樹林", "ph": "wʊdz"}, {"en": "wool", "zh": "羊毛", "ph": "wʊl"}, {"en": "woolen", "zh": "羊毛製的", "ph": "ˈwʊl.ən"}, {"en": "word", "zh": "字", "ph": "wɜːd"}, {"en": "work", "zh": "工作", "ph": "wɜːk"}, {"en": "worker", "zh": "工人", "ph": "ˈwɜː.kər"}, {"en": "workforce", "zh": "勞動力", "ph": "ˈwɜːk.fɔːs"}, {"en": "workman", "zh": "工人", "ph": "ˈwɜːk.mən"}, {"en": "workout", "zh": "運動健身", "ph": "ˈwɜːk.aʊt"}, {"en": "workshop", "zh": "工作坊", "ph": "ˈwɜːk.ʃɒp"}, {"en": "world", "zh": "世界", "ph": "wɜːld"}, {"en": "worldwide", "zh": "全球的", "ph": "ˌwɜːldˈwaɪd"}, {"en": "worm", "zh": "蠕蟲", "ph": "wɜːm"}, {"en": "worry", "zh": "擔心", "ph": "ˈwʌr.i"}, {"en": "worse", "zh": "更壞的", "ph": "wɜːs"}, {"en": "worship", "zh": "崇拜/敬拜", "ph": "ˈwɜː.ʃɪp"}, {"en": "worst", "zh": "最壞的", "ph": "wɜːst"}, {"en": "worth", "zh": "值得的", "ph": "wɜːθ"}, {"en": "worthless", "zh": "毫無價值的", "ph": "ˈwɜːθ.ləs"}, {"en": "worthwhile", "zh": "值得做的", "ph": "ˌwɜːθˈwaɪl"}, {"en": "worthy", "zh": "值得的", "ph": "ˈwɜː.ði"}, {"en": "wound", "zh": "傷口", "ph": "wuːnd"}, {"en": "wrap", "zh": "包裹", "ph": "ræp"}, {"en": "wrapper", "zh": "包裝紙", "ph": "ˈræp.ər"}, {"en": "wrath", "zh": "盛怒", "ph": "rɒθ"}, {"en": "wreath", "zh": "花圈", "ph": "riːθ"}, {"en": "wreck", "zh": "残骸/毀壞", "ph": "rek"}, {"en": "wrench", "zh": "扳手/猛扭", "ph": "rentʃ"}, {"en": "wrestle", "zh": "摔角", "ph": "ˈres.əl"}, {"en": "wrestler", "zh": "摔角手", "ph": "ˈres.lər"}, {"en": "wrestling", "zh": "摔角運動", "ph": "ˈres.lɪŋ"}, {"en": "wretched", "zh": "可憐的/不幸的", "ph": "ˈretʃ.ɪd"}, {"en": "wriggle", "zh": "蠕動", "ph": "ˈrɪɡ.əl"}, {"en": "wring", "zh": "扭/絞", "ph": "rɪŋ"}, {"en": "wrinkle", "zh": "皺紋", "ph": "ˈrɪŋ.kəl"}, {"en": "wrist", "zh": "手腕", "ph": "rɪst"}, {"en": "write", "zh": "寫", "ph": "raɪt"}, {"en": "writer", "zh": "作者", "ph": "ˈraɪ.tər"}, {"en": "writing", "zh": "寫作/作品", "ph": "ˈraɪ.tɪŋ"}, {"en": "wrong", "zh": "錯誤的", "ph": "rɒŋ"}, {"en": "X-ray", "zh": "X光", "ph": "ˈeks.reɪ"}, {"en": "yacht", "zh": "遊艇", "ph": "jɒt"}, {"en": "yard", "zh": "庭院/碼", "ph": "jɑːd"}, {"en": "yarn", "zh": "紗線/故事", "ph": "jɑːn"}, {"en": "yawn", "zh": "打哈欠", "ph": "jɔːn"}, {"en": "yea", "zh": "贊成", "ph": "jeɪ"}, {"en": "yeah", "zh": "是", "ph": "jeə"}, {"en": "year", "zh": "年", "ph": "jɪər"}, {"en": "yearbook", "zh": "畢業紀念冊", "ph": "ˈjɪə.bʊk"}, {"en": "yearn", "zh": "渴望", "ph": "jɜːn"}, {"en": "yeast", "zh": "酵母", "ph": "jiːst"}, {"en": "yell", "zh": "喊叫", "ph": "jel"}, {"en": "yellow", "zh": "黃色", "ph": "ˈjel.əʊ"}, {"en": "yes", "zh": "是", "ph": "jes"}, {"en": "yesterday", "zh": "昨天", "ph": "ˈjes.tə.deɪ"}, {"en": "yet", "zh": "尚（未）/然而", "ph": "jet"}, {"en": "yield", "zh": "產量/屈服", "ph": "jiːld"}, {"en": "yoga", "zh": "瑜伽", "ph": "ˈjəʊ.ɡə"}, {"en": "yogurt", "zh": "優格", "ph": "ˈjɒɡ.ət"}, {"en": "yoke", "zh": "枷鎖", "ph": "jəʊk"}, {"en": "yolk", "zh": "蛋黃", "ph": "jəʊk"}, {"en": "yon", "zh": "那邊的", "ph": "jɒn"}, {"en": "yonder", "zh": "那邊", "ph": "ˈjɒn.dər"}, {"en": "you", "zh": "你/你們", "ph": "juː"}, {"en": "young", "zh": "年輕的", "ph": "jʌŋ"}, {"en": "youngster", "zh": "年輕人", "ph": "ˈjʌŋ.stər"}, {"en": "your", "zh": "你的/你們的", "ph": "jɔːr"}, {"en": "yours", "zh": "你的/你們的(所有格代名詞)", "ph": "jɔːz"}, {"en": "yourself", "zh": "你自己", "ph": "jɔːˈself"}, {"en": "yourselves", "zh": "你們自己", "ph": "jɔːˈselvz"}, {"en": "youth", "zh": "青春/年輕人", "ph": "juːθ"}, {"en": "youthful", "zh": "年輕的", "ph": "ˈjuːθ.fəl"}, {"en": "zeal", "zh": "熱心", "ph": "ziːl"}, {"en": "zealous", "zh": "熱心的", "ph": "ˈzel.əs"}, {"en": "zebra", "zh": "斑馬", "ph": "ˈzeb.rə"}, {"en": "zenith", "zh": "頂點", "ph": "ˈzen.ɪθ"}, {"en": "zero", "zh": "零", "ph": "ˈzɪə.rəʊ"}, {"en": "zest", "zh": "熱情/風味", "ph": "zest"}, {"en": "zigzag", "zh": "鋸齒狀的", "ph": "ˈzɪɡ.zæɡ"}, {"en": "zinc", "zh": "鋅", "ph": "zɪŋk"}, {"en": "zip", "zh": "拉上拉鍊", "ph": "zɪp"}, {"en": "zip code", "zh": "郵遞區號", "ph": "ˈzɪp ˌkəʊd"}, {"en": "zipper", "zh": "拉鍊", "ph": "ˈzɪp.ər"}, {"en": "zone", "zh": "區域", "ph": "zəʊn"}, {"en": "zoo", "zh": "動物園", "ph": "zuː"}, {"en": "zoology", "zh": "動物學", "ph": "zuˈɒl.ə.dʒi"}, {"en": "zoom", "zh": "急速上升/放大", "ph": "zuːm"}];
+
+document.querySelector('.pool-note').textContent =
+  '題庫共 ' + WORDS.length + ' 個基礎英文單字，每次隨機抽取。';
+
+// ---------- State ----------
+let selectedCount = 6;
+let selectedDifficulty = 'all';
+let selectedLetter = 'all';
+let selectedSyllable = 'all';
+let customWords = [];
+let pairs = [];            // [{id, en, zh}]
+let firstPick = null;      // card element
+let matchedCount = 0;
+let wrongCount = 0;
+let wrongWords = new Set();
+let pairDataMap = {}; // pairId → {en, zh} — must be global for onCardClick access
+let startTime = null;
+let timerInterval = null;
+let locked = false;
+
+const screenStart = document.getElementById('screen-start');
+const screenGame = document.getElementById('screen-game');
+const board = document.getElementById('board');
+const modalBg = document.getElementById('modalBg');
+
+function letterCount(en){
+  return (en.match(/[a-zA-Z]/g) || []).length;
+}
+function matchesDifficulty(en, diff){
+  if(diff === 'all') return true;
+  const n = letterCount(en);
+  if(diff === 'easy') return n <= 4;
+  if(diff === 'medium') return n >= 5 && n <= 7;
+  return n >= 8;
+}
+
+function matchesLetter(en, letter){
+  if(letter === 'all') return true;
+  const cleaned = en.match(/[a-zA-Z]/);
+  if(!cleaned) return false;
+  return cleaned[0].toUpperCase() === letter;
+}
+
+function countSyllables(word){
+  word = word.toLowerCase().replace(/[^a-z]/g, '');
+  if(!word) return 0;
+  word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+  word = word.replace(/^y/, '');
+  const matches = word.match(/[aeiouy]{1,2}/g);
+  return matches ? matches.length : 1;
+}
+function matchesSyllable(en, syll){
+  if(syll === 'all') return true;
+  const s = countSyllables(en);
+  if(syll === '1') return s <= 1;
+  if(syll === '2') return s === 2;
+  return s >= 3;
+}
+
+function matchesAllFilters(w){
+  return matchesDifficulty(w.en, selectedDifficulty)
+      && matchesLetter(w.en, selectedLetter)
+      && matchesSyllable(w.en, selectedSyllable);
+}
+
+const VOWELS = ['a','e','i','o','u'];
+const ALL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const vowelDefaults = {a:'#ff1a1a', e:'#00c853', i:'#2979ff', o:'#ff6d00', u:'#d500f9'};
+const vowelColorPalette = ['#ff1a1a','#00c853','#2979ff','#ff6d00','#d500f9','#ffe600','#000000'];
+const currentLetterColors = {}; // color for every A-Z letter
+let currentPickerLetter = 'A';
+
+// init defaults
+VOWELS.forEach(v=>{ currentLetterColors[v.toUpperCase()] = vowelDefaults[v]; });
+
+function applyLetterColor(letter, color){
+  currentLetterColors[letter] = color;
+  const v = letter.toLowerCase();
+  if(VOWELS.includes(v)){
+    document.documentElement.style.setProperty('--vowel-color-'+v, color === 'none'||!color ? 'inherit' : color);
+  }
+  updateVowelToggleLabel();
+  // update the color-letter-grid button
+  const cb = document.querySelector('#colorLetterGrid .color-letter-btn[data-l="'+letter+'"]');
+  if(cb){
+    const displayColor = color && color !== 'none' ? color : '';
+    cb.style.color = displayColor;
+    cb.style.borderColor = displayColor || '';
+  }
+}
+
+function buildColorSwatches(letter){
+  currentPickerLetter = letter;
+  const upper = letter.toUpperCase();
+  const lower = letter.toLowerCase();
+  document.getElementById('vowelPickerLabel').textContent = upper + ' 的顏色';
+  const row = document.getElementById('vowelSwatchRow');
+  row.innerHTML = '';
+  const cur = currentLetterColors[letter] || null;
+  vowelColorPalette.forEach(color=>{
+    const sw = document.createElement('button');
+    sw.className = 'vc-swatch-inline';
+    sw.dataset.c = color;
+    sw.style.background = color;
+    if(cur && color.toLowerCase() === cur.toLowerCase()) sw.classList.add('selected');
+    sw.addEventListener('click', ()=>{
+      row.querySelectorAll('.vc-swatch-inline,.vc-swatch-inline-none').forEach(b=>b.classList.remove('selected'));
+      sw.classList.add('selected');
+      applyLetterColor(letter, color);
+    });
+    row.appendChild(sw);
+  });
+  const noneBtn = document.createElement('button');
+  noneBtn.className = 'vc-swatch-inline-none';
+  noneBtn.textContent = '無';
+  if(!cur || cur === 'none') noneBtn.classList.add('selected');
+  noneBtn.addEventListener('click', ()=>{
+    row.querySelectorAll('.vc-swatch-inline,.vc-swatch-inline-none').forEach(b=>b.classList.remove('selected'));
+    noneBtn.classList.add('selected');
+    applyLetterColor(letter, 'none');
+  });
+  row.appendChild(noneBtn);
+}
+
+function buildColorLetterGrid(){
+  const grid = document.getElementById('colorLetterGrid');
+  grid.innerHTML = '';
+  const items = [...ALL_LETTERS, 'ˈ', 'ˌ'];
+  items.forEach(letter=>{
+    const btn = document.createElement('button');
+    btn.className = 'color-letter-btn';
+    if(letter === 'ˈ' || letter === 'ˌ') btn.style.cssText = 'font-size:16px;font-weight:900;';
+    btn.dataset.l = letter;
+    btn.textContent = letter;
+    const c = currentLetterColors[letter];
+    if(c && c !== 'none'){ btn.style.color = c; btn.style.borderColor = c; }
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#colorLetterGrid .color-letter-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      buildColorSwatches(letter);
+    });
+    grid.appendChild(btn);
+  });
+}
+buildColorLetterGrid();
+// show first letter's swatches by default
+buildColorSwatches('A');
+document.querySelector('#colorLetterGrid .color-letter-btn[data-l="A"]').classList.add('active');
+
+
+// init vowel defaults into CSS
+VOWELS.forEach(v=>applyLetterColor(v.toUpperCase(), vowelDefaults[v]));
+// Stress mark symbols default red
+currentLetterColors['ˈ'] = '#ff1a1a';
+currentLetterColors['ˌ'] = '#ff1a1a';
+
+
+function updateVowelToggleLabel(){
+  const label = document.getElementById('vowelToggleLabel');
+  label.innerHTML = VOWELS.map(v=>{
+    const c = currentLetterColors[v.toUpperCase()];
+    const color = (!c||c==='none') ? 'var(--ink)' : c;
+    return '<span style="color:'+color+';font-weight:800;">'+v+'</span>';
+  }).join(' ');
+}
+
+const fontStacks = {
+  schoolbell:  "'Schoolbell', 'Patrick Hand', -apple-system, 'Segoe UI', Roboto, sans-serif",
+  architects:  "'Architects Daughter', 'Patrick Hand', -apple-system, 'Segoe UI', Roboto, sans-serif",
+  patrick:     "'Patrick Hand', -apple-system, 'Segoe UI', Roboto, sans-serif",
+  shortstack:  "'Short Stack', 'Patrick Hand', -apple-system, 'Segoe UI', Roboto, sans-serif",
+  caveat:      "'Caveat', -apple-system, 'Segoe UI', Roboto, sans-serif",
+  fredoka:     "'Fredoka One', -apple-system, 'Segoe UI', Roboto, sans-serif",
+  nunito:      "'Nunito', -apple-system, 'Segoe UI', Roboto, sans-serif",
+  inter:       "'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif",
+  standard:    "-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+};
+const handwritingFonts = new Set(['schoolbell','architects','patrick','shortstack','caveat','fredoka']);
+
+function populateLetterGrid(){
+  const grid = document.getElementById('letterGrid');
+  for(let i=0;i<26;i++){
+    const letter = String.fromCharCode(65+i);
+    const btn = document.createElement('button');
+    btn.className = 'letter-btn';
+    btn.dataset.l = letter;
+    btn.textContent = letter;
+    grid.appendChild(btn);
+  }
+}
+populateLetterGrid();
+
+function closeAll(){
+  ['letterGrid','fontGrid','colorSettingsPanel'].forEach(id=>{
+    document.getElementById(id).classList.remove('open');
+  });
+  ['letterToggle','fontToggle','vowelToggle'].forEach(id=>{
+    document.getElementById(id).classList.remove('open');
+  });
+}
+
+document.getElementById('letterToggle').addEventListener('click', ()=>{
+  const isOpen = document.getElementById('letterGrid').classList.toggle('open');
+  document.getElementById('letterToggle').classList.toggle('open', isOpen);
+  document.getElementById('fontGrid').classList.remove('open');
+  document.getElementById('fontToggle').classList.remove('open');
+  document.getElementById('colorSettingsPanel').classList.remove('open');
+  document.getElementById('vowelToggle').classList.remove('open');
+});
+
+document.getElementById('letterGrid').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.letter-btn');
+  if(!btn) return;
+  document.querySelectorAll('#letterGrid .letter-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedLetter = btn.dataset.l;
+  document.getElementById('letterToggleLabel').textContent = (selectedLetter === 'all' ? '字母' : selectedLetter);
+  updateDiffNote();
+  // close grid after selection
+  document.getElementById('letterGrid').classList.remove('open');
+  document.getElementById('letterToggle').classList.remove('open');
+});
+
+document.getElementById('fontToggle').addEventListener('click', ()=>{
+  const isOpen = document.getElementById('fontGrid').classList.toggle('open');
+  document.getElementById('fontToggle').classList.toggle('open', isOpen);
+  document.getElementById('letterGrid').classList.remove('open');
+  document.getElementById('letterToggle').classList.remove('open');
+  document.getElementById('colorSettingsPanel').classList.remove('open');
+  document.getElementById('vowelToggle').classList.remove('open');
+});
+
+document.getElementById('fontGrid').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.font-btn');
+  if(!btn) return;
+  document.querySelectorAll('#fontGrid .font-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const key = btn.dataset.f;
+  document.documentElement.style.setProperty('--en-font-family', fontStacks[key]);
+  document.documentElement.style.setProperty('--vowel-weight', handwritingFonts.has(key) ? '800' : '400');
+  const label = document.getElementById('fontToggleLabel');
+  label.textContent = 'AEIOU';
+  label.style.fontFamily = fontStacks[key];
+  document.getElementById('fontToggle').classList.remove('open');
+  document.getElementById('fontGrid').classList.remove('open');
+});
+
+document.getElementById('vowelToggle').addEventListener('click', ()=>{
+  const isOpen = document.getElementById('colorSettingsPanel').classList.toggle('open');
+  document.getElementById('vowelToggle').classList.toggle('open', isOpen);
+  document.getElementById('letterGrid').classList.remove('open');
+  document.getElementById('letterToggle').classList.remove('open');
+  document.getElementById('fontGrid').classList.remove('open');
+  document.getElementById('fontToggle').classList.remove('open');
+});
+
+document.getElementById('syllGrid').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.syll-btn');
+  if(!btn) return;
+  document.querySelectorAll('#syllGrid .syll-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedSyllable = btn.dataset.s;
+  updateDiffNote();
+});
+
+updateVowelToggleLabel();
+
+function getAvailableCount(){
+  const onlyCustom = document.getElementById('customWordsOnly') && document.getElementById('customWordsOnly').checked;
+  const baseN = onlyCustom ? 0 : WORDS.filter(w=>matchesAllFilters(w)).length;
+  return baseN + (customWords ? customWords.length : 0);
+}
+
+function updateDiffNote(){
+  const n = getAvailableCount();
+  const custom = customWords ? customWords.length : 0;
+  let note = '目前篩選條件共 ' + n + ' 個單字可抽取';
+  if(custom > 0) note += '（含 ' + custom + ' 個自訂）';
+  note += '。';
+  document.getElementById('diffNote').textContent = note;
+  checkAvailability();
+}
+updateDiffNote();
+
+function checkAvailability(){
+  const n = getAvailableCount();
+  const warnEl = document.getElementById('countWarning');
+  const card = document.querySelector('.start-card');
+  if(selectedCount > n){
+    warnEl.textContent = '⚠ 目前篩選條件下只有 ' + n + ' 個單字，無法選擇 ' + selectedCount + ' 個，請減少數量或調整篩選條件。';
+    warnEl.classList.add('active');
+    card.classList.add('state-bad');
+    card.classList.remove('state-ok');
+    return false;
+  } else {
+    warnEl.classList.remove('active');
+    card.classList.add('state-ok');
+    card.classList.remove('state-bad');
+    return true;
+  }
+}
+
+document.getElementById('diffGrid').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.diff-btn');
+  if(!btn) return;
+  document.querySelectorAll('#diffGrid .diff-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedDifficulty = btn.dataset.d;
+  updateDiffNote();
+});
+
+// ---------- Start screen interactions ----------
+document.getElementById('countGrid').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.count-btn');
+  if(!btn || btn.tagName === 'INPUT') return;
+  document.querySelectorAll('#countGrid .count-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedCount = parseInt(btn.dataset.n,10);
+  document.getElementById('customN').value = '';
+  checkAvailability();
+});
+
+document.getElementById('customN').addEventListener('input', (e)=>{
+  const v = parseInt(e.target.value,10);
+  if(v && v>=4){
+    document.querySelectorAll('#countGrid .count-btn').forEach(b=>b.classList.remove('selected'));
+    e.target.classList.add('selected');
+    selectedCount = Math.min(v, WORDS.length);
+  } else {
+    e.target.classList.remove('selected');
+  }
+  checkAvailability();
+});
+
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  if(!checkAvailability()) return;
+  if('speechSynthesis' in window){
+    try{
+      const warm = new SpeechSynthesisUtterance(' ');
+      warm.volume = 1.0;
+      warm.lang = 'en-US';
+      window.speechSynthesis.speak(warm);
+    }catch(e){}
+  }
+  startGame();
+});
+document.getElementById('quitBtn').addEventListener('click', ()=>{
+  stopVoice();
+  showResults();
+});
+document.getElementById('homeBtn').addEventListener('click', ()=>{
+  stopVoice();
+  modalBg.classList.remove('active');
+  goHome();
+});
+document.getElementById('againBtn').addEventListener('click', ()=>{
+  stopVoice();
+  modalBg.classList.remove('active');
+  startGame();
+});
+const _micBtn = document.getElementById('micBtn');
+if(_micBtn) _micBtn.addEventListener('click', toggleVoice);
+
+function goHome(){
+  stopTimer();
+  screenGame.classList.remove('active');
+  screenStart.classList.add('active');
+  document.getElementById('headerStats').innerHTML = '';
+}
+
+// ---------- Speech ----------
+let voicesList = [];
+function loadVoices(){
+  if('speechSynthesis' in window){
+    voicesList = window.speechSynthesis.getVoices();
+  }
+}
+if('speechSynthesis' in window){
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function pickVoice(lang){
+  if(!voicesList.length) return null;
+  const base = lang.split('-')[0];
+  return voicesList.find(v=>v.lang === lang)
+      || voicesList.find(v=>v.lang && v.lang.toLowerCase().startsWith(base))
+      || (base === 'zh' ? voicesList.find(v=>/zh|cmn|yue/i.test(v.lang||'')) : null);
+}
+
+// Minimal silent WAV to activate media audio session before TTS
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+function pingSilentAudio(){
+  try{
+    const a = new Audio(SILENT_WAV);
+    a.volume = 0.01;
+    a.play().catch(()=>{});
+  }catch(e){}
+}
+
+function speak(text, lang, opts){
+  opts = opts || {};
+  if(window._muted){ if(opts.onEnd) setTimeout(opts.onEnd, 10); return; }
+  if(!('speechSynthesis' in window)){
+    console.warn('此瀏覽器不支援語音合成');
+    return;
+  }
+  try{
+    if(opts.interrupt !== false){
+      window.speechSynthesis.cancel();
+    }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    u.rate = lang.startsWith('en') ? 0.82 : 0.88;
+    u.volume = 1.0;
+    u.pitch = 1.0;
+    const v = pickVoice(lang);
+    if(v) u.voice = v;
+    if(opts.onEnd){
+      u.onend = opts.onEnd;
+      u.onerror = opts.onEnd;
+    }
+    const delay = opts.interrupt !== false ? 30 : 0;
+    setTimeout(()=>{ window.speechSynthesis.speak(u); }, delay);
+  }catch(err){
+    console.warn('speak failed', err);
+    if(opts.onEnd) opts.onEnd();
+  }
+}
+
+let repeatTimer = null;
+function startRepeatSpeak(el, lang){
+  stopRepeatSpeak();
+  repeatTimer = setInterval(()=>{
+    if(firstPick === el){
+      speak(el.dataset.text, lang);
+    } else {
+      stopRepeatSpeak();
+    }
+  }, 3000);
+}
+function stopRepeatSpeak(){
+  if(repeatTimer){
+    clearInterval(repeatTimer);
+    repeatTimer = null;
+  }
+}
+
+let audioCtx = null;
+function playBeep(){
+  try{
+    if(!audioCtx){
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return;
+      audioCtx = new Ctx();
+    }
+    const doBeep = ()=>{
+      try{
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.setValueAtTime(160, now + 0.12);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.3, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.4);
+      }catch(e){ console.warn('beep inner', e); }
+    };
+    if(audioCtx.state === 'suspended'){
+      audioCtx.resume().then(doBeep).catch(doBeep);
+    } else {
+      doBeep();
+    }
+  }catch(err){
+    console.warn('beep failed', err);
+  }
+}
+
+// ---------- Game setup ----------
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+// ---------- Custom words ----------
+
+function parseCustomWords(text){
+  const result = [];
+  const lines = text.split('\n');
+  lines.forEach(line=>{
+    line = line.trim();
+    if(!line || line.startsWith('#')) return;
+    // Only | is the field separator
+    const pipeIdx = line.indexOf('|');
+    if(pipeIdx < 0) return; // no | → skip
+    const en = line.slice(0, pipeIdx).trim();
+    if(!en) return;
+    let rest = line.slice(pipeIdx + 1).trim();
+    if(!rest) return;
+    // extract phonetic [...] - check if there's a second | before [
+    let ph = '';
+    const secondPipe = rest.indexOf('|');
+    if(secondPipe >= 0){
+      const zhPart = rest.slice(0, secondPipe).trim();
+      const phPart = rest.slice(secondPipe + 1).trim();
+      const phMatch = phPart.match(/\[([^\]]+)\]/);
+      if(phMatch) ph = phMatch[1].trim();
+      rest = zhPart;
+    } else {
+      const phMatch = rest.match(/\[([^\]]+)\]/);
+      if(phMatch){
+        ph = phMatch[1].trim();
+        rest = rest.replace(/\s*\[[^\]]*\]/, '').trim();
+      }
+    }
+    const zh = rest;
+    if(!zh) return;
+    result.push({en, zh, ph, sc:zh, custom:true});
+  });
+  return result;
+}
+
+function updateCustomWordsCount(){
+  const text = document.getElementById('customWordsInput').value;
+  customWords = parseCustomWords(text);
+  document.getElementById('customWordsCount').textContent = customWords.length + ' 個自訂單字';
+  updateDiffNote();
+}
+
+document.getElementById('customWordsToggle').addEventListener('click', ()=>{
+  document.getElementById('customWordsToggle').classList.toggle('open');
+  document.getElementById('customWordsPanel').classList.toggle('open');
+});
+
+document.getElementById('customWordsInput').addEventListener('input', updateCustomWordsCount);
+document.getElementById('customWordsClear').addEventListener('click', ()=>{
+  document.getElementById('customWordsInput').value = '';
+  updateCustomWordsCount();
+});
+document.getElementById('customWordsOnly').addEventListener('change', updateDiffNote);
+
+// ---------- Visibility toggles ----------
+window._showZh = true;
+window._showPh = true;
+window._muted = false;
+
+document.getElementById('toggleMute').addEventListener('click', ()=>{
+  window._muted = !window._muted;
+  const btn = document.getElementById('toggleMute');
+  btn.textContent = window._muted ? '🔇' : '🔊';
+  btn.classList.toggle('active', !window._muted);
+  if(window._muted && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+});
+
+document.getElementById('toggleZh').addEventListener('click', ()=>{
+  window._showZh = !window._showZh;
+  document.getElementById('toggleZh').classList.toggle('active', window._showZh);
+});
+document.getElementById('togglePh').addEventListener('click', ()=>{
+  window._showPh = !window._showPh;
+  document.getElementById('togglePh').classList.toggle('active', window._showPh);
+});
+
+function startGame(){
+  stopRepeatSpeak();
+  const onlyCustom = document.getElementById('customWordsOnly').checked;
+  const filtered = onlyCustom ? [] : WORDS.filter(w=>matchesAllFilters(w));
+  const merged = customWords.length > 0 ? [...customWords, ...filtered] : filtered;
+  const n = Math.min(selectedCount, merged.length);
+  const pool = shuffle(merged.slice()).slice(0, n);
+  pairs = pool.map((w,i)=>({id:'p'+i, en:w.en, zh:w.zh, ph:w.ph||''}));
+
+  matchedCount = 0;
+  wrongCount = 0;
+  wrongWords = new Set();
+  firstPick = null;
+  locked = false;
+
+  document.getElementById('totalVal').textContent = pairs.length;
+  document.getElementById('matchedVal').textContent = '0';
+  document.getElementById('missVal').textContent = '0';
+  document.getElementById('timerVal').textContent = '00:00';
+
+  let cells = [];
+  let pairIdx = 0;
+  pairDataMap = {}; // reset for new game
+  pairs.forEach(p=>{
+    const enParts = p.en.split(/\s*,\s*/);
+    function speakText(t){ return t.replace(/\[([^\]]*)\]/g, '').trim(); }
+    if(enParts.length > 1){
+      enParts.forEach(part=>{
+        const pid = 'p'+(pairIdx++);
+        pairDataMap[pid] = {en: part, zh: p.zh};
+        cells.push({pairId:pid, type:'en', text:part, speakText:speakText(part), ph:p.ph||''});
+        cells.push({pairId:pid, type:'zh', text:p.zh, ph:p.ph||'', speakText:speakText(p.zh)});
+      });
+    } else {
+      const pid = 'p'+(pairIdx++);
+      pairDataMap[pid] = {en: p.en, zh: p.zh};
+      cells.push({pairId:pid, type:'en', text:p.en, speakText:speakText(p.en), ph:p.ph||''});
+      cells.push({pairId:pid, type:'zh', text:p.zh, ph:p.ph||'', speakText:speakText(p.zh)});
+    }
+  });
+  shuffle(cells);
+
+  // column count: aim for a roughly square-ish grid, cap for readability
+  let cols = 4;
+  const total = cells.length;
+  if(total <= 8) cols = 4;
+  else if(total <= 20) cols = 5;
+  else if(total <= 40) cols = 6;
+  else cols = 8;
+  board.style.setProperty('--cols', cols);
+
+  board.innerHTML = '';
+  cells.forEach(c=>{
+    const el = document.createElement('div');
+    el.className = 'card ' + c.type;
+    el.dataset.pair = c.pairId;
+    el.dataset.type = c.type;
+    el.style.setProperty('--r', (Math.random()*4-2).toFixed(1)+'deg');
+    el.dataset.text = c.text;
+    el.dataset.speakText = c.speakText || c.text;
+    if(c.ph) el.dataset.ph = c.ph;
+    const hasSpaces = /\s/.test(c.text);
+    const letterLen = c.text.replace(/[^a-zA-Z]/g,'').length;
+    const isLongEn = c.type === 'en' && letterLen > 7;
+    let inner, txtClass;
+    if(c.type === 'en'){
+      inner = renderEnglishWord(c.text, isLongEn, c.ph||'');
+      txtClass = isLongEn ? 'txt diagonal' : 'txt';
+    } else {
+      inner = renderZhCard(c.text, c.ph||'');
+      txtClass = 'txt';
+    }
+    el.innerHTML = '<span class="'+txtClass+'">'+inner+'</span><span class="speaker">🔊</span>';
+    el.addEventListener('click', onCardClick);
+    board.appendChild(el);
+  });
+
+  screenStart.classList.remove('active');
+  screenGame.classList.add('active');
+
+  startTimer();
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function renderPhonetic(ph){
+  // colorize letters in phonetic using currentLetterColors
+  let html = '';
+  for(const ch of ph){
+    const escapedCh = escapeHtml(ch);
+    const upper = ch.toUpperCase();
+    const color = currentLetterColors[upper];
+    if(color && color !== 'none'){
+      html += '<span style="color:'+color+'">'+escapedCh+'</span>';
+    } else {
+      html += escapedCh;
+    }
+  }
+  return html;
+}
+
+function renderZhLine(zh){
+  // split on [...] for forced line breaks; content inside shown but not spoken
+  return zh.replace(/\[([^\]]*)\]/g, '<br><span class="bracket-text">$1</span>');
+}
+
+function renderZhCard(zh, ph){
+  const zhHtml = renderZhLine(escapeHtml(zh));
+  const showZh = window._showZh !== false;
+  const showPh = window._showPh !== false;
+
+  if(!ph || !showPh){
+    if(!showZh) return '';
+    const isLong = zh.replace(/\[[^\]]*\]/g,'').length > 5;
+    return isLong ? '<span class="zh-ta-rotate">'+zhHtml+'</span>' : zhHtml;
+  }
+
+  const phHtml = '[<span class="ph-inner">'+renderPhonetic(ph)+'</span>]';
+  const cleanZhLen = zh.replace(/\[[^\]]*\]/g,'').length;
+  const isLong = cleanZhLen + ph.length > 9 || cleanZhLen > 4;
+
+  if(!showZh){
+    return isLong
+      ? '<span class="zh-ta-rotate ph-only"><span class="ph-text">'+phHtml+'</span></span>'
+      : '<span class="ph-text">'+phHtml+'</span>';
+  }
+
+  const body = '<span class="zh-line">'+zhHtml+'</span><span class="ph-text">'+phHtml+'</span>';
+  return isLong
+    ? '<span class="zh-ta-rotate">'+body+'</span>'
+    : body;
+}
+
+function renderChineseWord(text){
+  return escapeHtml(text);
+}
+
+function colorizeVowels(text){
+  const escaped = escapeHtml(text);
+  return escaped.replace(/[aeiouAEIOU]/g, ch=>{
+    const cls = 'v-' + ch.toLowerCase();
+    return '<span class="'+cls+'">'+ch+'</span>';
+  });
+}
+
+function computeSyllableBreakPoints(word){
+  // words with spaces (phrases) already wrap naturally at spaces; skip
+  if(/\s/.test(word)) return [];
+  // 7 letters or fewer always stay on one line
+  if(word.replace(/[^a-zA-Z]/g,'').length <= 7) return [];
+  const re = /[aeiouy]+/gi;
+  const vowelGroups = [];
+  let m;
+  while((m = re.exec(word))){
+    vowelGroups.push({start:m.index, end:m.index+m[0].length});
+  }
+  if(vowelGroups.length <= 1) return [];
+  const points = [];
+  for(let i=0;i<vowelGroups.length-1;i++){
+    const gapStart = vowelGroups[i].end;
+    const gapEnd = vowelGroups[i+1].start;
+    const gapLen = gapEnd - gapStart;
+    const splitAt = gapLen <= 0 ? gapStart : gapStart + Math.ceil(gapLen/2);
+    if(splitAt > 0 && splitAt < word.length) points.push(splitAt);
+  }
+  return points;
+}
+
+function splitPhraseLines(word){
+  const words = word.split(' ');
+  if(words.length <= 1) return [word];
+  const target = word.length * 0.6;
+  let best = 1, bestDiff = Infinity, cumLen = 0;
+  for(let i=0;i<words.length-1;i++){
+    cumLen += words[i].length + 1;
+    const diff = Math.abs(cumLen - target);
+    if(diff < bestDiff){ bestDiff = diff; best = i+1; }
+  }
+  return [words.slice(0, best).join(' '), words.slice(best).join(' ')];
+}
+
+function colorizeLetter(ch){
+  const esc = escapeHtml(ch);
+  const color = currentLetterColors[ch.toUpperCase()];
+  const isVowel = /[aeiouAEIOU]/.test(ch);
+  const weight = isVowel ? ';font-weight:var(--vowel-weight,800)' : '';
+  if(color && color !== 'none') return '<span style="color:'+color+weight+'">'+esc+'</span>';
+  return esc;
+}
+
+function colorizeSegment(seg, skipBreaks){
+  const breakPoints = skipBreaks ? [] : computeSyllableBreakPoints(seg);
+  let html = '';
+  for(let i=0;i<seg.length;i++){
+    if(breakPoints.includes(i)) html += '<wbr>';
+    html += colorizeLetter(seg[i]);
+  }
+  return html;
+}
+
+function renderEnglishWord(word, skipBreaks, ph){
+  const hasSpaces = /\s/.test(word);
+  const cleanLen = word.replace(/\[[^\]]*\]/g,'').length;
+
+  // Split into 2 lines if phrase + diagonal + very long
+  if(skipBreaks && hasSpaces && cleanLen > 15){
+    const parts = splitPhraseLines(word.replace(/\[[^\]]*\]/g,'').trim());
+    return parts.map(part=>colorizeSegment(part, true)).join('<br>');
+  }
+
+  // Handle [...] bracket annotation
+  const segments = word.split(/(\[[^\]]*\])/);
+  let html = '';
+  segments.forEach(seg=>{
+    if(seg.startsWith('[') && seg.endsWith(']')){
+      html += '<br><span class="bracket-text">'+escapeHtml(seg.slice(1,-1))+'</span>';
+      return;
+    }
+html += colorizeSegment(seg, skipBreaks);
+  });
+  return html;
+}
+
+// ── Voice recognition ─────────────────────────────────────────────────────
+let voiceRecognition = null;
+let voiceActive = false;
+
+function strSimilarity(s1, s2){
+  s1 = s1.toLowerCase().replace(/[^a-z0-9\s]/g,'').trim();
+  s2 = s2.toLowerCase().replace(/[^a-z0-9\s]/g,'').trim();
+  if(!s1||!s2) return 0;
+  if(s1===s2) return 1;
+  const m=s1.length, n=s2.length;
+  const dp=Array.from({length:m+1},(_,i)=>{ const r=new Array(n+1).fill(0); r[0]=i; return r; });
+  for(let j=0;j<=n;j++) dp[0][j]=j;
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){
+      dp[i][j]=s1[i-1]===s2[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+    }
+  }
+  return (Math.max(m,n)-dp[m][n])/Math.max(m,n);
+}
+
+function initVoiceRecognition(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ alert('此瀏覽器不支援語音辨識，請使用 Chrome'); return false; }
+  voiceRecognition = new SR();
+  voiceRecognition.continuous = true;
+  voiceRecognition.interimResults = true;
+  voiceRecognition.lang = 'en-US';
+
+  voiceRecognition.onresult = (event)=>{
+    const result = event.results[event.results.length-1];
+    const transcript = result[0].transcript.toLowerCase().trim();
+    const confidence = result[0].confidence;
+    // Try to match visible en cards
+    const cards = document.querySelectorAll('.card.en:not(.cleared)');
+    let bestCard = null, bestScore = 0;
+    cards.forEach(card=>{
+      const cardText = card.dataset.speakText || card.dataset.text;
+      const score = strSimilarity(transcript, cardText);
+      if(score > bestScore){ bestScore = score; bestCard = card; }
+    });
+    if(bestScore >= 0.7 && bestCard && !bestCard.classList.contains('selected')){
+      bestCard.classList.add('mic-match-flash');
+      setTimeout(()=>bestCard.classList.remove('mic-match-flash'), 400);
+      bestCard.click();
+    }
+  };
+
+  voiceRecognition.onerror = (e)=>{ console.warn('voice error', e.error); };
+  voiceRecognition.onend = ()=>{
+    if(voiceActive) voiceRecognition.start(); // restart if still active
+  };
+  return true;
+}
+
+function toggleVoice(){
+  const btn = document.getElementById('micBtn');
+  if(!btn) return;
+  if(!voiceActive){
+    if(!voiceRecognition && !initVoiceRecognition()) return;
+    voiceActive = true;
+    voiceRecognition.start();
+    btn.classList.add('listening');
+    btn.textContent = '🔴';
+  } else {
+    voiceActive = false;
+    voiceRecognition && voiceRecognition.stop();
+    btn.classList.remove('listening');
+    btn.textContent = '🎤';
+  }
+}
+
+function stopVoice(){
+  if(voiceActive){ voiceActive=false; voiceRecognition&&voiceRecognition.stop(); }
+  const btn = document.getElementById('micBtn');
+  if(btn){ btn.classList.remove('listening'); btn.textContent='🎤'; }
+}
+
+function startTimer(){
+  startTime = Date.now();
+  stopTimer();
+  timerInterval = setInterval(()=>{
+    const sec = Math.floor((Date.now()-startTime)/1000);
+    const mm = String(Math.floor(sec/60)).padStart(2,'0');
+    const ss = String(sec%60).padStart(2,'0');
+    document.getElementById('timerVal').textContent = mm+':'+ss;
+  }, 250);
+}
+function stopTimer(){
+  if(timerInterval){ clearInterval(timerInterval); timerInterval=null; }
+}
+
+function getSpeakText(el){
+  if(el.dataset.type === 'en') return el.dataset.speakText || el.dataset.text;
+  // zh card: respect visibility toggles
+  const showZh = window._showZh !== false;
+  const showPh = window._showPh !== false;
+  if(showZh && showPh) return el.dataset.speakText || el.dataset.text;
+  if(showZh && !showPh) return el.dataset.speakText || el.dataset.text;
+  if(!showZh && showPh) return el.dataset.ph || '';
+  return ''; // both hidden, nothing to speak
+}
+
+function onCardClick(e){
+  if(locked) return;
+  const el = e.currentTarget;
+  if(el.classList.contains('cleared')) return;
+
+  // Tapping the already-selected card → stop speaking and deselect
+  if(el.classList.contains('selected') && el === firstPick){
+    stopRepeatSpeak();
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    el.classList.remove('selected');
+    firstPick = null;
+    return;
+  }
+
+  if(!firstPick){
+    const lang = el.dataset.type === 'en' ? 'en-US' : 'zh-TW';
+    const txt = getSpeakText(el);
+    if(txt) speak(txt, lang);
+    firstPick = el;
+    el.classList.add('selected');
+    if(txt) startRepeatSpeak(el, lang);
+    return;
+  }
+
+  if(firstPick === el) return;
+
+  // same type → swap selection
+  if(firstPick.dataset.type === el.dataset.type){
+    stopRepeatSpeak();
+    const lang = el.dataset.type === 'en' ? 'en-US' : 'zh-TW';
+    const txt = getSpeakText(el);
+    if(txt) speak(txt, lang);
+    firstPick.classList.remove('selected');
+    firstPick = el;
+    el.classList.add('selected');
+    if(txt) startRepeatSpeak(el, lang);
+    return;
+  }
+
+  stopRepeatSpeak();
+  locked = true;
+  const isMatch = firstPick.dataset.pair === el.dataset.pair;
+
+  if(isMatch){
+    firstPick.classList.add('correct');
+    el.classList.add('correct');
+    matchedCount++;
+    document.getElementById('matchedVal').textContent = matchedCount;
+
+    const enEl = firstPick.dataset.type === 'en' ? firstPick : el;
+    const zhEl = firstPick.dataset.type === 'en' ? el : firstPick;
+    const enTxt = enEl.dataset.speakText || enEl.dataset.text;
+    const zhTxt = getSpeakText(zhEl);
+    speak(enTxt, 'en-US', {
+      interrupt:false,
+      onEnd: ()=>{ if(zhTxt) speak(zhTxt, 'zh-TW', {interrupt:false}); }
+    });
+
+    setTimeout(()=>{
+      firstPick.classList.add('cleared');
+      el.classList.add('cleared');
+      firstPick.classList.remove('selected','correct');
+      el.classList.remove('selected','correct');
+      const goneA = firstPick, goneB = el;
+      firstPick = null;
+      locked = false;
+      checkComplete();
+      setTimeout(()=>{ goneA.remove(); goneB.remove(); }, 380);
+    }, 380);
+  } else {
+    wrongCount++;
+    document.getElementById('missVal').textContent = wrongCount;
+    // Record correct pair for the JUST-PRESSED card (el)
+    const correctData = pairDataMap[el.dataset.pair];
+    if(correctData) wrongWords.add(correctData.en + ' | ' + correctData.zh);
+    firstPick.classList.add('wrong');
+    el.classList.add('wrong');
+    playBeep();
+    const lang1 = firstPick.dataset.type === 'en' ? 'en-US' : 'zh-TW';
+    const txt1 = getSpeakText(firstPick);
+    if(txt1) setTimeout(()=>{ speak(txt1, lang1); }, 350);
+    setTimeout(()=>{
+      firstPick.classList.remove('wrong');
+      el.classList.remove('wrong');
+    }, 500);
+    setTimeout(()=>{
+      firstPick.classList.remove('selected');
+      firstPick = null;
+      locked = false;
+    }, 1100);
+  }
+}
+
+function showResults(){
+  stopTimer();
+  stopRepeatSpeak();
+  const sec = startTime ? Math.floor((Date.now()-startTime)/1000) : 0;
+  const mm = String(Math.floor(sec/60)).padStart(2,'0');
+  const ss = String(sec%60).padStart(2,'0');
+  document.getElementById('rTime').textContent = mm+':'+ss;
+  document.getElementById('rCount').textContent = matchedCount;
+  document.getElementById('rMiss').textContent = wrongCount;
+
+  const section = document.getElementById('wrongWordsSection');
+  const list = document.getElementById('wrongWordsList');
+  if(wrongWords.size > 0){
+    section.style.display = 'block';
+    list.innerHTML = Array.from(wrongWords).map(w=>w).join('<br>');
+  } else {
+    section.style.display = 'none';
+  }
+
+  modalBg.classList.add('active');
+}
+
+document.getElementById('copyWrongBtn').addEventListener('click', ()=>{
+  const text = Array.from(wrongWords).join('\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.getElementById('copyWrongBtn');
+    btn.textContent = '✅ 已複製！';
+    setTimeout(()=>{ btn.textContent = '📋 複製到剪貼簿'; }, 2000);
+  }).catch(()=>{
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn = document.getElementById('copyWrongBtn');
+    btn.textContent = '✅ 已複製！';
+    setTimeout(()=>{ btn.textContent = '📋 複製到剪貼簿'; }, 2000);
+  });
+});
+
+function checkComplete(){
+  if(matchedCount === pairs.length){
+    setTimeout(()=>{ showResults(); }, 250);
+  }
+}
+</script>
+</body>
+</html>
