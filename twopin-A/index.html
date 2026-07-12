@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>LinguaBook — 雙語影音歌詞 </title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>:root{color-scheme:dark;--lyric-size:17px;--lyric-color:#ffffff}*{-webkit-tap-highlight-color:transparent}body{font-family:'Outfit',system-ui,-apple-system,sans-serif;overscroll-behavior:none}.serif{font-family:'Fraunces',Georgia,serif}.glass{backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}#lyricMarqueeBox,#subtitleBox,#marqueeContent{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.subtitle-box{width:100%;overflow:visible;position:relative;min-height:64px;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none}.subtitle-inner{position:relative;width:100%;text-align:center;animation:subtitleUp .4s cubic-bezier(.2,.8,.2,1) forwards}@keyframes subtitleUp{0%{transform:translateY(40px);opacity:0}100%{transform:translateY(0);opacity:1}}
+body{box-shadow:inset 0 0 0 3px rgba(255,255,255,0.9);transition:box-shadow .3s ease}
+#mediaContainer.media-fullscreen{position:fixed;inset:0;z-index:70;width:100vw;height:100dvh;max-height:none;aspect-ratio:auto;border-radius:0;border:none}
+#lyricMarqueeBox.marquee-floating{position:fixed;z-index:90;width:88vw;max-width:420px;touch-action:none}
+body.is-fullscreen{box-shadow:inset 0 0 0 3px rgba(255,255,255,1)}
+.editor-max{max-height:62vh !important;transition:max-height .2s ease}
+textarea.editor-max{height:62vh !important;transition:height .2s ease}
+#langBlock1,#langBlock2{transition:flex .2s ease}
+.grid-cols-1.md\:grid-cols-2:has(.editor-max){display:flex;flex-direction:column}
+</style>
+</head>
+<body class="bg-[#050508] text-zinc-100 antialiased selection:bg-violet-500/30 selection:text-violet-200">
+<audio id="audioPlayer" class="hidden"></audio>
+<div id="app" class="min-h-[100dvh] flex flex-col max-w-[520px] mx-auto relative bg-[#050508]">
+<header class="sticky top-0 z-40 glass bg-black/40 border-b border-white/5">
+<div class="px-4 h-[60px] flex items-center justify-between gap-3 relative">
+<div class="flex items-center gap-1.5 shrink-0 z-10 mr-auto bg-black/40 p-1 rounded-xl border border-white/5">
+<button id="btnHideAddrBar" class="w-9 h-9 grid place-items-center rounded-lg bg-violet-600 text-white shadow-lg shadow-violet-600/20 border border-violet-500 transition active:scale-95" title="隱藏網址列"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 9V5a1 1 0 0 1 1-1h4"/><path d="M20 9V5a1 1 0 0 0-1-1h-4"/><path d="M4 15v4a1 1 0 0 0 1 1h4"/><path d="M20 15v4a1 1 0 0 1-1 1h-4"/></svg></button>
+</div>
+<div class="absolute inset-x-0 flex flex-col justify-center items-center pointer-events-none px-16 h-full">
+<h1 id="topSongTitle" class="serif text-[18px] font-bold tracking-tight truncate text-center max-w-[200px] text-amber-300 bg-amber-400/10 border border-amber-400/20 px-4 py-1 rounded-full cursor-pointer active:scale-95 transition pointer-events-auto">未命名影音</h1>
+</div>
+<div class="flex items-center gap-1.5 shrink-0 z-10 ml-auto bg-black/40 p-1 rounded-xl border border-white/5">
+<button id="btnManage" class="w-9 h-9 grid place-items-center rounded-lg bg-violet-600 text-white shadow-lg shadow-violet-600/20 border border-violet-500 transition active:scale-95" title="歌曲清單"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></button>
+</div>
+</div>
+</header>
+<main class="flex-1 px-4 pt-4 pb-56 flex flex-col justify-center items-center min-h-0">
+<div id="mediaContainer" class="w-full aspect-[9/16] max-h-[55vh] rounded-[24px] border border-white/10 bg-zinc-950 overflow-hidden flex flex-col items-center justify-center relative shadow-2xl">
+<img id="imageViewer" class="absolute inset-0 w-full h-full object-cover hidden z-10 transition-transform duration-75" src="" style="transform: scale(1); transform-origin: center center;">
+<video id="videoPlayer" class="absolute inset-0 w-full h-full object-cover hidden z-20" playsinline></video>
+<div id="mediaPlaceholder" class="text-zinc-500 text-[12px] flex flex-col items-center gap-3 px-6 text-center relative z-30">
+<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-zinc-600"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+<span id="placeholderText">尚未載入媒體</span>
+</div>
+<button id="btnExitMediaFullscreen" class="hidden absolute top-3 right-3 z-50 w-9 h-9 rounded-full bg-black/60 border border-white/20 grid place-items-center text-white active:scale-90 transition">✕</button>
+</div>
+</main>
+<div id="bottomToolbar" class="fixed bottom-0 inset-x-0 z-30 bg-[#09090d]/95 border-t border-white/10 px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] glass">
+<div class="max-w-[480px] mx-auto flex flex-col gap-3">
+<div id="lyricMarqueeBox" class="bg-zinc-900/90 border border-white/10 rounded-xl py-2 px-3 min-h-[68px] flex items-center justify-center cursor-pointer transition active:scale-[0.99] select-none">
+<div class="subtitle-box" id="subtitleBox"><div id="marqueeContent" class="subtitle-inner text-center"><span class="text-zinc-500 text-[13px]">目前無播放中歌詞</span></div></div>
+</div>
+<div id="practicePanel" class="hidden bg-zinc-900/90 border border-violet-500/20 rounded-xl p-3 flex flex-col gap-2">
+<div class="flex items-center justify-between gap-2">
+<span class="text-[11px] text-zinc-400 font-medium shrink-0">🎤 語音辨識率（匹配容錯度）</span>
+<span id="toleranceValue" class="text-[12px] text-violet-300 font-semibold shrink-0">60%</span>
+<button id="btnClosePractice" type="button" title="退出練習模式" class="w-6 h-6 shrink-0 rounded-full bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white text-[12px] font-bold grid place-items-center active:scale-90 transition">✕</button>
+</div>
+<input type="range" id="toleranceSlider" min="1" max="100" value="60" class="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-violet-500">
+<p class="text-[10px] text-zinc-600 -mt-1">數值越低越容易通過，越高越要求精準發音</p>
+<div id="practiceLineDisplay" class="text-[16px] leading-relaxed py-2 px-1 text-center break-words min-h-[28px]"></div>
+<div class="w-full h-1.5 bg-white/10 rounded-full overflow-hidden"><div id="practiceProgressBar" class="h-full bg-emerald-400 transition-all duration-300" style="width:0%"></div></div>
+<div id="practiceScore" class="text-[11px] text-emerald-300 text-center font-mono">0/0（0%）</div>
+<div class="flex items-center gap-2">
+<input id="practiceInput" type="text" name="lb_practice_text_no_autofill" placeholder="點擊輸入框打字..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other" readonly onfocus="this.removeAttribute('readonly')" ontouchstart="this.removeAttribute('readonly')" class="flex-1 h-10 px-3 rounded-xl bg-white/5 border border-white/10 text-[13px] outline-none text-white placeholder:text-zinc-500">
+<button id="btnPracticeLang" type="button" title="切換練習第一/第二語言" class="w-9 h-9 shrink-0 rounded-full bg-blue-600 text-white text-[13px] font-bold grid place-items-center active:scale-90 transition">2</button>
+<button id="btnPracticeMic" type="button" class="w-9 h-9 shrink-0 rounded-full bg-red-500 text-white grid place-items-center active:scale-90 transition">🎙️</button>
+</div>
+<p id="practiceHint" class="text-[10px] text-zinc-600 text-center leading-snug">點擊紅色麥克風開始錄音辨識；若麥克風無法使用，也可直接在輸入框打字測試比對效果。</p>
+</div>
+<div class="flex items-center justify-between gap-3 px-1">
+<span id="pTimeStart" class="text-[11px] text-zinc-400 tabular-nums font-mono">00:00</span>
+<div class="flex-1 relative group py-1"><input type="range" id="playbackProgress" min="0" max="1000" value="0" class="w-full h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-violet-500 focus:outline-none"></div>
+<span id="pTimeEnd" class="text-[11px] text-zinc-500 tabular-nums font-mono">00:00</span>
+</div>
+<div class="flex items-center justify-between gap-1.5 px-1">
+<div class="grid grid-cols-2 gap-1">
+<button id="toggleOriginSound" title="第一語言 聲音開關" class="w-8 h-8 grid place-items-center text-[13px] rounded-lg border">🔊</button>
+<button id="toggleOriginText" title="第一語言 文字顯示開關" class="w-8 h-8 grid place-items-center text-[12px] rounded-lg border">1</button>
+<button id="toggleTransSound" title="第二語言 聲音開關" class="w-8 h-8 grid place-items-center text-[13px] rounded-lg border">🔊</button>
+<button id="toggleTransText" title="第二語言 文字顯示開關" class="w-8 h-8 grid place-items-center text-[12px] rounded-lg border">2</button>
+</div>
+<div class="flex items-center gap-2">
+<button id="pPrev" class="w-9 h-9 grid place-items-center text-zinc-300 border border-white/10 rounded-full transition active:scale-90"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
+<button id="pPlay" class="w-12 h-12 bg-zinc-800 border border-white/10 rounded-full grid place-items-center shadow-lg transition text-white active:scale-95"><svg id="pPlayIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+<button id="pNext" class="w-9 h-9 grid place-items-center text-zinc-300 border border-white/10 rounded-full transition active:scale-90"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
+</div>
+<div class="flex items-stretch gap-1 shrink-0">
+<div class="flex flex-col items-stretch gap-1">
+<button id="btnMediaFullscreen" title="媒體全螢幕，字幕可拖曳" class="w-8 h-8 grid place-items-center text-[13px] rounded-lg bg-violet-600/40 border border-violet-500 text-white">⛶</button>
+<button id="btnFullExport" title="依目前設定輸出整段影片" class="w-8 h-8 grid place-items-center text-[13px] rounded-lg bg-violet-600/40 border border-violet-500 text-white"><span id="fullExportLabel">⬇️</span></button>
+</div>
+<div class="flex flex-col items-stretch gap-1">
+<button id="ttsSpeed" title="語速" class="w-8 h-8 grid place-items-center text-[11px] rounded-lg bg-violet-600/40 border border-violet-500 text-white font-semibold">1x</button>
+<button id="togglePracticeBtn" title="練習" class="w-8 h-8 grid place-items-center text-[13px] rounded-lg bg-violet-600/40 border border-violet-500 text-white">🎤</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="modal" class="fixed inset-0 z-50 hidden"><div class="absolute inset-0 bg-black/80 backdrop-blur-xl" id="modalBg"></div><div class="relative z-10 max-w-[520px] mx-auto h-[100dvh] flex flex-col"><div class="p-4 flex items-center justify-between"><h3 class="serif text-[22px]">歌曲清單</h3><button id="closeModal" class="w-9 h-9 grid place-items-center rounded-xl bg-white/10"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div><div class="px-4 pb-4 flex gap-2"><button id="addSong" class="flex-1 h-11 rounded-xl bg-violet-600 font-medium text-[14px]">新增歌曲資料</button><div class="relative"><button id="sortSelectBtn" class="h-11 px-3 rounded-xl bg-white/10 text-[13px] text-white flex items-center gap-1.5 whitespace-nowrap"><span id="sortSelectLabel">手動排序</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button><div id="sortSelectMenu" class="hidden absolute right-0 top-[calc(100%+6px)] z-20 w-40 rounded-xl bg-[#17181c] border border-white/10 shadow-xl overflow-hidden"><button type="button" data-val="custom" class="sort-opt w-full text-left px-4 py-2.5 text-[13px] text-white hover:bg-white/10 transition">手動排序</button><button type="button" data-val="az" class="sort-opt w-full text-left px-4 py-2.5 text-[13px] text-white hover:bg-white/10 transition">A → Z</button><button type="button" data-val="za" class="sort-opt w-full text-left px-4 py-2.5 text-[13px] text-white hover:bg-white/10 transition">Z → A</button><button type="button" data-val="newest" class="sort-opt w-full text-left px-4 py-2.5 text-[13px] text-white hover:bg-white/10 transition">最新加入</button><button type="button" data-val="oldest" class="sort-opt w-full text-left px-4 py-2.5 text-[13px] text-white hover:bg-white/10 transition">最早加入</button></div></div></div><div class="px-4 pb-3"><button id="openTemplateTester" class="w-full h-10 rounded-xl bg-white/10 border border-white/10 text-[13px] text-zinc-300 hover:text-white transition active:scale-95">🌐 語言模板測試（英/中/日/韓/坦米爾文/台語...）</button></div><div class="px-4 pb-3"><button id="openFontSettings" class="w-full h-10 rounded-xl bg-white/10 border border-white/10 text-[13px] text-zinc-300 hover:text-white transition active:scale-95">🔤 原文字型設定（大小／顏色）</button><div id="fontSettingsPanel" class="hidden mt-2 p-3 rounded-xl bg-white/5 border border-white/10 space-y-3"><div><div class="flex items-center justify-between mb-1"><span class="text-[12px] text-zinc-400">文字大小</span><span id="fontSizeValue" class="text-[12px] text-violet-300 font-semibold">17px</span></div><input type="range" id="fontSizeSlider" min="12" max="32" value="17" class="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-violet-500"></div><div class="flex items-center gap-1.5 overflow-x-auto pb-0.5"><div class="flex items-center gap-1.5 shrink-0" id="fontColorSwatches"></div><input type="color" id="fontColorInput" value="#ffffff" class="w-7 h-7 rounded-md border border-white/20 bg-transparent cursor-pointer p-0 shrink-0"><button id="fontResetBtn" class="shrink-0 px-2.5 py-1.5 rounded-lg bg-white/10 text-[11px] text-zinc-300 active:scale-95 transition whitespace-nowrap">還原預設</button></div></div></div><div id="songList" class="flex-1 overflow-y-auto px-4 pb-8 space-y-2.5"></div></div></div>
+<div id="editModal" class="fixed inset-0 z-[60] hidden"><div class="absolute inset-0 bg-black/90 backdrop-blur-xl"></div><div class="relative z-10 w-full h-[100dvh] flex flex-col"><div class="p-4 flex items-center gap-3 border-b border-white/10 sticky top-0 z-20 bg-[#0a0a0f]/95 backdrop-blur-xl shrink-0">
+<button id="cancelEdit" class="px-4 py-1.5 rounded-lg bg-zinc-800/90 border border-zinc-700/60 text-[13px] font-medium text-zinc-300 hover:text-white transition active:scale-95 shadow-sm">退出</button>
+<h3 class="serif text-[20px] flex-1 text-center" id="editTitle">編輯影音資料</h3>
+<button id="saveEdit" class="px-4 py-1.5 rounded-lg bg-violet-600 text-[13px] font-medium transition active:scale-95 shadow-md shadow-violet-600/10">確認儲存</button></div><div class="flex-1 overflow-y-auto p-4 space-y-4 max-w-[900px] w-full mx-auto"><div class="flex items-center gap-2 -mt-1 mb-1"><span class="text-[11px] text-zinc-500 shrink-0">📄 匯出LRC字幕（一般音樂播放軟體可用）：</span><button type="button" id="exportLrc1" class="px-2.5 py-1 rounded-lg bg-white/10 border border-white/10 text-[11px] text-zinc-300 hover:text-white transition active:scale-95 shrink-0">原文</button><button type="button" id="exportLrc2" class="px-2.5 py-1 rounded-lg bg-white/10 border border-white/10 text-[11px] text-zinc-300 hover:text-white transition active:scale-95 shrink-0">翻譯</button></div><div class="flex items-center gap-2 mb-1"><span class="text-[11px] text-zinc-500 shrink-0">💾 這首歌的完整備份：</span><button type="button" id="exportSongBtn" class="px-2.5 py-1 rounded-lg bg-white/10 border border-white/10 text-[11px] text-zinc-300 hover:text-white transition active:scale-95 shrink-0">⬆️ 匯出此曲</button><button type="button" id="importSongBtn" class="px-2.5 py-1 rounded-lg bg-white/10 border border-white/10 text-[11px] text-zinc-300 hover:text-white transition active:scale-95 shrink-0">⬇️ 匯入此曲</button><input id="importSongFile" type="file" accept="application/json,.json" class="hidden"></div><div class="grid grid-cols-2 gap-3"><div class="col-span-2"><label class="text-[12px] text-zinc-400">歌曲/影音名稱</label><input id="eTitle" class="mt-1 w-full h-11 px-3 rounded-xl bg-white/5 border border-white/10 outline-none"></div><div class="col-span-2"><label class="text-[12px] text-zinc-400">本地影音檔案</label><div class="mt-1 w-full border border-white/10 bg-white/5 rounded-xl p-3 flex items-center justify-between"><span id="audioFileName" class="text-[13px] text-zinc-400 truncate max-w-[70%] font-mono">尚未選取影音檔</span><button type="button" id="btnSelectAudio" class="px-3 py-1 rounded-lg bg-white/10 text-[12px]">選取檔案</button><input type="file" id="eAudioFile" accept="video/*,audio/*" class="hidden"></div></div><div class="col-span-2"><label class="text-[12px] text-zinc-400">封面圖片檔案</label><div class="mt-1 w-full border border-white/10 bg-white/5 rounded-xl p-3 flex items-center justify-between"><span id="imageFileName" class="text-[13px] text-zinc-400 truncate max-w-[70%] font-mono">尚未選取圖片檔</span><button type="button" id="btnSelectImage" class="px-3 py-1 rounded-lg bg-white/10 text-[12px]">選取檔案</button><input type="file" id="eImageFile" accept="image/*" class="hidden"></div></div><div class="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4"><div id="langBlock1"><div class="flex items-center justify-between mb-1 gap-2"><label class="text-[12px] text-zinc-400 shrink-0">主要語言歌詞（原文）</label><div class="flex gap-1 bg-white/5 p-0.5 rounded-lg border border-white/5 shrink-0"><button type="button" id="btnModeText1" class="whitespace-nowrap px-1.5 py-0.5 text-[10px] rounded" onclick="switchEditorMode(1, 'text')">文字框</button><button type="button" id="btnModeBlock1" class="whitespace-nowrap px-1.5 py-0.5 text-[10px] rounded bg-violet-600/30 text-violet-200 border border-violet-500/30 font-medium" onclick="switchEditorMode(1, 'block')">結構化</button></div><button id="btnTapSync" class="whitespace-nowrap px-2 py-1 rounded-lg bg-violet-600/30 border border-violet-500/30 text-violet-200 text-[11px] font-medium active:scale-95 transition">即時打點</button></div><div id="lyricsEditor1" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 overflow-y-auto max-h-[260px] p-1.5 space-y-0.5"></div><textarea id="eLyrics1" class="hidden w-full h-[260px] mt-1 p-3 rounded-xl bg-white/5 border border-white/10 text-[13px] font-mono outline-none resize-none leading-relaxed" placeholder="在此直接貼上整段歌詞..."></textarea><button id="btnAddRowL1" type="button" class="mt-1 w-full py-2 rounded-xl bg-white/5 border border-dashed border-white/10 text-zinc-400 text-[12px] hover:text-white transition active:scale-95">+ 新增一行</button></div><div id="langBlock2"><div class="flex items-center justify-between mb-1 gap-2"><label class="text-[12px] text-zinc-400 shrink-0">第二語言歌詞（翻譯）</label><div class="flex gap-1 bg-white/5 p-0.5 rounded-lg border border-white/5 shrink-0"><button type="button" id="btnModeText2" class="whitespace-nowrap px-1.5 py-0.5 text-[10px] rounded" onclick="switchEditorMode(2, 'text')">文字框</button><button type="button" id="btnModeBlock2" class="whitespace-nowrap px-1.5 py-0.5 text-[10px] rounded bg-violet-600/30 text-violet-200 border border-violet-500/30 font-medium" onclick="switchEditorMode(2, 'block')">結構化</button></div><button id="btnSyncL2" type="button" class="whitespace-nowrap px-2 py-1 rounded-lg bg-emerald-600/30 border border-emerald-500/30 text-emerald-200 text-[11px] font-medium active:scale-95 transition">套用時間</button></div><div id="lyricsEditor2" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 overflow-y-auto max-h-[260px] p-1.5 space-y-0.5"></div><textarea id="eLyrics2" class="hidden w-full h-[260px] mt-1 p-3 rounded-xl bg-white/5 border border-white/10 text-[13px] font-mono outline-none resize-none leading-relaxed" placeholder="在此直接貼上整段翻譯..."></textarea><button id="btnAddRowL2" type="button" class="mt-1 w-full py-2 rounded-xl bg-white/5 border border-dashed border-white/10 text-zinc-400 text-[12px] hover:text-white transition active:scale-95">+ 新增一行</button></div></div></div></div></div></div>
+<div id="toastContainer" class="fixed bottom-28 inset-x-0 z-[100] flex flex-col items-center gap-2 px-6 pointer-events-none"></div>
+<div id="confirmModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center px-6"><div class="absolute inset-0 bg-black/70 backdrop-blur-sm" id="confirmModalBg"></div><div class="relative z-10 w-full max-w-[380px] rounded-2xl bg-[#17181c] border border-white/10 p-5 shadow-2xl"><p id="confirmModalMsg" class="text-[14px] text-zinc-200 whitespace-pre-line leading-relaxed mb-5"></p><div class="flex gap-2"><button id="confirmModalCancel" class="flex-1 h-11 rounded-xl bg-white/10 text-[14px] text-zinc-300 active:scale-95 transition">取消</button><button id="confirmModalOk" class="flex-1 h-11 rounded-xl bg-violet-600 text-[14px] text-white font-medium active:scale-95 transition">確定</button></div></div></div>
+<div id="quickSwitchModal" class="fixed inset-0 z-[55] hidden"><div class="absolute inset-0 bg-black/80 backdrop-blur-xl" id="quickSwitchBg"></div><div class="relative z-10 max-w-[520px] mx-auto h-[100dvh] flex flex-col"><div class="p-4 flex items-center justify-between"><h3 class="serif text-[22px]">切換歌曲</h3><button id="closeQuickSwitch" class="w-9 h-9 grid place-items-center rounded-xl bg-white/10"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div><div id="quickSwitchList" class="flex-1 overflow-y-auto px-4 pb-8 space-y-2"></div></div></div>
+<div id="templateModal" class="fixed inset-0 z-[65] hidden bg-black/95 flex flex-col">
+<div class="flex items-center justify-between px-4 h-[56px] border-b border-white/10 shrink-0">
+<button id="templateModalClose" class="px-3 py-1.5 rounded-lg bg-white/10 text-[13px]">關閉</button>
+<span class="text-[14px] text-zinc-300 font-medium">語言模板測試</span>
+<span class="w-[52px]"></span>
+</div>
+<div id="templateList" class="p-4 space-y-2 overflow-y-auto"></div>
+<div id="templateDetail" class="hidden flex-1 flex-col overflow-hidden">
+<div class="px-4 pt-3 pb-2 flex items-center gap-2 shrink-0">
+<button id="templateBackBtn" class="px-3 py-1.5 rounded-lg bg-white/10 text-[13px]">← 返回列表</button>
+<span id="templateDetailTitle" class="text-[14px] text-violet-300 font-medium truncate flex-1"></span>
+<button id="templateCopyBtn" class="px-3 py-1.5 rounded-lg bg-violet-600 text-[13px] font-medium shrink-0">📋 套用模板</button>
+</div>
+<div id="templateLines" class="flex-1 overflow-y-auto px-4 pb-8 space-y-2"></div>
+</div>
+</div>
+<div id="numpadModal" class="fixed inset-0 z-[80] hidden flex items-end justify-center" style="background:rgba(0,0,0,0.6)"><div class="w-full max-w-sm bg-zinc-950 border-t border-white/10 rounded-t-3xl pb-[calc(12px+env(safe-area-inset-bottom))] pt-3 px-4"><div class="flex items-center justify-between mb-2"><button id="numpadCancel" type="button" class="px-4 py-1.5 rounded-xl bg-white/8 text-zinc-400 text-[13px]">取消</button><div id="numpadDisplay" class="font-mono text-[28px] text-white tracking-widest">00:00</div><button id="numpadConfirm" type="button" class="px-4 py-1.5 rounded-xl bg-violet-600 text-white text-[13px] font-semibold">確認</button></div><div class="grid grid-cols-3 gap-2"><button class="numpad-key h-[46px] rounded-xl bg-white/8 text-white text-[18px] font-light active:scale-95 transition" data-v="1">1</button><button class="numpad-key h-[46px] rounded-xl bg-white/8 text-white text-[18px] font-light active:scale-95 transition" data-v="2">2</button><button class="numpad-key h-[46px] rounded-xl bg-white/8 text-white text-[18px] font-light active:scale-95 transition" data-v="3">3</button><button class="numpad-key h-[46px] rounded-xl bg-white/8 text-white text-[18px] font-light active:scale-95 transition" data-v="4">4</button><button class="numpad-key h-[46px] rounded-xl bg-white/8 text-white text-[18px] font-light active:scale-95 transition" data-v="5">5</button><button class="numpad-key h-[46px] rounded-xl bg-white/8 text-white text-[18px] font-light active:scale-95 transition" data-v="6">6</button><button class="numpad-key h-[46px] rounded-xl bg-white/8 text-white text-[18px] font-light active:scale-95 transition" data-v="7">7</button><button class="numpad-key h-[46px] rounded-xl bg-white/8 text-white text-[18px] font-light active:scale-95 transition" data-v="8">8</button><button class="numpad-key h-[46px] rounded-xl bg-white/8 text-white text-[18px] font-light active:scale-95 transition" data-v="9">9</button><button id="numpadClear" type="button" class="h-[46px] rounded-xl bg-white/5 text-zinc-400 text-[12px] active:scale-95 transition">清除</button><button class="numpad-key h-[46px] rounded-xl bg-white/8 text-white text-[18px] font-light active:scale-95 transition" data-v="0">0</button><button id="numpadBack" type="button" class="h-[46px] rounded-xl bg-white/5 text-white text-[18px] active:scale-95 transition">⌫</button></div></div></div>
+<div id="tapSyncBanner" class="hidden fixed top-0 inset-x-0 z-[95] bg-violet-950/95 backdrop-blur border-b border-violet-500/30 px-3 py-2 flex items-center gap-2"><button id="tapSyncCancel" class="px-2.5 py-1.5 rounded-lg bg-white/10 text-[12px] text-zinc-300 shrink-0">取消</button><div class="flex-1 min-w-0 text-center"><p id="tapSyncCurrentText" class="text-[12px] text-white truncate font-medium leading-tight"></p><p id="tapSyncProgress" class="text-[10px] text-violet-300">0/0 · 點擊下方字幕記錄時間</p></div><button id="tapSyncDone" class="px-2.5 py-1.5 rounded-lg bg-violet-600 text-[12px] text-white font-semibold shrink-0">完成套用</button></div>
+<script>
+(() => {
+  const $ = sel => document.querySelector(sel);
+  function showToast(msg, duration=3800){
+    const el=document.createElement('div');
+    el.className='pointer-events-auto max-w-[92vw] px-4 py-3 rounded-xl bg-[#17181c] border border-violet-500/30 text-[13px] text-zinc-100 shadow-2xl whitespace-pre-line leading-relaxed text-center';
+    el.style.opacity='0'; el.style.transform='translateY(8px)'; el.style.transition='opacity .25s ease, transform .25s ease';
+    el.textContent=msg;
+    $('#toastContainer').appendChild(el);
+    requestAnimationFrame(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; });
+    setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(8px)'; setTimeout(()=>el.remove(),300); }, duration);
+  }
+  function showConfirm(msg){
+    return new Promise(resolve=>{
+      $('#confirmModalMsg').textContent=msg;
+      $('#confirmModal').classList.remove('hidden');
+      const cleanup=(result)=>{ $('#confirmModal').classList.add('hidden'); resolve(result); };
+      $('#confirmModalOk').onclick=()=>cleanup(true);
+      $('#confirmModalCancel').onclick=()=>cleanup(false);
+      $('#confirmModalBg').onclick=()=>cleanup(false);
+    });
+  }
+  const audioPlayer = $('#audioPlayer'), videoPlayer = $('#videoPlayer'), imageViewer = $('#imageViewer'), mediaPlaceholder = $('#mediaPlaceholder'), marqueeContent = $('#marqueeContent'), lyricMarqueeBox = $('#lyricMarqueeBox');
+  let showOriginText = true, showTransText = true, playOriginSound = true, playTransSound = true, ttsRate = 1.0; const speedList = [0.5, 0.75, 1.0, 1.25, 1.5]; let songs = [], idx = 0, parsedLyrics = [];
+  let activeMedia = audioPlayer, isImageOnlyMode = false, currentAudioBlobUrl = "", currentImageBlobUrl = "", tempAudioFile = null, tempImageFile = null;
+  let sideRecorder=null, sideRecordChunks=[], sideRecordCanvas=null, sideRecordCtx=null, sideRecordRAF=null;
+  let db = null;
+  function initDB() {
+    return new Promise((resolve) => {
+      const request = indexedDB.open("LinguaBookMediaDB", 1);
+      request.onupgradeneeded = (e) => {
+        const database = e.target.result;
+        if (!database.objectStoreNames.contains("media")) database.createObjectStore("media", { keyPath: "id" });
+      };
+      request.onsuccess = (e) => { db = e.target.result; resolve(); };
+      request.onerror = () => resolve();
+    });
+  }
+  function saveMediaToDB(id, file) {
+    return new Promise((resolve) => {
+      if (!db || !file) return resolve();
+      const transaction = db.transaction(["media"], "readwrite");
+      transaction.objectStore("media").put({ id: id, data: file });
+      transaction.oncomplete = () => resolve();
+    });
+  }
+  function getMediaFromDB(id) {
+    return new Promise((resolve) => {
+      if (!db) return resolve(null);
+      const request = db.transaction(["media"], "readonly").objectStore("media").get(id);
+      request.onsuccess = () => resolve(request.result ? request.result.data : null);
+      request.onerror = () => resolve(null);
+    });
+  }
+  function deleteMediaFromDB(id) { if (db) db.transaction(["media"], "readwrite").objectStore("media").delete(id); }
+  let availableVoices = []; function loadVoices(){availableVoices = speechSynthesis.getVoices();} speechSynthesis.onvoiceschanged = loadVoices; loadVoices();
+  
+  function getLanguageTemplates(){
+    return [
+    { title: "🇬🇧 英文模板", id: "demo_en", lang1:"en-US", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] Hello, how are you today","[00:04] The sun is shining bright","[00:08] Let's go for a walk outside"],
+      l2: ["[00:00] 你好，你今天好嗎","[00:04] 陽光燦爛耀眼","[00:08] 我們一起出去散步吧"] },
+    { title: "🇹🇼 中文模板", id: "demo_zh", lang1:"zh-TW", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] 今天天氣真好","[00:04] 我們一起去公園走走","[00:08] 微風輕輕吹過臉頰"],
+      l2: ["[00:00] The weather is lovely today","[00:04] Let's go for a walk in the park","[00:08] A gentle breeze brushes past my face"] },
+    { title: "🌐 英&中文混合模板", id: "demo_en_zh_mixed", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] 我今天 feel so happy","[00:04] Let's go 公園 for a walk","[00:08] 你的 smile 讓我很開心"],
+      l2: ["[00:00] 我今天感覺很開心","[00:04] 我們一起去公園走走","[00:08] 你的笑容讓我很開心"] },
+    { title: "🇯🇵 日文模板", id: "demo_ja", lang1:"ja-JP", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] 今日はいい天気ですね","[00:04] 一緒に散歩しましょう","[00:08] 風が気持ちいいです"],
+      l2: ["[00:00] 今天天氣真好呢","[00:04] 一起去散步吧","[00:08] 風吹起來很舒服"] },
+    { title: "🌐 日&中文混合模板", id: "demo_ja_zh_mixed", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] 今日は 心情 がいいです","[00:04] 一緒に 公園 へ行きましょう","[00:08] 你的笑顔 が好きです"],
+      l2: ["[00:00] 今天心情很好","[00:04] 一起去公園吧","[00:08] 我喜歡你的笑容"] },
+    { title: "🇮🇳 坦米爾文模板", id: "demo_ta", lang1:"ta-IN", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] வணக்கம், நீங்கள் எப்படி இருக்கிறீர்கள்","[00:04] இன்று வானிலை மிக அழகாக உள்ளது","[00:08] நாம் நடக்கச் செல்வோம்"],
+      l2: ["[00:00] 你好，你好嗎","[00:04] 今天天氣非常美麗","[00:08] 我們去散步吧"] },
+    { title: "🌐 坦米爾&中文混合模板", id: "demo_ta_zh_mixed", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] இன்று 心情 நல்லா இருக்கு","[00:04] நாம் 公園 க்கு போலாம்","[00:08] உன் 笑容 எனக்கு பிடிக்கும்"],
+      l2: ["[00:00] 今天心情很好","[00:04] 我們去公園吧","[00:08] 我喜歡你的笑容"] },
+    { title: "🇹🇼 台語模板（漢字，發音僅供參考）", id: "demo_tai", lang1:"zh-TW", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] 今仔日天氣誠好","[00:04] 逗陣去公園行行咧","[00:08] 心情誠爽快"],
+      l2: ["[00:00] 今天天氣很好","[00:04] 一起去公園走走","[00:08] 心情很愉快"] },
+    { title: "🇰🇷 韓語模板", id: "demo_ko", lang1:"ko-KR", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] 안녕하세요, 오늘 기분이 어때요","[00:04] 오늘 날씨가 정말 좋아요","[00:08] 우리 같이 산책하러 가요"],
+      l2: ["[00:00] 你好，你今天心情怎麼樣","[00:04] 今天天氣真的很好","[00:08] 我們一起去散步吧"] },
+    { title: "🇪🇸 西班牙文模板", id: "demo_es", lang1:"es-ES", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] Hola, ¿cómo estás hoy","[00:04] El sol brilla mucho hoy","[00:08] Vamos a dar un paseo"],
+      l2: ["[00:00] 你好，你今天好嗎","[00:04] 今天陽光很燦爛","[00:08] 我們去散步吧"] },
+    { title: "🇫🇷 法文模板", id: "demo_fr", lang1:"fr-FR", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] Bonjour, comment ça va aujourd'hui","[00:04] Il fait très beau aujourd'hui","[00:08] Allons nous promener"],
+      l2: ["[00:00] 你好，你今天好嗎","[00:04] 今天天氣很好","[00:08] 我們去散步吧"] },
+    { title: "🇸🇦 阿拉伯文模板", id: "demo_ar", lang1:"ar-SA", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] مرحبا، كيف حالك اليوم","[00:04] الطقس جميل جدا اليوم","[00:08] لنذهب في نزهة"],
+      l2: ["[00:00] 你好，你今天好嗎","[00:04] 今天天氣很好","[00:08] 我們去散步吧"] },
+    { title: "🇮🇳 印地文模板", id: "demo_hi", lang1:"hi-IN", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] नमस्ते, आज आप कैसे हैं","[00:04] आज मौसम बहुत अच्छा है","[00:08] चलो टहलने चलते हैं"],
+      l2: ["[00:00] 你好，你今天好嗎","[00:04] 今天天氣很好","[00:08] 我們去散步吧"] },
+    { title: "🇧🇷 葡萄牙文模板", id: "demo_pt", lang1:"pt-BR", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] Olá, como você está hoje","[00:04] O sol está brilhando muito hoje","[00:08] Vamos dar um passeio"],
+      l2: ["[00:00] 你好，你今天好嗎","[00:04] 今天陽光很燦爛","[00:08] 我們去散步吧"] },
+    { title: "🇷🇺 俄文模板", id: "demo_ru", lang1:"ru-RU", savedAudioName: "", savedImageName: "",
+      l1: ["[00:00] Привет, как дела сегодня","[00:04] Сегодня прекрасная погода","[00:08] Давай прогуляемся"],
+      l2: ["[00:00] 你好，你今天好嗎","[00:04] 今天天氣很好","[00:08] 我們去散步吧"] }
+    ];
+  }
+  function getDemoSongs(){
+    return [
+    {
+      title: "🐟 鮪魚之歌 (範例)",
+      id: "demo_tuna",
+      savedAudioName: "",
+      savedImageName: "",
+      l1: ["[00:00] 蔚藍的海水裡游著一隻鮪魚","[00:05] 追逐著浪花無憂無慮","[00:10] 穿過珊瑚礁尋找夢想的秘密"],
+      l2: ["[00:00] A tuna swimming in the deep blue sea","[00:05] Chasing the waves, wild and free","[00:10] Through coral reefs, searching for dreams"]
+    }
+    ];
+  }
+  async function load(){
+    await initDB();
+    try {
+      let raw = localStorage.getItem('linguabook:songs');
+      songs = raw ? JSON.parse(raw) : [];
+      if (songs.length === 0) {
+        songs = getDemoSongs();
+        localStorage.setItem('linguabook:songs', JSON.stringify(songs));
+      }
+    } catch { songs = getDemoSongs(); }
+    idx = Math.min(Math.max(parseInt(localStorage.getItem('linguabook:idx')||'0',10),0),songs.length-1); if(idx<0)idx=0;
+    await cleanupLeftoverTemplates();
+  }
+  const KNOWN_TEMPLATE_IDS=['demo_en','demo_zh','demo_en_zh_mixed','demo_ja','demo_ja_zh_mixed','demo_ta','demo_ta_zh_mixed','demo_tai','demo_ko'];
+  async function cleanupLeftoverTemplates(){
+    if(localStorage.getItem('linguabook:templateCleanupDone'))return;
+    localStorage.setItem('linguabook:templateCleanupDone','1');
+    const leftover=songs.filter(s=>KNOWN_TEMPLATE_IDS.includes(s.id));
+    if(leftover.length>0 && await showConfirm(`偵測到 ${leftover.length} 首之前匯入的語言模板混在歌曲清單裡。語言模板現在已經搬到獨立的測試頁面，要把清單裡這些模板移除嗎？（不會動到你自己的歌曲，這個提示只會出現這一次）`)){
+      songs=songs.filter(s=>!KNOWN_TEMPLATE_IDS.includes(s.id)); idx=Math.min(idx,songs.length-1); if(idx<0)idx=0; save();
+    }
+  }
+  function save(){ localStorage.setItem('linguabook:songs',JSON.stringify(songs)); localStorage.setItem('linguabook:idx',String(idx)); }
+  function saveResumeState(){
+    try{
+      const state={ idx, ttsRate, playOriginSound, playTransSound, showOriginText, showTransText,
+        currentTime:(!isImageOnlyMode && activeMedia && activeMedia.src) ? activeMedia.currentTime : 0,
+        songId: songs[idx] ? songs[idx].id : null };
+      localStorage.setItem('linguabook:resumeState', JSON.stringify(state));
+    }catch{}
+  }
+  function restoreResumeState(){
+    try{
+      const raw=localStorage.getItem('linguabook:resumeState'); if(!raw)return;
+      const state=JSON.parse(raw);
+      if(state.songId && songs[idx] && songs[idx].id===state.songId){
+        if(typeof state.ttsRate==='number'){ ttsRate=state.ttsRate; $('#ttsSpeed').textContent=ttsRate+'x'; if(activeMedia)activeMedia.playbackRate=ttsRate; }
+        if(typeof state.playOriginSound==='boolean')playOriginSound=state.playOriginSound;
+        if(typeof state.playTransSound==='boolean')playTransSound=state.playTransSound;
+        if(typeof state.showOriginText==='boolean')showOriginText=state.showOriginText;
+        if(typeof state.showTransText==='boolean')showTransText=state.showTransText;
+        updateToggleButtonsUI(); refreshMarquee();
+        if(state.currentTime>0 && !isImageOnlyMode && activeMedia){
+          const applyTime=()=>{ activeMedia.currentTime=state.currentTime; activeMedia.removeEventListener('loadedmetadata',applyTime); };
+          if(activeMedia.readyState>=1) activeMedia.currentTime=state.currentTime; else activeMedia.addEventListener('loadedmetadata',applyTime);
+        }
+      }
+    }catch{}
+  }
+  // 切到別的 App 或畫面被隱藏時（例如手機記憶體不足把分頁背景回收），
+  // 立刻把目前播放進度、目前歌曲、聲音/文字開關、語速都存起來，
+  // 回來時即使分頁被系統重新載入，也能自動恢復到原本的狀態，而不是從頭開始。
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden) saveResumeState(); });
+  window.addEventListener('pagehide',saveResumeState);
+  // 防止「舊分頁/舊視窗覆蓋新資料」：只要偵測到別的分頁已經把 linguabook:songs 更新過，
+  // 就立刻把目前記憶體中的 songs 換成最新版本，這樣任何一個舊分頁之後再按儲存，
+  // 就不會用它手上過時的資料把剛剛新寫的歌詞蓋掉。
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'linguabook:songs' && e.newValue) {
+      try {
+        songs = JSON.parse(e.newValue);
+        idx = Math.min(Math.max(idx, 0), songs.length - 1); if (idx < 0) idx = 0;
+        render(); if (typeof renderList === 'function' && !$('#modal').classList.contains('hidden')) renderList();
+      } catch {}
+    }
+  });
+  // 分頁從背景切回前景時，也主動重新讀取一次最新資料，避免長時間閒置後資料過時。
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      try {
+        const raw = localStorage.getItem('linguabook:songs');
+        if (raw) {
+          const latest = JSON.parse(raw);
+          if (JSON.stringify(latest) !== JSON.stringify(songs)) {
+            songs = latest; idx = Math.min(Math.max(idx, 0), songs.length - 1); if (idx < 0) idx = 0;
+            render(); if (typeof renderList === 'function' && !$('#modal').classList.contains('hidden')) renderList();
+          }
+        }
+      } catch {}
+    }
+  });
+  function formatSecondsToStamp(sec){ const m=Math.floor(sec/60).toString().padStart(2,'0'), s=Math.floor(sec%60).toString().padStart(2,'0'); return`${m}:${s}`; }
+  
+  function stripExtraStamps(line){
+    let rest = line.trim(); const re = /^\[?(\d{1,2}:\d{2}(?:\.\d+)?)\]?\s*/; let m = rest.match(re); let firstStamp = null;
+    if(m) { firstStamp = m[1]; rest = rest.slice(m[0].length).trim(); }
+    rest = rest.replace(/\[?\d{1,2}:\d{2}(?:\.\d+)?\]?\s*/g, '').trim();
+    return { stamp: firstStamp, text: rest };
+  }
+  function processSmartLyrics(text){
+    const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+    return lines.map(line=>{ const {stamp, text: txt} = stripExtraStamps(line); if(stamp){ return `[${stamp}] ${txt}`; } return line; });
+  }
+  // 文字框模式隱藏秒數用的輔助函式：秒數其實是播放同步必要資料（沒有秒數的行會被完全忽略），
+  // 所以不能真的刪掉，只能「顯示時拿掉、存檔前偷偷接回去」。
+  function _stampToSec(s){ if(!s) return null; const p=s.split(':'); return parseInt(p[0],10)*60+parseInt(p[1],10); }
+  function _secToStamp(sec){ sec=Math.max(0,Math.round(sec)); const m=Math.floor(sec/60), s=sec%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+  function extractStampsAndStrip(taId){
+    const el=$(`#${taId}`); const lines=el.value.split('\n'); const stamps=[];
+    const stripped=lines.map(line=>{ const m=line.match(/^\[(\d{2}:\d{2})\]\s*(.*)$/); if(m){ stamps.push(m[1]); return m[2]; } stamps.push(null); return line; });
+    el.dataset.stamps=JSON.stringify(stamps); el.value=stripped.join('\n');
+  }
+  function reattachStamps(taId){
+    const el=$(`#${taId}`); const lines=el.value.split('\n'); let stamps=[];
+    try{ stamps=JSON.parse(el.dataset.stamps||'[]'); }catch{ stamps=[]; }
+    let running=null;
+    return lines.map((text,i)=>{
+      let sec=_stampToSec(stamps[i]); if(sec==null) sec=(running==null)?0:running+4; running=sec;
+      return text.trim() ? `[${_secToStamp(sec)}] ${text}` : null;
+    }).filter(Boolean).join('\n');
+  }
+  function getStampedValue(langNum){
+    const boxId=`lyricsEditor${langNum}`, taId=`eLyrics${langNum}`;
+    if(!$(`#${boxId}`).classList.contains('hidden')){ syncEditorToTa(boxId,taId); return $(`#${taId}`).value; }
+    if($(`#${taId}`).dataset.stamps) return reattachStamps(taId);
+    return $(`#${taId}`).value;
+  }
+  function parseTime(str){ if(!str)return 0; const p=str.trim().replace(/[\[\]]/g,'').split(':'); return p.length===2?parseFloat(p[0])*60+parseFloat(p[1]):parseFloat(str)||0; }
+  function parseOneLang(lines){ return (lines||[]).map(line=>{ const {stamp,text}=stripExtraStamps(line); return stamp?{time:parseTime(stamp),text}:null; }).filter(Boolean).sort((a,b)=>a.time-b.time); }
+  function parse(l1,l2){
+    const a1=parseOneLang(l1), a2=parseOneLang(l2); const l2HasOwnTime = a2.length>0 && a1.length>0 && a2.some(b=>!a1.find(a=>a.time===b.time));
+    if(!l2HasOwnTime){
+      const map=new Map();
+      a1.forEach(({time,text})=>{ if(!map.has(time))map.set(time,{time,t1:'',t2:''}); map.get(time).t1=text; });
+      a2.forEach(({time,text})=>{ if(!map.has(time))map.set(time,{time,t1:'',t2:''}); map.get(time).t2=text; });
+      return {merged:true, lines:Array.from(map.values()).sort((a,b)=>a.time-b.time), l1:a1, l2:a2};
+    }
+    return {merged:false, lines:[], l1:a1, l2:a2};
+  }
+  
+  function resetMediaDisplay(){ 
+    isImageOnlyMode=false; 
+    videoPlayer.classList.add('hidden'); 
+    imageViewer.classList.add('hidden'); 
+    mediaPlaceholder.classList.add('hidden'); 
+    resetImageTransform();
+    videoPlayer.src=""; audioPlayer.src=""; imageViewer.src=""; 
+    videoPlayer.pause(); audioPlayer.pause(); 
+  }
+  
+  async function render(){
+    stopImageTtsPlayback();
+    if(songs.length===0){
+      $('#topSongTitle').textContent="未載入資料"; marqueeContent.innerHTML=`<span class="text-zinc-500 text-[13px]">管理清單以新增媒體</span>`;
+      resetMediaDisplay(); mediaPlaceholder.classList.remove('hidden'); $('#placeholderText').textContent='請新增影片與歌詞'; return;
+    }
+    const s = songs[idx]; $('#topSongTitle').textContent = s.title; resetMediaDisplay();
+    if (currentAudioBlobUrl) URL.revokeObjectURL(currentAudioBlobUrl);
+    if (currentImageBlobUrl) URL.revokeObjectURL(currentImageBlobUrl);
+    
+    const audioFile = await getMediaFromDB(s.id + "_audio"), imageFile = await getMediaFromDB(s.id + "_image");
+    
+    if (audioFile) {
+      currentAudioBlobUrl = URL.createObjectURL(audioFile); const ext = s.savedAudioName.split('.').pop().toLowerCase();
+      if(['mp4','mov','webm','m4v'].includes(ext)){ 
+        videoPlayer.src = currentAudioBlobUrl; videoPlayer.classList.remove('hidden'); activeMedia = videoPlayer; 
+      } else { 
+        audioPlayer.src = currentAudioBlobUrl; activeMedia = audioPlayer; mediaPlaceholder.classList.remove('hidden'); $('#placeholderText').textContent = '🎵 ' + s.savedAudioName; 
+      }
+      if (imageFile) { 
+        currentImageBlobUrl = URL.createObjectURL(imageFile); imageViewer.src = currentImageBlobUrl; imageViewer.classList.remove('hidden'); mediaPlaceholder.classList.add('hidden'); 
+      }
+    } else if (imageFile) {
+      currentImageBlobUrl = URL.createObjectURL(imageFile); imageViewer.src = currentImageBlobUrl; imageViewer.classList.remove('hidden');
+      activeMedia = audioPlayer; isImageOnlyMode = true;
+    } else {
+      mediaPlaceholder.classList.remove('hidden'); $('#placeholderText').textContent = s.savedAudioName || s.savedImageName ? '⚠️ 請點編輯重新選取檔案即可永存' : '尚未設定媒體檔案'; activeMedia = audioPlayer;
+    }
+    parsedLyrics = parse(s.l1, s.l2); _parsedResult=parsedLyrics; _lastSubIdx=-1; updateMarquee(0); updateToggleButtonsUI(); setPlayIcon(activeMedia.paused);
+    activeMedia.playbackRate = ttsRate;
+  }
+  
+  const onTimeUpdateAction=(target)=>{
+    const cur=target.currentTime, dur=target.duration||0; if(dur>0)$('#playbackProgress').value=(cur/dur)*1000; $('#pTimeStart').textContent=formatTimeWithMs(cur); $('#pTimeEnd').textContent=formatTimeWithMs(dur);
+    const pr=_parsedResult;
+    if(pr&&!pr.merged){
+      let a1=-1; for(let i=0;i<pr.l1.length;i++){ if(cur>=pr.l1[i].time)a1=i; else break; }
+      let a2=-1; for(let i=0;i<pr.l2.length;i++){ if(cur>=pr.l2[i].time)a2=i; else break; }
+      updateMarqueeSplit(a1,a2,target.paused);
+    } else {
+      let active=-1; for(let i=0; i<parsedLyrics.lines.length; i++){ if(cur>=parsedLyrics.lines[i].time)active=i; else break; } updateMarquee(active,target.paused);
+    }
+  };
+  audioPlayer.ontimeupdate=()=>onTimeUpdateAction(audioPlayer); videoPlayer.ontimeupdate=()=>onTimeUpdateAction(videoPlayer);
+  function detectLang(text){
+    if(!text)return'en-US';
+    // 順序很重要：假名／諺文／坦米爾文是日文、韓文、坦米爾文獨有的文字，要先判斷；
+    // 漢字（CJK Ideographs）中文、日文都會用到，必須放在最後才判斷為中文，
+    // 不然只要句子裡有漢字，就會被誤判成中文而蓋掉日文發音（這就是「日文發音不正常」的原因）。
+    if(/[\u3040-\u30ff]/.test(text)) return'ja-JP';
+    if(/[\uac00-\ud7a3]/.test(text)) return'ko-KR';
+    if(/[\u0b80-\u0bff]/.test(text)) return'ta-IN';
+    if(/[\u0600-\u06ff]/.test(text)) return'ar-SA';
+    if(/[\u0900-\u097f]/.test(text)) return'hi-IN';
+    if(/[\u0400-\u04ff]/.test(text)) return'ru-RU';
+    if(/[\u4e00-\u9fff]/.test(text)) return'zh-TW';
+    return'en-US';
+  }
+  let _lastSubIdx=-1, _currentActiveIdx=-1, currentLineT1="", currentLineT2="", _parsedResult=null;
+  function updateMarqueeSplit(a1,a2,isPaused=true){
+    _currentActiveIdx=a1; const t1=a1>=0?(_parsedResult.l1[a1]?.text||''):''; const t2=a2>=0?(_parsedResult.l2[a2]?.text||''):''; currentLineT1=t1; currentLineT2=t2; const key=`${a1}_${a2}`;
+    if(key!==_lastSubIdx){ _lastSubIdx=key; let html=''; if(showOriginText&&t1)html+=`<p style="font-size:var(--lyric-size);color:var(--lyric-color)" class="font-semibold leading-snug px-2 break-words">${t1}</p>`; if(showTransText&&t2)html+=`<p class="text-[15px] text-zinc-300 mt-1 px-2 break-words leading-snug">${t2}</p>`; marqueeContent.innerHTML=html||`—`; refreshPracticeIfOpen(); }
+  }
+  function updateMarquee(activeIndex,isPaused=true){
+    if(tapSyncActive)return;
+    _currentActiveIdx=activeIndex; const lines=parsedLyrics?.lines||parsedLyrics||[]; const item=(activeIndex>=0&&lines.length>0)?lines[activeIndex]:null; currentLineT1=item?(item.t1||''):""; currentLineT2=item?(item.t2||''):"";
+    if(!item){ marqueeContent.innerHTML=`<span class="text-zinc-500 text-[13px]">無匹配歌詞時間點</span>`; _lastSubIdx=-1; return; }
+    if(activeIndex!==_lastSubIdx){ _lastSubIdx=activeIndex; let html=''; if(showOriginText&&item.t1)html+=`<p style="font-size:var(--lyric-size);color:var(--lyric-color)" class="font-semibold leading-snug px-2 break-words">${item.t1}</p>`; if(showTransText&&item.t2)html+=`<p class="text-[15px] text-zinc-300 mt-1 px-2 break-words leading-snug">${item.t2}</p>`; marqueeContent.innerHTML=html||`—`; refreshPracticeIfOpen(); }
+  }
+  function refreshMarquee(){ _lastSubIdx=-1; updateMarquee(_currentActiveIdx); }
+  function formatTimeWithMs(s){ if(isNaN(s))return"00:00"; const m=Math.floor(s/60).toString().padStart(2,'0'), sec=Math.floor(s%60).toString().padStart(2,'0'); return`${m}:${sec}`; }
+  function setPlayIcon(isPaused){ $('#pPlayIcon').innerHTML=isPaused?'<polygon points="5 3 19 12 5 21 5 3"></polygon>':'<rect x="6" y="5" width="4" height="14" fill="currentColor"/><rect x="14" y="5" width="4" height="14" fill="currentColor"/>'; }
+  let imageTtsPlaying=false, imageTtsTimer=null, imageTtsStartWallTime=0, imageTtsStartLyricTime=0, imageProgressTimer=null;
+  function stopImageTtsPlayback(){ imageTtsPlaying=false; if(imageTtsTimer)clearTimeout(imageTtsTimer); if(imageProgressTimer)clearInterval(imageProgressTimer); window.speechSynthesis.cancel(); setPlayIcon(true); }
+  function startImageTtsPlayback(fromLyricTime=0){
+    const _pl=()=>(parsedLyrics?.lines||[]); if(_pl().length===0)return; imageTtsPlaying=true; setPlayIcon(false); imageTtsStartWallTime=performance.now(); imageTtsStartLyricTime=fromLyricTime;
+    imageProgressTimer=setInterval(()=>{ if(!imageTtsPlaying)return; const elapsed=(performance.now()-imageTtsStartWallTime)/1000+imageTtsStartLyricTime; $('#pTimeStart').textContent=formatTimeWithMs(elapsed); const pl=_pl(); const total=pl.length?pl[pl.length-1].time:0; $('#pTimeEnd').textContent=formatTimeWithMs(total); if(total>0)$('#playbackProgress').value=Math.min(1000,(elapsed/total)*1000); },200);
+    let i=_pl().findIndex(l=>l.time>=fromLyricTime); if(i===-1)i=0;
+    function playLine(idx){
+      const pl=_pl(); if(!imageTtsPlaying)return; if(idx>=pl.length){ stopImageTtsPlayback(); return; } const item=pl[idx];
+      const waitMs=Math.max(0,((item.time-imageTtsStartLyricTime)-((performance.now()-imageTtsStartWallTime)/1000))*1000);
+      imageTtsTimer=setTimeout(()=>{ if(!imageTtsPlaying)return; updateMarquee(idx); speakText(playOriginSound?item.t1:"",()=>speakText(playTransSound?item.t2:"",()=>playLine(idx+1))); },waitMs);
+    } playLine(i);
+  }
+  $('#pPlay').onclick=()=>{ if(isImageOnlyMode){ if(imageTtsPlaying){stopImageTtsPlayback();}else{startImageTtsPlayback(parsedLyrics[_currentActiveIdx]?.time||0);}return; } if(!activeMedia.src)return; if(activeMedia.paused){window.speechSynthesis.cancel();activeMedia.play();}else{activeMedia.pause();} setPlayIcon(activeMedia.paused); };
+  function findVoiceForLang(lang){
+    if(!availableVoices.length) return null;
+    const norm=s=>(s||'').toLowerCase().replace(/_/g,'-');
+    const target=norm(lang), primary=target.split('-')[0];
+    return availableVoices.find(v=>norm(v.lang)===target)
+      || availableVoices.find(v=>norm(v.lang).includes(target)||target.includes(norm(v.lang)))
+      || availableVoices.find(v=>norm(v.lang).split('-')[0]===primary)
+      || null;
+  }
+  function speakText(text,onend,force,langOverride){
+    if(!text || (isImageOnlyMode && !imageTtsPlaying && !force)){if(onend)onend();return;} window.speechSynthesis.cancel();
+    setTimeout(()=>{
+      if(isImageOnlyMode && !imageTtsPlaying && !force) return; const u=new SpeechSynthesisUtterance(text); u.lang=langOverride||detectLang(text); u.rate=ttsRate;
+      const v=findVoiceForLang(u.lang); if(v)u.voice=v;
+      u.onend=onend; window.speechSynthesis.speak(u);
+    },50);
+  }
+  function speakCurrentLine(){ speakText(playOriginSound?currentLineT1:"",()=>speakText(playTransSound?currentLineT2:"",null,true),true); }
+  $('#lyricMarqueeBox').onclick=()=>{ if(tapSyncActive){ recordTapSyncPoint(); return; } if(!activeMedia.paused){activeMedia.pause();setPlayIcon(true);return;} speakCurrentLine(); };
+  let _marqueeTouch=false; $('#lyricMarqueeBox').addEventListener('touchstart',()=>{ _marqueeTouch=true; },{ passive:true });
+  $('#lyricMarqueeBox').addEventListener('touchend',(e)=>{ if(!_marqueeTouch)return; _marqueeTouch=false; if(window._marqueeWasDragged){ window._marqueeWasDragged=false; return; } e.preventDefault(); if(tapSyncActive){ recordTapSyncPoint(); return; } if(!activeMedia.paused){activeMedia.pause();setPlayIcon(true);return;} speakCurrentLine(); },{ passive:false });
+  $('#pPrev').onclick=()=>{ const pl=parsedLyrics?.lines||[]; if(pl.length===0)return; let tIdx=_currentActiveIdx-1; if(tIdx<0)tIdx=0; const tTime=pl[tIdx].time; if(isImageOnlyMode){ if(imageTtsPlaying){stopImageTtsPlayback();updateMarquee(tIdx);startImageTtsPlayback(tTime);}else{updateMarquee(tIdx);} }else{activeMedia.currentTime=tTime;} };
+  $('#pNext').onclick=()=>{ const pl=parsedLyrics?.lines||[]; if(pl.length===0)return; let tIdx=_currentActiveIdx+1; if(tIdx>=pl.length)tIdx=pl.length-1; const tTime=pl[tIdx].time; if(isImageOnlyMode){ if(imageTtsPlaying){stopImageTtsPlayback();updateMarquee(tIdx);startImageTtsPlayback(tTime);}else{updateMarquee(tIdx);} }else{activeMedia.currentTime=tTime;} };
+  $('#playbackProgress').oninput=(e)=>{ if(activeMedia.duration) activeMedia.currentTime=(e.target.value/1000)*activeMedia.duration; };
+  $('#ttsSpeed').onclick=()=>{ ttsRate=speedList[(speedList.indexOf(ttsRate)+1)%speedList.length]; $('#ttsSpeed').textContent=ttsRate+'x'; if(activeMedia)activeMedia.playbackRate=ttsRate; };
+  
+  function updateToggleButtonsUI(){
+    const onCls='w-8 h-8 grid place-items-center text-[13px] rounded-lg border border-violet-500 bg-violet-600/40 text-white shadow-sm shadow-violet-600/20';
+    const offCls='w-8 h-8 grid place-items-center text-[13px] rounded-lg border border-violet-500/20 bg-violet-600/10 text-violet-300/50 opacity-70 line-through';
+    $('#toggleOriginSound').className=playOriginSound?onCls:offCls;
+    $('#toggleTransSound').className=playTransSound?onCls:offCls;
+    $('#toggleOriginText').className=(showOriginText?onCls:offCls).replace('text-[13px]','text-[12px]');
+    $('#toggleTransText').className=(showTransText?onCls:offCls).replace('text-[13px]','text-[12px]');
+  }
+  $('#toggleOriginSound').onclick=()=>{ playOriginSound=!playOriginSound; updateToggleButtonsUI(); };
+  $('#toggleTransSound').onclick=()=>{ playTransSound=!playTransSound; updateToggleButtonsUI(); };
+  $('#toggleOriginText').onclick=()=>{ showOriginText=!showOriginText; refreshMarquee(); updateToggleButtonsUI(); };
+  $('#toggleTransText').onclick=()=>{ showTransText=!showTransText; refreshMarquee(); updateToggleButtonsUI(); };
+  const activeBtnClass="w-8 h-8 grid place-items-center text-[13px] rounded-lg bg-violet-600/40 border border-violet-500 text-white font-medium", inactiveBtnClass="w-8 h-8 grid place-items-center text-[13px] rounded-lg bg-violet-600/10 border border-violet-500/20 text-violet-300/50 font-normal";
+  
+  $('#btnManage').onclick=()=>{ $('#modal').classList.remove('hidden'); renderList(); };
+  $('#topSongTitle').onclick=()=>{ renderQuickSwitchList(); $('#quickSwitchModal').classList.remove('hidden'); };
+  $('#closeQuickSwitch').onclick=()=>$('#quickSwitchModal').classList.add('hidden');
+  $('#quickSwitchBg').onclick=()=>$('#quickSwitchModal').classList.add('hidden');
+  function renderQuickSwitchList(){
+    const box=$('#quickSwitchList'); box.innerHTML='';
+    songs.forEach((s,i)=>{
+      const row=document.createElement('button'); row.type='button';
+      row.className='w-full text-left p-3 rounded-xl border transition active:scale-[0.99] '+(i===idx?'bg-violet-600/20 border-violet-500/40 text-violet-200':'bg-white/5 border-white/10 text-white');
+      row.textContent=s.title;
+      row.onclick=()=>{ idx=i; save(); $('#quickSwitchModal').classList.add('hidden'); render(); };
+      box.appendChild(row);
+    });
+  }
+  $('#addSong').onclick=()=>openEdit(-1); $('#closeModal').onclick=()=>$('#modal').classList.add('hidden'); $('#modalBg').onclick=()=>$('#modal').classList.add('hidden'); $('#cancelEdit').onclick=()=>$('#editModal').classList.add('hidden');
+  $('#openTemplateTester').onclick=()=>{ $('#modal').classList.add('hidden'); openTemplateTester(); };
+  const FONT_COLOR_PRESETS=['#ffffff','#fde68a','#a5f3fc','#fca5a5','#bef264'];
+  function applyFontSize(px){ document.documentElement.style.setProperty('--lyric-size', px+'px'); localStorage.setItem('linguabook:lyricSize', px); $('#fontSizeValue').textContent=px+'px'; $('#fontSizeSlider').value=px; }
+  function applyFontColor(color){ document.documentElement.style.setProperty('--lyric-color', color); localStorage.setItem('linguabook:lyricColor', color); $('#fontColorInput').value=color; }
+  function renderFontColorSwatches(){
+    const box=$('#fontColorSwatches'); box.innerHTML='';
+    FONT_COLOR_PRESETS.forEach(c=>{
+      const btn=document.createElement('button'); btn.type='button';
+      btn.className='w-7 h-7 rounded-md border border-white/20 active:scale-90 transition shrink-0';
+      btn.style.backgroundColor=c; btn.onclick=()=>applyFontColor(c);
+      box.appendChild(btn);
+    });
+  }
+  $('#openFontSettings').onclick=()=>{ $('#fontSettingsPanel').classList.toggle('hidden'); renderFontColorSwatches(); };
+  $('#fontSizeSlider').oninput=(e)=>applyFontSize(e.target.value);
+  $('#fontColorInput').oninput=(e)=>applyFontColor(e.target.value);
+  $('#fontResetBtn').onclick=()=>{ applyFontSize(17); applyFontColor('#ffffff'); };
+  (function(){
+    const savedSize=localStorage.getItem('linguabook:lyricSize'); if(savedSize) applyFontSize(savedSize);
+    const savedColor=localStorage.getItem('linguabook:lyricColor'); if(savedColor) applyFontColor(savedColor);
+  })();
+  let sortValue='custom';
+  $('#sortSelectBtn').onclick=(e)=>{ e.stopPropagation(); $('#sortSelectMenu').classList.toggle('hidden'); };
+  document.querySelectorAll('.sort-opt').forEach(btn=>{
+    btn.onclick=()=>{ sortValue=btn.dataset.val; $('#sortSelectLabel').textContent=btn.textContent; $('#sortSelectMenu').classList.add('hidden'); renderList(); };
+  });
+  document.addEventListener('click',(e)=>{ if(!$('#sortSelectMenu').classList.contains('hidden') && !e.target.closest('#sortSelectBtn') && !e.target.closest('#sortSelectMenu')) $('#sortSelectMenu').classList.add('hidden'); });
+  $('#templateModalClose').onclick=()=>{ window.speechSynthesis.cancel(); $('#templateModal').classList.add('hidden'); };
+  $('#templateBackBtn').onclick=()=>{ window.speechSynthesis.cancel(); $('#templateDetail').classList.add('hidden'); $('#templateDetail').classList.remove('flex'); $('#templateList').classList.remove('hidden'); };
+  let _currentTemplate=null;
+  $('#templateCopyBtn').onclick=()=>{
+    if(!_currentTemplate)return;
+    // 深拷貝，給全新的 id，跟原本的模板完全脫鉤——模板本身不會被動到，
+    // 之後不管怎麼編輯這首「複製出來的歌」，都不會影響語言模板測試頁裡的內容。
+    const copy={ id:'song_'+Date.now(), title:_currentTemplate.title.replace(/^[^\s]+\s*/,'')+'（複製）', savedAudioName:'', savedImageName:'', l1:[..._currentTemplate.l1], l2:[..._currentTemplate.l2] };
+    songs=[copy,...songs]; idx=0; save();
+    showToast(`已存成「${copy.title}」，可以在歌曲清單裡編輯，不會影響原本的模板`);
+  };
+  function getHiddenTemplateIds(){ try{ return JSON.parse(localStorage.getItem('linguabook:hiddenTemplates')||'[]'); }catch{ return []; } }
+  function openTemplateTester(){
+    const hidden=getHiddenTemplateIds(); const templates = getLanguageTemplates().filter(t=>!hidden.includes(t.id)); const list=$('#templateList'); list.innerHTML='';
+    templates.forEach(t=>{
+      const row=document.createElement('div'); row.className='flex items-center gap-2';
+      const btn=document.createElement('button'); btn.type='button';
+      btn.className='flex-1 text-left p-3 rounded-xl bg-white/5 border border-white/10 text-[14px] text-white active:scale-[0.99] transition';
+      btn.textContent=t.title; btn.onclick=()=>showTemplateDetail(t);
+      const del=document.createElement('button'); del.type='button'; del.title='從清單移除此模板';
+      del.className='shrink-0 w-10 h-10 rounded-xl bg-red-600/20 border border-red-500/30 text-red-300 grid place-items-center active:scale-90 transition';
+      del.textContent='✕';
+      del.onclick=async(e)=>{ e.stopPropagation(); if(!(await showConfirm(`把「${t.title}」從模板列表移除？（之後還想看的話要請開發者加回來）`)))return; const ids=getHiddenTemplateIds(); ids.push(t.id); localStorage.setItem('linguabook:hiddenTemplates',JSON.stringify(ids)); openTemplateTester(); };
+      row.appendChild(btn); row.appendChild(del); list.appendChild(row);
+    });
+    $('#templateList').classList.remove('hidden'); $('#templateDetail').classList.add('hidden'); $('#templateDetail').classList.remove('flex'); $('#templateModal').classList.remove('hidden');
+  }
+  function showTemplateDetail(t){
+    _currentTemplate=t; $('#templateDetailTitle').textContent=t.title; const box=$('#templateLines'); box.innerHTML='';
+    const stripStamp=s=>(s||'').replace(/^\[\d{2}:\d{2}\]\s*/,'');
+    t.l1.forEach((line,i)=>{
+      const l1text=stripStamp(line), l2text=t.l2[i]?stripStamp(t.l2[i]):'';
+      const card=document.createElement('div'); card.className='p-3 rounded-xl bg-white/5 border border-white/10 space-y-2 select-none';
+      card.innerHTML=`<div class="speak1 flex items-center justify-between gap-2 active:opacity-60 transition cursor-pointer"><p class="text-[15px] text-white font-medium flex-1 select-none pointer-events-none">${l1text}</p><button class="shrink-0 w-9 h-9 rounded-lg bg-violet-600/30 border border-violet-500/30 grid place-items-center active:scale-90 transition pointer-events-none">🔊</button></div>${l2text?`<div class="speak2 flex items-center justify-between gap-2 active:opacity-60 transition cursor-pointer"><p class="text-[13px] text-zinc-400 flex-1 select-none pointer-events-none">${l2text}</p><button class="shrink-0 w-9 h-9 rounded-lg bg-white/10 border border-white/10 grid place-items-center active:scale-90 transition pointer-events-none">🔊</button></div>`:''}`;
+      card.querySelector('.speak1').onclick=()=>speakText(l1text,null,false,t.lang1);
+      if(l2text) card.querySelector('.speak2').onclick=()=>speakText(l2text,null,false,'zh-TW');
+      box.appendChild(card);
+    });
+    $('#templateList').classList.add('hidden'); $('#templateDetail').classList.remove('hidden'); $('#templateDetail').classList.add('flex');
+  }
+  
+  document.getElementById('btnSyncL2').onclick=()=>{
+    syncEditorToTa('lyricsEditor1','eLyrics1'); syncEditorToTa('lyricsEditor2','eLyrics2');
+    const l1Lines=$('#eLyrics1').value.split('\n').filter(l=>l.trim()); const l2Lines=$('#eLyrics2').value.split('\n').filter(l=>l.trim());
+    const stamps=l1Lines.map(l=>{ const m=l.match(/^\[?(\d{1,2}:\d{2}(?:\.\d+)?)\]?/); return m?`[${m[1]}]`:null; }).filter(Boolean);
+    if(!stamps.length){ showToast('第一語言沒有時間標記，無法同步。'); return; }
+    const synced=l2Lines.map((l,i)=>{ const stamp=stamps[i]||stamps[stamps.length-1]; const {text: cleaned}=stripExtraStamps(l); return `${stamp} ${cleaned}`; });
+    $('#eLyrics2').value=synced.join('\n'); renderEditor('lyricsEditor2','eLyrics2',$('#eLyrics2').value);
+  };
+  function enableDragSort(box){
+    let dragging=null,placeholder=null,startY=0,startIdx=0;
+    [...box.children].forEach((row,i)=>{
+      const handle=row.querySelector('.drag-handle'); if(!handle)return;
+      handle.addEventListener('touchstart',(e)=>{
+        e.stopPropagation(); dragging=row; startY=e.touches[0].clientY; startIdx=i; row.style.opacity='0.5'; row.style.transition='none';
+        placeholder=document.createElement('div'); placeholder.className='h-12 rounded-xl border-2 border-dashed border-violet-500/50'; box.insertBefore(placeholder,row.nextSibling);
+      },{passive:true});
+      handle.addEventListener('touchmove',(e)=>{
+        if(!dragging)return; e.preventDefault(); const y=e.touches[0].clientY; const items=[...box.children].filter(c=>c!==dragging&&c!==placeholder); let after=null;
+        for(const item of items){ const r=item.getBoundingClientRect(); if(y>r.top+r.height/2)after=item; else break; }
+        if(after) box.insertBefore(placeholder,after.nextSibling); else if(items.length) box.insertBefore(placeholder,items[0]);
+      },{passive:false});
+      handle.addEventListener('touchend',()=>{
+        if(!dragging)return; dragging.style.opacity=''; dragging.style.transition=''; box.insertBefore(dragging,placeholder); placeholder.remove();
+        const newOrder=[...box.children].filter(c=>c.dataset.origIdx!==undefined).map(c=>songs[parseInt(c.dataset.origIdx)]).filter(Boolean);
+        songs.length=0; newOrder.forEach(s=>songs.push(s)); idx=0; save(); renderList(); dragging=null;
+      });
+    });
+  }
+  function renderList(){
+    const box=$('#songList'); box.innerHTML=''; const sortVal=sortValue||'custom'; let displaySongs=[...songs.map((s,i)=>({...s,_origIdx:i}))];
+    if(sortVal==='az') displaySongs.sort((a,b)=>a.title.localeCompare(b.title,'zh'));
+    else if(sortVal==='za') displaySongs.sort((a,b)=>b.title.localeCompare(a.title,'zh'));
+    else if(sortVal==='newest') displaySongs.sort((a,b)=>(b.id||'').localeCompare(b.id||''));
+    else if(sortVal==='oldest') displaySongs.sort((a,b)=>(a.id||'').localeCompare(a.id||''));
+    displaySongs.forEach((s,di)=>{
+      const i=s._origIdx; const row=document.createElement('div'); row.className='flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10'; row.dataset.origIdx=i;
+      const handleHtml=sortVal==='custom'?`<span class="drag-handle text-zinc-600 text-[18px] cursor-grab mr-2 touch-none select-none">⠿</span>`:'';
+      row.innerHTML=`${handleHtml}<div class="min-w-0 flex-1 cursor-pointer"><p class="text-[14px] font-medium text-white truncate">${s.title}</p></div><div class="flex gap-1 shrink-0 ml-2"><button class="edit px-2 py-1 rounded bg-white/10 text-[12px]">編輯</button><button class="del px-2 py-1 rounded bg-red-500/20 text-red-300 text-[12px]">刪除</button></div>`;
+      row.querySelector('.cursor-pointer').onclick=()=>{ idx=i; $('#modal').classList.add('hidden'); render(); };
+      row.querySelector('.edit').onclick=()=>openEdit(i);
+      row.querySelector('.del').onclick=()=>{ deleteMediaFromDB(songs[i].id+"_audio"); deleteMediaFromDB(songs[i].id+"_image"); songs.splice(i,1); idx=0; save(); render(); renderList(); };
+      box.appendChild(row);
+    });
+    if(sortVal==='custom') enableDragSort(box);
+  }
+
+  window.switchEditorMode = function(langNum, mode) {
+    const boxId = `lyricsEditor${langNum}`, taId = `eLyrics${langNum}`; const btnText = $(`#btnModeText${langNum}`), btnBlock = $(`#btnModeBlock${langNum}`);
+    const activeStyle = "whitespace-nowrap px-1.5 py-0.5 text-[10px] rounded bg-violet-600/30 text-violet-200 border border-violet-500/30 font-medium";
+    const inactiveStyle = "whitespace-nowrap px-1.5 py-0.5 text-[10px] rounded text-zinc-400 font-normal";
+    if (mode === 'text') {
+      syncEditorToTa(boxId, taId); extractStampsAndStrip(taId); $(`#${boxId}`).classList.add('hidden'); $(`#${taId}`).classList.remove('hidden'); btnText.className = activeStyle; btnBlock.className = inactiveStyle;
+    } else {
+      let rawVal = $(`#${taId}`).value;
+      if ($(`#${taId}`).dataset.stamps) { rawVal = reattachStamps(taId); delete $(`#${taId}`).dataset.stamps; }
+      const optimizedText = processSmartLyrics(rawVal); $(`#${taId}`).value = optimizedText.join('\n'); renderEditor(boxId, taId, $(`#${taId}`).value); $(`#${boxId}`).classList.remove('hidden'); $(`#${taId}`).classList.add('hidden'); btnText.className = inactiveStyle; btnBlock.className = activeStyle;
+    }
+  }
+
+  function updateFileHighlight(elId, fallbackText, currentName) {
+    const el = $(elId); if (!el) return;
+    if (currentName && currentName !== fallbackText) { el.textContent = currentName; el.classList.remove('text-zinc-400'); el.classList.add('text-amber-400', 'font-semibold'); }
+    else { el.textContent = fallbackText; el.classList.remove('text-amber-400', 'font-semibold'); el.classList.add('text-zinc-400'); }
+  }
+
+  function maximizeEditor(langNum) {
+    [1, 2].forEach(n => {
+      const box = $('#lyricsEditor' + n), ta = $('#eLyrics' + n);
+      if (n === langNum) { box.classList.add('editor-max'); ta.classList.add('editor-max'); }
+      else { box.classList.remove('editor-max'); ta.classList.remove('editor-max'); }
+    });
+  }
+  function resetEditorSize() { [1, 2].forEach(n => { $('#lyricsEditor' + n).classList.remove('editor-max'); $('#eLyrics' + n).classList.remove('editor-max'); }); }
+  // 點選第一 / 第二語言任一行進行編輯時，自動放大該語言的編輯欄，並捲動到可見範圍，
+  // 避免手機鍵盤彈出時把正在編輯的內容遮住。
+  $('#editModal').addEventListener('focusin', (e) => {
+    const target = e.target.closest('#langBlock1') ? 1 : (e.target.closest('#langBlock2') ? 2 : 0);
+    if (target) { maximizeEditor(target); setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150); }
+  });
+
+  function toLrcContent(title, lines){
+    const body=lines.map(line=>{
+      const m=(line||'').match(/^\[(\d{2}):(\d{2})\]\s*(.*)$/);
+      if(!m)return null;
+      return `[${m[1]}:${m[2]}.00]${m[3]}`;
+    }).filter(Boolean).join('\n');
+    return `[ti:${title}]\n[by:我的歌詞本]\n${body}\n`;
+  }
+  function downloadLrc(title, content, suffix){
+    const blob=new Blob([content],{type:'text/plain'});
+    const url=URL.createObjectURL(blob);
+    const safeName=(title||'lyrics').replace(/[\\/:*?"<>|]/g,'_');
+    const a=document.createElement('a'); a.href=url; a.download=`${safeName}${suffix}.lrc`; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  $('#exportLrc1').onclick=()=>{
+    const l1=processSmartLyrics(getStampedValue(1));
+    if(!l1||!l1.length){ showToast('第一欄（原文）目前沒有歌詞可以匯出'); return; }
+    downloadLrc($('#eTitle').value||'未命名', toLrcContent($('#eTitle').value||'未命名', l1), '');
+  };
+  $('#exportLrc2').onclick=()=>{
+    const l2=processSmartLyrics(getStampedValue(2));
+    if(!l2||!l2.length){ showToast('第二欄（翻譯）目前沒有歌詞可以匯出'); return; }
+    downloadLrc($('#eTitle').value||'未命名', toLrcContent($('#eTitle').value||'未命名', l2), '_翻譯');
+  };
+  $('#exportSongBtn').onclick=()=>{
+    const title=$('#eTitle').value||'未命名影音';
+    const data={ _app:'linguabook_song', _version:1, exportedAt:new Date().toISOString(),
+      title, l1:processSmartLyrics(getStampedValue(1)), l2:processSmartLyrics(getStampedValue(2)) };
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const safeName=title.replace(/[\\/:*?"<>|]/g,'_');
+    const a=document.createElement('a'); a.href=url; a.download=`${safeName}.json`; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    showToast(`已匯出「${safeName}.json」（僅此曲的歌詞資料，不含音檔/圖片），存在手機下載資料夾。`);
+  };
+  $('#importSongBtn').onclick=()=>$('#importSongFile').click();
+  $('#importSongFile').onchange=(e)=>{
+    const file=e.target.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=async()=>{
+      try{
+        const data=JSON.parse(reader.result);
+        if(!data || data._app!=='linguabook_song' || !Array.isArray(data.l1)) { showToast('這不是有效的單曲備份檔案，匯入失敗。'); return; }
+        if(!(await showConfirm(`要把「${file.name}」的內容載入到目前的編輯欄位嗎？\n標題：${data.title||'(無)'}\n原文 ${data.l1.length} 行、翻譯 ${(data.l2||[]).length} 行\n\n載入後記得按「確認儲存」才會真的存起來，取消/退出的話不會套用。`))) return;
+        $('#eTitle').value=data.title||'';
+        $('#eLyrics1').value=(data.l1||[]).join('\n'); switchEditorMode(1,'block');
+        $('#eLyrics2').value=(data.l2||[]).join('\n'); switchEditorMode(2,'block');
+        showToast('已載入到編輯欄位，記得按「確認儲存」才會真的存起來。');
+      }catch(err){ showToast('讀取備份檔案失敗，請確認檔案格式正確。'); }
+      finally{ e.target.value=''; }
+    };
+    reader.readAsText(file);
+  };
+  function openEdit(i){
+    window.editingIndex=i; tempAudioFile=null; tempImageFile=null; resetEditorSize(); switchEditorMode(1, 'block'); switchEditorMode(2, 'block');
+    if(i===-1){
+      $('#eTitle').value=''; $('#eLyrics1').value=''; $('#eLyrics2').value=''; updateFileHighlight('#audioFileName', "尚未選取影音檔", ""); updateFileHighlight('#imageFileName', "尚未選取圖片檔", "");
+    } else {
+      const s=songs[i]; $('#eTitle').value=s.title; $('#eLyrics1').value=(s.l1||[]).join('\n'); $('#eLyrics2').value=(s.l2||[]).join('\n'); updateFileHighlight('#audioFileName', "尚未選取影音檔", s.savedAudioName); updateFileHighlight('#imageFileName', "尚未選取圖片檔", s.savedImageName);
+    }
+    renderEditor('lyricsEditor1','eLyrics1',$('#eLyrics1').value); renderEditor('lyricsEditor2','eLyrics2',$('#eLyrics2').value); $('#modal').classList.add('hidden'); $('#editModal').classList.remove('hidden');
+  }
+  $('#btnSelectAudio').onclick=()=>$('#eAudioFile').click(); $('#eAudioFile').onchange=(e)=>{ const f=e.target.files[0]; if(!f)return; tempAudioFile=f; updateFileHighlight('#audioFileName', "尚未選取影音檔", f.name); };
+  $('#btnSelectImage').onclick=()=>$('#eImageFile').click(); $('#eImageFile').onchange=(e)=>{ const f=e.target.files[0]; if(!f)return; tempImageFile=f; updateFileHighlight('#imageFileName', "尚未選取圖片檔", f.name); };
+  
+  $('#saveEdit').onclick=async()=>{
+    const isEditMode = window.editingIndex !== -1; let s = isEditMode ? songs[window.editingIndex] : { id: "song_" + Date.now() };
+    s.title = $('#eTitle').value.trim() || '未命名影音'; if(tempAudioFile) s.savedAudioName = tempAudioFile.name; if(tempImageFile) s.savedImageName = tempImageFile.name;
+    s.l1 = processSmartLyrics(getStampedValue(1)); s.l2 = processSmartLyrics(getStampedValue(2));
+    if(tempAudioFile) await saveMediaToDB(s.id + "_audio", tempAudioFile); if(tempImageFile) await saveMediaToDB(s.id + "_image", tempImageFile);
+    if(!isEditMode) { songs.unshift(s); idx = 0; window.editingIndex = 0; }
+    tempAudioFile = null; tempImageFile = null;
+    save(); await render(); if (typeof renderList === 'function') renderList();
+    // 儲存後不關閉視窗，讓使用者可以繼續編輯；只給一個短暫的「已儲存」提示
+    const btn = $('#saveEdit'); if (!btn.dataset.origText) btn.dataset.origText = btn.textContent;
+    btn.textContent = '已儲存 ✓'; btn.classList.remove('bg-violet-600'); btn.classList.add('bg-emerald-600');
+    clearTimeout(window._saveEditToastTimer);
+    window._saveEditToastTimer = setTimeout(() => { btn.textContent = btn.dataset.origText; btn.classList.remove('bg-emerald-600'); btn.classList.add('bg-violet-600'); }, 1200);
+  };
+  let tapSyncLines=[], tapSyncIdx=0, tapSyncActive=false;
+  $('#btnTapSync').onclick=()=>{
+    if(!$('#lyricsEditor1').classList.contains('hidden')) { syncEditorToTa('lyricsEditor1','eLyrics1'); }
+    const raw1=$('#eLyrics1').value.trim(); if(!raw1 || (!tempAudioFile && !currentAudioBlobUrl)){ showToast('請先輸入原文歌詞並選取檔案'); return; }
+    tapSyncLines=raw1.split('\n').filter(l=>l.trim()).map(l=>({text:l.replace(/^\[?\d{1,2}:\d{2}.*?\]?\s*/,''),time:null})); tapSyncIdx=0; tapSyncActive=true;
+    // 打點時直接讓主畫面播放器載入這首歌的音檔/圖片，整個螢幕維持正常播放，
+    // 播放/暫停/語速等主控制列都還是原本那一套，不用另外做一份。
+    if(tempAudioFile){ if(currentAudioBlobUrl) URL.revokeObjectURL(currentAudioBlobUrl); currentAudioBlobUrl=URL.createObjectURL(tempAudioFile); }
+    if(tempImageFile){ if(currentImageBlobUrl) URL.revokeObjectURL(currentImageBlobUrl); currentImageBlobUrl=URL.createObjectURL(tempImageFile); }
+    videoPlayer.classList.add('hidden'); videoPlayer.src='';
+    isImageOnlyMode=false; activeMedia=audioPlayer; audioPlayer.src=currentAudioBlobUrl;
+    mediaPlaceholder.classList.add('hidden');
+    if(currentImageBlobUrl){ imageViewer.src=currentImageBlobUrl; imageViewer.classList.remove('hidden'); }
+    audioPlayer.currentTime=0; audioPlayer.play(); setPlayIcon(false);
+    $('#editModal').classList.add('hidden');
+    $('#tapSyncBanner').classList.remove('hidden');
+    updateTapSyncBanner();
+  };
+  function updateTapSyncBanner(){
+    const cur=tapSyncLines[tapSyncIdx];
+    $('#tapSyncCurrentText').textContent = cur ? cur.text : '✅ 全部完成，可以按「完成套用」';
+    $('#tapSyncProgress').textContent = `${Math.min(tapSyncIdx+1,tapSyncLines.length)}/${tapSyncLines.length} · 點擊下方字幕記錄時間`;
+    marqueeContent.innerHTML = cur ? `<p style="font-size:var(--lyric-size);color:var(--lyric-color)" class="font-semibold leading-snug px-2 break-words">${cur.text}</p>` : `<span class="text-emerald-400 text-[14px] font-semibold">✅ 全部完成，可以按「完成套用」</span>`;
+  }
+  function recordTapSyncPoint(){
+    if(!tapSyncActive || tapSyncIdx>=tapSyncLines.length) return;
+    tapSyncLines[tapSyncIdx].time = activeMedia.currentTime;
+    if(tapSyncIdx < tapSyncLines.length-1) tapSyncIdx++;
+    updateTapSyncBanner();
+  }
+  $('#tapSyncDone').onclick=()=>{ $('#eLyrics1').value=tapSyncLines.map(item=>`[${formatSecondsToStamp(item.time||0)}] ${item.text}`).join('\n'); endTapSync(); renderEditor('lyricsEditor1','eLyrics1',$('#eLyrics1').value); $('#editModal').classList.remove('hidden'); };
+  $('#tapSyncCancel').onclick=()=>{ endTapSync(); $('#editModal').classList.remove('hidden'); };
+  function endTapSync(){ tapSyncActive=false; $('#tapSyncBanner').classList.add('hidden'); if(activeMedia){ activeMedia.pause(); setPlayIcon(true); } }
+  
+  // ===== 直接在畫面上用手勢縮放/移動（取代原本的滑桿）=====
+  let _imgScale=1, _imgX=0, _imgY=0, _pinchStartDist=0, _pinchStartScale=1, _panStart=null, _panStartXY=null;
+  function resetImageTransform(){ _imgScale=1; _imgX=0; _imgY=0; applyImageTransform(); }
+  function applyImageTransform(){ const t=`translate(${_imgX}px,${_imgY}px) scale(${_imgScale})`; imageViewer.style.transform=t; videoPlayer.style.transform=t; }
+  function touchDist(t0,t1){ return Math.hypot(t1.clientX-t0.clientX, t1.clientY-t0.clientY); }
+  function mediaVisible(){ return !imageViewer.classList.contains('hidden') || !videoPlayer.classList.contains('hidden'); }
+  (function(){
+    const el=$('#mediaContainer');
+    el.addEventListener('touchstart',(e)=>{
+      if(!mediaVisible())return;
+      if(e.touches.length===2){ _pinchStartDist=touchDist(e.touches[0],e.touches[1]); _pinchStartScale=_imgScale; _panStart=null; }
+      else if(e.touches.length===1 && _imgScale!==1){ _panStart={x:e.touches[0].clientX,y:e.touches[0].clientY}; _panStartXY={x:_imgX,y:_imgY}; }
+    },{passive:true});
+    el.addEventListener('touchmove',(e)=>{
+      if(!mediaVisible())return;
+      if(e.touches.length===2 && _pinchStartDist>0){
+        e.preventDefault();
+        const dist=touchDist(e.touches[0],e.touches[1]);
+        _imgScale=Math.min(4,Math.max(0.3,_pinchStartScale*(dist/_pinchStartDist)));
+        applyImageTransform();
+      } else if(e.touches.length===1 && _panStart){
+        e.preventDefault();
+        _imgX=_panStartXY.x+(e.touches[0].clientX-_panStart.x);
+        _imgY=_panStartXY.y+(e.touches[0].clientY-_panStart.y);
+        applyImageTransform();
+      }
+    },{passive:false});
+    el.addEventListener('touchend',(e)=>{ if(e.touches.length<2)_pinchStartDist=0; if(e.touches.length<1)_panStart=null; if(_imgScale===1){ _imgX=0;_imgY=0; applyImageTransform(); } });
+    el.addEventListener('dblclick',()=>{ if(mediaVisible()) resetImageTransform(); });
+  })();
+  $('#btnHideAddrBar').onclick = () => {
+    const docEl = document.documentElement;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      if (docEl.requestFullscreen) {
+        docEl.requestFullscreen().catch(() => scrollFallback());
+      } else if (docEl.webkitRequestFullscreen) {
+        docEl.webkitRequestFullscreen();
+      } else {
+        scrollFallback();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
+    }
+
+    function scrollFallback() {
+      document.body.style.minHeight = "calc(100vh + 100px)";
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 1);
+        document.body.style.minHeight = "100dvh";
+      }, 300);
+    }
+  };
+  function syncFullscreenFrame(){ document.body.classList.toggle('is-fullscreen', !!(document.fullscreenElement || document.webkitFullscreenElement)); }
+  document.addEventListener('fullscreenchange', syncFullscreenFrame);
+  document.addEventListener('webkitfullscreenchange', syncFullscreenFrame);
+  
+  let _numpadDigits=[], _numpadTarget=null;
+  function numpadToDisplay(digits){ const d=[...digits]; while(d.length<4)d.unshift('0'); return `${d[0]}${d[1]}:${d[2]}${d[3]}`; }
+  function openNumpad(currentStamp, row, boxId, taId){
+    _numpadTarget={row,boxId,taId}; const clean=(currentStamp||'00:00').replace(':',''); _numpadDigits=[...clean].filter(c=>/\d/.test(c)).slice(0,4); while(_numpadDigits.length<4)_numpadDigits.unshift('0');
+    document.getElementById('numpadDisplay').textContent=numpadToDisplay(_numpadDigits); document.getElementById('numpadModal').classList.remove('hidden');
+  }
+  document.querySelectorAll('.numpad-key').forEach(btn=>{ btn.onclick=()=>{ if(_numpadDigits.length>=4)_numpadDigits.shift(); _numpadDigits.push(btn.dataset.v); document.getElementById('numpadDisplay').textContent=numpadToDisplay(_numpadDigits); }; });
+  document.getElementById('numpadBack').onclick=()=>{ if(_numpadDigits.length)_numpadDigits.pop(); document.getElementById('numpadDisplay').textContent=numpadToDisplay(_numpadDigits); };
+  document.getElementById('numpadClear').onclick=()=>{ _numpadDigits=['0','0','0','0']; document.getElementById('numpadDisplay').textContent='00:00'; };
+  document.getElementById('numpadCancel').onclick=()=>{ document.getElementById('numpadModal').classList.add('hidden'); _numpadTarget=null; };
+  document.getElementById('numpadConfirm').onclick=()=>{
+    if(!_numpadTarget)return; const stamp=numpadToDisplay(_numpadDigits); const tsBtn=_numpadTarget.row.querySelector('.ts-btn');
+    if(tsBtn){ tsBtn.textContent=`[${stamp}]`; tsBtn.dataset.stamp=stamp; } document.getElementById('numpadModal').classList.add('hidden'); syncEditorToTa(_numpadTarget.boxId,_numpadTarget.taId); _numpadTarget=null;
+  };
+
+  function makeLyricRow(stamp, text, boxId, taId) {
+    const row = document.createElement('div'); row.className = 'lyric-row flex items-center gap-1.5 py-1.5 border-b border-white/5 last:border-0 w-full';
+    const tsBtn = document.createElement('button'); tsBtn.type = 'button'; tsBtn.className = 'ts-btn shrink-0 font-mono text-[11px] rounded px-1 py-0.5 transition active:scale-90 ' + (stamp ? 'text-violet-300 bg-violet-900/20 border border-violet-700/40' : 'text-zinc-700 bg-white/3 border border-white/8');
+    tsBtn.textContent = stamp ? `[${stamp}]` : '[--:--]'; tsBtn.dataset.stamp = stamp || ''; tsBtn.onclick = () => openNumpad(tsBtn.dataset.stamp, row, boxId, taId);
+    const td = document.createElement('div'); td.contentEditable = true; td.className = 'flex-1 text-[13px] text-white outline-none min-h-[18px] break-words leading-snug px-1'; td.textContent = text; td.oninput = () => syncEditorToTa(boxId, taId);
+    const del = document.createElement('button'); del.type = 'button'; del.textContent = '✕'; del.className = 'shrink-0 text-zinc-500 hover:text-red-400 text-[14px] px-1.5 font-bold transition active:scale-90'; del.onclick = () => { row.remove(); syncEditorToTa(boxId, taId); };
+    row.appendChild(tsBtn); row.appendChild(td); row.appendChild(del); return row;
+  }
+  function renderEditor(boxId, taId, linesText) {
+    const box = document.getElementById(boxId); if (!box) return; box.innerHTML = '';
+    (linesText||'').split('\n').map(l=>l.trim()).filter(Boolean).forEach(line=>{ const {stamp,text}=stripExtraStamps(line); box.appendChild(makeLyricRow(stamp, text||line, boxId, taId)); });
+  }
+  function syncEditorToTa(boxId, taId) {
+    const box=document.getElementById(boxId), ta=document.getElementById(taId); if(!box||!ta)return;
+    ta.value=[...box.querySelectorAll('.lyric-row')].map(row=>{ const tsBtn=row.querySelector('.ts-btn'); const td=row.querySelector('[contenteditable]'); const stamp=tsBtn?tsBtn.dataset.stamp:''; const text=td?td.textContent.trim():''; return stamp?`[${stamp}] ${text}`:text; }).filter(Boolean).join('\n');
+  }
+  
+  document.getElementById('btnAddRowL1').onclick=()=>{ document.getElementById('lyricsEditor1').appendChild(makeLyricRow('','','lyricsEditor1','eLyrics1')); syncEditorToTa('lyricsEditor1','eLyrics1'); };
+  document.getElementById('btnAddRowL2').onclick=()=>{ document.getElementById('lyricsEditor2').appendChild(makeLyricRow('','','lyricsEditor2','eLyrics2')); syncEditorToTa('lyricsEditor2','eLyrics2'); };
+  
+  let practicePanelOpen=false, practiceUseOrigin=false, lastSaidText='', recognition=null, micActive=false;
+  function isCJK(text){ return /[\u4e00-\u9fff\u3040-\u30ff]/.test(text||''); }
+  function isCJKChar(ch){ return /[\u4e00-\u9fff\u3040-\u30ff]/.test(ch||''); }
+  function hasLatinWord(text){ return /[A-Za-z]/.test(text||''); }
+  // 混合語言斷詞：中日文（漢字/假名）逐字拆開比對；其餘任何文字（英文、坦米爾文、韓文...）
+  // 以空白分隔的完整單字為單位比對。用「排除法」而不是只認 A-Za-z，這樣坦米爾文、
+  // 韓文等文字才不會被斷詞邏輯直接忽略、憑空消失。
+  function tokenize(text){ if(!text)return[]; return text.match(/[\u4e00-\u9fff\u3040-\u30ff]|[^\s\u4e00-\u9fff\u3040-\u30ff]+/g) || []; }
+  function normWord(w){ return (w||'').toLowerCase().replace(/[.,!?;:"'()「」、，。！？]/g,'').trim(); }
+  function levenshtein(a,b){
+    const m=a.length,n=b.length; if(m===0)return n; if(n===0)return m; const dp=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]); for(let j=0;j<=n;j++)dp[0][j]=j;
+    for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){ dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j-1],dp[i-1][j],dp[i][j-1]); } return dp[m][n];
+  }
+  function wordSimilarity(a,b){ a=normWord(a); b=normWord(b); if(!a||!b)return 0; if(a===b)return 1; return 1-levenshtein(a,b)/Math.max(a.length,b.length); }
+  function getPracticeTargetText(){ return practiceUseOrigin?currentLineT1:currentLineT2; }
+  function updatePracticeLangBtn(){
+    $('#btnPracticeLang').textContent = practiceUseOrigin ? '1' : '2';
+  }
+  function renameLinguabookIdxKey() {
+    const oldKey = localStorage.getItem('linguabook:idx');
+    if (oldKey && isNaN(parseInt(oldKey))) localStorage.setItem('linguabook:idx', '0');
+  }
+  function renderPracticeLine(){
+    const target=getPracticeTargetText(); const box=$('#practiceLineDisplay'); if(!target){ box.innerHTML='<span class="text-zinc-600 text-[13px]">此句沒有可練習的文字</span>'; updateScoreDisplay(0,0); return; }
+    const tokens=tokenize(target); box.innerHTML=tokens.map((t,i)=>`<span id="pw-${i}" class="text-zinc-500 transition-colors duration-200${isCJKChar(t)?'':' mx-0.5'}">${t}</span>`).join(''); updateScoreDisplay(0,tokens.length);
+  }
+  function updateScoreDisplay(matched,total){ const pct=total?Math.round(matched/total*100):0; $('#practiceScore').textContent=`${matched}/${total}（${pct}%）`; const bar=$('#practiceProgressBar'); if(bar)bar.style.width=pct+'%'; }
+  function highlightAgainst(saidText){
+    lastSaidText=saidText||''; const target=getPracticeTargetText(); if(!target)return; const threshold=parseInt($('#toleranceSlider').value,10)/100; const tokens=tokenize(target); const saidWords=lastSaidText.toLowerCase().split(/\s+/).filter(Boolean); let matched=0;
+    tokens.forEach((t,i)=>{
+      let ok;
+      if (isCJKChar(t)) { ok = lastSaidText.includes(t); }
+      else { let best=0; saidWords.forEach(sw=>{ const sim=wordSimilarity(t,sw); if(sim>best)best=sim; }); ok = best>=threshold; }
+      if(ok)matched++; const span=document.getElementById('pw-'+i); if(span) span.className=`transition-colors duration-200${isCJKChar(t)?'':' mx-0.5'} ${ok?'text-emerald-400 font-bold':'text-zinc-500'}`;
+    });
+    updateScoreDisplay(matched,tokens.length);
+  }
+  function refreshPracticeIfOpen(){ if(!practicePanelOpen)return; updatePracticeLangBtn(); renderPracticeLine(); $('#practiceInput').value=''; lastSaidText=''; }
+  
+  function setPracticeOpen(open){
+    practicePanelOpen = open; $('#practicePanel').classList.toggle('hidden', !open); $('#togglePracticeBtn').className = open ? activeBtnClass : inactiveBtnClass;
+    if (open) { if(_mediaFullscreenOn) disableMediaFullscreen(); updatePracticeLangBtn(); renderPracticeLine(); }
+    else if (micActive && recognition) { recognition.stop(); }
+  }
+  $('#togglePracticeBtn').onclick = () => setPracticeOpen(!practicePanelOpen);
+  $('#btnClosePractice').onclick = () => setPracticeOpen(false);
+  
+  $('#btnPracticeLang').onclick=()=>{ practiceUseOrigin=!practiceUseOrigin; updatePracticeLangBtn(); renderPracticeLine(); $('#practiceInput').value=''; lastSaidText=''; };
+  $('#toleranceSlider').oninput=(e)=>{ $('#toleranceValue').textContent=e.target.value+'%'; if(lastSaidText)highlightAgainst(lastSaidText); };
+  $('#practiceInput').oninput=(e)=>highlightAgainst(e.target.value);
+  $('#practiceInput').addEventListener('focus',()=>{ setTimeout(()=>$('#practiceInput').scrollIntoView({behavior:'smooth',block:'center'}),200); });
+  function ensureRecognition(){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR)return null; if(!recognition){ recognition=new SR(); recognition.continuous=false; recognition.interimResults=true; recognition.maxAlternatives=1; } return recognition;
+  }
+  $('#btnPracticeMic').onclick=()=>{
+    const sr=ensureRecognition(); if(!sr){ $('#practiceHint').textContent='⚠️ 此瀏覽器不支援語音辨識，請改用打字輸入框測試，或改用 Chrome 開氣。'; return; }
+    if(micActive){ sr.stop(); return; } const target=getPracticeTargetText(); if(!target){ $('#practiceHint').textContent='此句沒有可練習的文字'; return; }
+    sr.lang=detectLang(target);
+    sr.onstart=()=>{ micActive=true; $('#btnPracticeMic').classList.add('animate-pulse'); $('#practiceInput').value=''; $('#practiceHint').textContent='🎙️ 聆聽中，請開始唸出句子...'; };
+    sr.onresult=(e)=>{ let text=''; for(let i=0;i<e.results.length;i++)text+=e.results[i][0].transcript; $('#practiceInput').value=text; highlightAgainst(text); };
+    sr.onerror=(e)=>{ micActive=false; $('#btnPracticeMic').classList.remove('animate-pulse'); $('#practiceHint').textContent=`⚠️ 辨識發生問題（${e.error}），可改用打字輸入框測試。`; };
+    sr.onend=()=>{ micActive=false; $('#btnPracticeMic').classList.remove('animate-pulse'); $('#practiceHint').textContent='點擊紅色麥克風開始錄音辨識；若麥克風無法使用，也可直接在輸入框打字測試比對效果。'; };
+    try{ sr.start(); }catch(err){ $('#practiceHint').textContent='⚠️ 無法啟動麥克風，請改用打字輸入框測試。'; }
+  };
+
+  // ===== 側錄功能：只錄「影片/圖片顯示區」+「字幕顯示」，其餘畫面（按鈕、網址列等）都不會被錄進去 =====
+  function wrapCanvasText(ctx, text, cx, y, maxWidth, lineHeight, maxLines){
+    if(!text) return y;
+    const chars=[...text]; let line=''; const lines=[];
+    for(const ch of chars){ const test=line+ch; if(ctx.measureText(test).width>maxWidth && line){ lines.push(line); line=ch; } else line=test; }
+    if(line) lines.push(line);
+    const capped=lines.slice(0,maxLines||3);
+    capped.forEach((l,i)=>ctx.fillText(l, cx, y+i*lineHeight));
+    return y+capped.length*lineHeight;
+  }
+  function drawSideRecordFrame(){
+    const canvas=sideRecordCanvas, ctx=sideRecordCtx; if(!canvas||!ctx)return;
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    const subH=Math.round(canvas.height*0.26); const mediaH=canvas.height-subH;
+    let srcEl=null;
+    if(!videoPlayer.classList.contains('hidden')) srcEl=videoPlayer;
+    else if(!imageViewer.classList.contains('hidden')) srcEl=imageViewer;
+    if(srcEl){
+      const iw=srcEl.videoWidth||srcEl.naturalWidth||0, ih=srcEl.videoHeight||srcEl.naturalHeight||0;
+      const ready = srcEl.tagName==='VIDEO' ? srcEl.readyState>=2 : srcEl.complete;
+      if(ready && iw && ih){
+        const scale=Math.max(canvas.width/iw, mediaH/ih); const dw=iw*scale, dh=ih*scale;
+        const dx=(canvas.width-dw)/2, dy=(mediaH-dh)/2;
+        ctx.drawImage(srcEl, dx, dy, dw, dh);
+      }
+    }
+    ctx.fillStyle='rgba(9,9,13,0.97)'; ctx.fillRect(0, mediaH, canvas.width, subH);
+    ctx.textAlign='center';
+    const t1=showOriginText?currentLineT1:'', t2=showTransText?currentLineT2:'';
+    const lyricColor=localStorage.getItem('linguabook:lyricColor')||'#ffffff';
+    // 字級大小要跟畫面上「原文字型設定」實際看到的大小成比例，不能用畫布寬度隨便算一個固定比例，
+    // 不然輸出影片的文字大小/排版就會跟畫面上看到的對不起來。
+    const lyricSizePx = parseFloat(localStorage.getItem('linguabook:lyricSize')) || 17;
+    const viewportW = document.documentElement.clientWidth || 380;
+    const scaleRatio = canvas.width / viewportW;
+    const t1FontPx = Math.max(24, Math.round(lyricSizePx * scaleRatio));
+    const t2FontPx = Math.max(20, Math.round(15 * scaleRatio));
+    let y=mediaH+Math.round(subH*0.24);
+    ctx.fillStyle=lyricColor; ctx.font=`bold ${t1FontPx}px sans-serif`;
+    y=wrapCanvasText(ctx, t1, canvas.width/2, y, canvas.width*0.92, t1FontPx*1.25, 2);
+    ctx.fillStyle='#a1a1aa'; ctx.font=`${t2FontPx}px sans-serif`;
+    wrapCanvasText(ctx, t2, canvas.width/2, y+canvas.width*0.02, canvas.width*0.92, t2FontPx*1.25, 2);
+    sideRecordRAF=requestAnimationFrame(drawSideRecordFrame);
+  }
+  let sideRecordAudioCtx=null; const sideRecordSourceCache=new WeakMap();
+  function getSideRecordAudioTap(mediaEl){
+    if(!sideRecordAudioCtx) sideRecordAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(sideRecordAudioCtx.state==='suspended') sideRecordAudioCtx.resume();
+    if(sideRecordSourceCache.has(mediaEl)) return sideRecordSourceCache.get(mediaEl);
+    const srcNode=sideRecordAudioCtx.createMediaElementSource(mediaEl);
+    const destNode=sideRecordAudioCtx.createMediaStreamDestination();
+    srcNode.connect(destNode); srcNode.connect(sideRecordAudioCtx.destination);
+    sideRecordSourceCache.set(mediaEl, destNode); return destNode;
+  }
+  async function startSideRecord(){
+    sideRecordCanvas=document.createElement('canvas'); sideRecordCanvas.width=720; sideRecordCanvas.height=1280;
+    sideRecordCtx=sideRecordCanvas.getContext('2d');
+    drawSideRecordFrame();
+    const videoStream=sideRecordCanvas.captureStream(30);
+    let combinedTracks=[...videoStream.getVideoTracks()];
+    try{
+      if(!isImageOnlyMode && activeMedia && activeMedia.src){
+        const destNode=getSideRecordAudioTap(activeMedia);
+        combinedTracks=combinedTracks.concat(destNode.stream.getAudioTracks());
+      }
+    }catch(err){ console.warn('輸出音訊擷取失敗，將只錄畫面', err); }
+    const combined=new MediaStream(combinedTracks);
+    const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || 'video/webm';
+    sideRecordChunks=[];
+    sideRecorder=new MediaRecorder(combined,{mimeType:mime});
+    sideRecorder.ondataavailable=(e)=>{ if(e.data && e.data.size>0) sideRecordChunks.push(e.data); };
+    sideRecorder.onstop=()=>{
+      cancelAnimationFrame(sideRecordRAF);
+      const blob=new Blob(sideRecordChunks,{type:'video/webm'});
+      const url=URL.createObjectURL(blob);
+      const title=(songs[idx]&&songs[idx].title)||'錄製';
+      const safeName=title.replace(/[\\/:*?"<>|]/g,'_');
+      const pad=n=>String(n).padStart(2,'0'); const d=new Date();
+      const filename=`${safeName}_完整輸出_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.webm`;
+      const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),2000);
+      showToast(`完整輸出完成，已下載「${filename}」（webm 影片格式，只包含畫面顯示區＋字幕，不含其他按鈕/網址列）`);
+    };
+    sideRecorder.start();
+  }
+  function stopSideRecord(){
+    if(sideRecorder && sideRecorder.state!=='inactive') sideRecorder.stop();
+  }
+  let _fullExportWatcher=null, _isFullExport=false;
+  async function startFullExport(){
+    if(typeof MediaRecorder==='undefined'){ showToast('這個瀏覽器不支援輸出功能（需要 MediaRecorder API）。'); return; }
+    if(sideRecorder && sideRecorder.state==='recording'){ showToast('側錄跟輸出不能同時進行，請先停止側錄。'); return; }
+    if(!songs[idx]){ showToast('目前沒有載入歌曲可以輸出。'); return; }
+    const btn=$('#btnFullExport'); btn.disabled=true; $('#fullExportLabel').textContent='⏳';
+    window.speechSynthesis.cancel();
+    _isFullExport=true; startSideRecord();
+    $('#fullExportLabel').textContent='⏺'; btn.classList.add('bg-red-600/80','border-red-400'); btn.disabled=false;
+    // 從目前播放進度開始輸出（不會跳回開頭），再按一次輸出鍵可立刻停止並輸出目前為止錄到的內容
+    if(!isImageOnlyMode && activeMedia && activeMedia.src){
+      activeMedia.play(); activeMedia.addEventListener('ended', onFullExportEnded, {once:true});
+    } else {
+      startImageTtsPlayback(_currentActiveIdx>=0 ? (parsedLyrics.lines[_currentActiveIdx]?.time||0) : 0);
+      _fullExportWatcher=setInterval(()=>{ if(!imageTtsPlaying){ clearInterval(_fullExportWatcher); onFullExportEnded(); } },500);
+    }
+  }
+  function onFullExportEnded(){
+    _isFullExport=false; clearInterval(_fullExportWatcher); stopSideRecord();
+    $('#fullExportLabel').textContent='⬇️'; $('#btnFullExport').classList.remove('bg-red-600/80','border-red-400'); $('#btnFullExport').disabled=false;
+  }
+  $('#btnFullExport').onclick=()=>{
+    if(_isFullExport){ if(!isImageOnlyMode&&activeMedia)activeMedia.pause(); else stopImageTtsPlayback(); onFullExportEnded(); return; }
+    startFullExport();
+  };
+  // ===== 媒體全螢幕 + 字幕浮動視窗（可拖曳到螢幕任何位置）=====
+  let _mediaFullscreenOn=false, _marqueeDrag=null;
+  function clampMarqueePos(x,y){
+    const box=$('#lyricMarqueeBox'); const w=box.offsetWidth||300, h=box.offsetHeight||68;
+    const maxX=window.innerWidth-w-8, maxY=window.innerHeight-h-8;
+    return { x: Math.min(Math.max(x,8),Math.max(8,maxX)), y: Math.min(Math.max(y,8),Math.max(8,maxY)) };
+  }
+  function setMarqueePos(x,y){
+    const p=clampMarqueePos(x,y); const box=$('#lyricMarqueeBox');
+    box.style.left=p.x+'px'; box.style.top=p.y+'px';
+    localStorage.setItem('linguabook:marqueePos', JSON.stringify(p));
+  }
+  let _marqueeOrigParent=null, _marqueeOrigNext=null;
+  function enableMediaFullscreen(){
+    if(practicePanelOpen) setPracticeOpen(false);
+    _mediaFullscreenOn=true;
+    $('#mediaContainer').classList.add('media-fullscreen');
+    $('#btnExitMediaFullscreen').classList.remove('hidden');
+    const box=$('#lyricMarqueeBox');
+    // #bottomToolbar 有 backdrop-filter（.glass），這會讓裡面的 position:fixed 元素
+    // 變成相對於那個容器定位而不是整個螢幕，導致浮動字幕「消失」。
+    // 解法：全螢幕時把字幕框直接搬到 body 底下，離開那個容器就正常了。
+    _marqueeOrigParent=box.parentNode; _marqueeOrigNext=box.nextSibling;
+    document.body.appendChild(box);
+    box.classList.add('marquee-floating');
+    let pos=null; try{ pos=JSON.parse(localStorage.getItem('linguabook:marqueePos')||'null'); }catch{}
+    if(!pos) pos={ x:(window.innerWidth-Math.min(window.innerWidth*0.88,420))/2, y:window.innerHeight-220 };
+    setMarqueePos(pos.x, pos.y);
+  }
+  function disableMediaFullscreen(){
+    _mediaFullscreenOn=false;
+    $('#mediaContainer').classList.remove('media-fullscreen');
+    $('#btnExitMediaFullscreen').classList.add('hidden');
+    const box=$('#lyricMarqueeBox'); box.classList.remove('marquee-floating');
+    box.style.left=''; box.style.top='';
+    if(_marqueeOrigParent){ _marqueeOrigParent.insertBefore(box, _marqueeOrigNext); _marqueeOrigParent=null; _marqueeOrigNext=null; }
+  }
+  $('#btnMediaFullscreen').onclick=()=>{ if(_mediaFullscreenOn) disableMediaFullscreen(); else enableMediaFullscreen(); };
+  $('#btnExitMediaFullscreen').onclick=()=>disableMediaFullscreen();
+  window._marqueeWasDragged=false;
+  (function(){
+    const box=$('#lyricMarqueeBox');
+    const start=(x,y)=>{ if(!_mediaFullscreenOn)return; const rect=box.getBoundingClientRect(); _marqueeDrag={ offX:x-rect.left, offY:y-rect.top, startX:x, startY:y }; };
+    const move=(x,y)=>{ if(!_marqueeDrag)return; if(Math.abs(x-_marqueeDrag.startX)>6 || Math.abs(y-_marqueeDrag.startY)>6) window._marqueeWasDragged=true; setMarqueePos(x-_marqueeDrag.offX, y-_marqueeDrag.offY); };
+    const end=()=>{ _marqueeDrag=null; };
+    box.addEventListener('touchstart',(e)=>{ if(!_mediaFullscreenOn)return; const t=e.touches[0]; start(t.clientX,t.clientY); },{passive:true});
+    box.addEventListener('touchmove',(e)=>{ if(!_marqueeDrag)return; e.preventDefault(); const t=e.touches[0]; move(t.clientX,t.clientY); },{passive:false});
+    box.addEventListener('touchend', end);
+    box.addEventListener('mousedown',(e)=>{ if(!_mediaFullscreenOn)return; start(e.clientX,e.clientY); });
+    window.addEventListener('mousemove',(e)=>move(e.clientX,e.clientY));
+    window.addEventListener('mouseup', end);
+  })();
+  (async () => { renameLinguabookIdxKey(); await load(); await render(); restoreResumeState(); })();
+})();
+</script>
+</body>
+</html>
+
