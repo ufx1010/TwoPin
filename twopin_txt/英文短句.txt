@@ -1,0 +1,622 @@
+🗣️ 日常問候與交流
+See you later ｜ 待會見  
+See you tomorrow ｜ 明天見  
+Take care ｜ 保重  
+Have a nice day ｜ 祝你有美好的一天  
+Welcome ｜ 歡迎  
+Thank you ｜ 謝謝  
+Thanks a lot ｜ 非常感謝  
+You're welcome ｜ 不客氣  
+Please ｜ 請  
+Excuse me ｜ 不好意思  
+Nice to meet you too ｜ 我也很高興認識你  
+How was your day? ｜ 今天過得怎樣  
+I'm good ｜ 我很好  
+I'm tired ｜ 我累了  
+I'm busy ｜ 我很忙  
+Not bad ｜ 還不錯  
+So so ｜ 馬馬虎虎  
+What's new? ｜ 有什麼新鮮事  
+Nothing much ｜ 沒什麼  
+Really? ｜ 真的嗎  
+That's great ｜ 太棒了  
+That's too bad ｜ 太可惜了  
+Congratulations ｜ 恭喜  
+Good luck ｜ 祝好運  
+Don't worry ｜ 別擔心  
+It's fine ｜ 沒事  
+I'm sorry ｜ 抱歉  
+My bad ｜ 我的錯  
+See you soon ｜ 很快見  
+Take your time ｜ 慢慢來  
+Good job ｜ 做得好  
+Well done ｜ 很棒  
+Cheers ｜ 乾杯  
+
+---
+
+👤 自我介紹與身份
+My name is... ｜ 我叫...  
+I'm from Taiwan ｜ 我來自台灣  
+I live in Taipei ｜ 我住台北  
+I'm 30 years old ｜ 我30歲  
+What do you do? ｜ 你做什麼工作  
+I'm a student ｜ 我是學生  
+I'm a teacher ｜ 我是老師  
+I'm an engineer ｜ 我是工程師  
+I work for... ｜ 我在...工作  
+Where are you from? ｜ 你從哪裡來  
+How old are you? ｜ 你幾歲  
+I'm learning English ｜ 我在學英文  
+I speak Chinese ｜ 我說中文  
+Do you speak English? ｜ 你會說英文嗎  
+A little ｜ 一點點  
+I don't understand ｜ 我聽不懂  
+Can you repeat? ｜ 可以重複嗎  
+Please speak slowly ｜ 請說慢一點  
+What does this mean? ｜ 這是什麼意思  
+
+---
+
+🚇 交通與問路
+Where is the MRT? ｜ 捷運在哪  
+How do I get there? ｜ 怎麼去  
+Is it far? ｜ 遠嗎  
+Go straight ｜ 直走  
+Turn left ｜ 左轉  
+Turn right ｜ 右轉  
+Stop here ｜ 停這裡  
+How long? ｜ 要多久  
+How much is the fare? ｜ 車費多少  
+I want to go to... ｜ 我要去...  
+Taxi ｜ 計程車  
+Bus stop ｜ 公車站  
+Train station ｜ 火車站  
+Airport ｜ 機場  
+Which platform? ｜ 第幾月台  
+I'm lost ｜ 我迷路了  
+Can you show me on the map? ｜ 可以在地圖上指給我嗎  
+Is this the right way? ｜ 這條路對嗎  
+I'm in a hurry ｜ 我趕時間  
+Please drive slowly ｜ 請開慢一點  
+
+---
+
+🍽️ 餐廳與飲食
+A table for two ｜ 兩位  
+Menu, please ｜ 菜單  
+What do you recommend? ｜ 有推薦的嗎  
+I'm vegetarian ｜ 我吃素  
+I'm allergic to... ｜ 我對...過敏  
+Water, please ｜ 水  
+No ice ｜ 去冰  
+Less sugar ｜ 少糖  
+To go ｜ 外帶  
+For here ｜ 內用  
+Check, please ｜ 買單  
+Can I pay by card? ｜ 可以刷卡嗎  
+Cash only ｜ 只收現金  
+It's delicious ｜ 很好吃  
+I'm full ｜ 我飽了  
+Another one, please ｜ 再一個  
+Can I see the bill? ｜ 可以看帳單嗎  
+Keep the change ｜ 不用找  
+Is service included? ｜ 含服務費嗎  
+I'm ready to order ｜ 我要點餐  
+How much is this? ｜ 這個多少錢  
+
+---
+
+🛍️ 購物
+Do you have...? ｜ 有...嗎  
+I'm just looking ｜ 我先看看  
+Can I try it on? ｜ 可以試穿嗎  
+What size? ｜ 什麼尺寸  
+Too big ｜ 太大  
+Too small ｜ 太小  
+Do you have a smaller size? ｜ 有小一點的嗎  
+I'll take it ｜ 我要買  
+I'll think about it ｜ 我考慮一下  
+Is there a discount? ｜ 有折扣嗎  
+Can you give me a discount? ｜ 可以便宜一點嗎  
+Where is the fitting room? ｜ 試衣間在哪  
+I need a receipt ｜ 我要收據  
+Cash or card? ｜ 現金還是刷卡  
+It's too expensive ｜ 太貴了  
+Do you accept...? ｜ 接受...嗎  
+I'm looking for a gift ｜ 我在找禮物  
+Can you wrap it? ｜ 可以幫我包裝嗎  
+Sold out ｜ 賣完了  
+
+---
+
+🏨 住宿與旅遊
+I have a reservation ｜ 我有訂房  
+Check in ｜ 入住  
+Check out ｜ 退房  
+What time is check out? ｜ 幾點退房  
+Is breakfast included? ｜ 含早餐嗎  
+Wi-Fi password? ｜ Wi-Fi密碼  
+The key doesn't work ｜ 鑰匙不能用  
+Can I have extra towels? ｜ 可以多拿毛巾嗎  
+Air conditioning ｜ 冷氣  
+It's too noisy ｜ 太吵了  
+I need a taxi ｜ 我需要計程車  
+Can you call a taxi? ｜ 可以幫我叫車嗎  
+Where is the nearest MRT? ｜ 最近捷運在哪  
+Tourist information ｜ 旅遊資訊  
+Can I leave luggage? ｜ 可以寄放行李嗎  
+What time does it open? ｜ 幾點開  
+What time does it close? ｜ 幾點關  
+Admission fee? ｜ 門票多少  
+I'm traveling alone ｜ 我一個人旅行  
+Can you recommend a place? ｜ 可以推薦地方嗎  
+
+---
+
+🚨 緊急情況
+Help ｜ 救命  
+Call the police ｜ 叫警察  
+Call an ambulance ｜ 叫救護車  
+I'm hurt ｜ 我受傷了  
+I feel sick ｜ 我不舒服  
+I lost my phone ｜ 我手機掉了  
+I lost my wallet ｜ 我皮夾掉了  
+I need a doctor ｜ 我需要醫生  
+Where is the hospital? ｜ 醫院在哪  
+It's an emergency ｜ 緊急狀況  
+Fire ｜ 火災  
+Stop thief ｜ 抓小偷  
+I'm allergic ｜ 我過敏  
+Can you help me? ｜ 可以幫我嗎  
+I don't feel well ｜ 我不舒服  
+I need medicine ｜ 我需要藥  
+Where is the pharmacy? ｜ 藥局在哪  
+Please call my friend ｜ 請打給我朋友  
+I need help ｜ 我需要幫忙  
+
+---
+
+💼 工作場合
+I have a meeting ｜ 我有會議  
+Let's start ｜ 開始吧  
+Can we reschedule? ｜ 可以改期嗎  
+I'll send you an email ｜ 我會寄email給你  
+Please check ｜ 請確認  
+I understand ｜ 我懂了  
+I don't know ｜ 我不知道  
+What do you think? ｜ 你覺得呢  
+Good idea ｜ 好主意  
+I agree with you ｜ 我同意你  
+Let's take a break ｜ 休息一下  
+Deadline is... ｜ 截止日是...  
+Can you explain? ｜ 可以解釋嗎  
+I need more time ｜ 我需要多一點時間  
+I'm working from home ｜ 我在家工作  
+See you at the office ｜ 辦公室見  
+Can I ask a question? ｜ 可以問問題嗎  
+I finished ｜ 我完成了  
+I'll be late ｜ 我會遲到  
+Thank you for your help ｜ 謝謝你的幫忙  
+
+---
+
+❤️ 情感與心情
+I miss you ｜ 我想你  
+I like it ｜ 我喜歡  
+I love it ｜ 我愛  
+I'm happy ｜ 我很開心  
+I'm sad ｜ 難過難過  
+I'm angry ｜ 我生氣  
+Let's hang out ｜ 出來玩  
+Are you free? ｜ 有空嗎  
+What time ｜ 幾點  
+I appreciate it ｜ 我很感激  
+You got this ｜ 你可以的 
+➖➖➖➖➖➖➖➖➖➖➖➖➖
+
+📘 英文篇
+
+🗣️ Daily greetings
+See you later  
+See you tomorrow  
+Take care  
+Have a nice day  
+Welcome  
+Thank you  
+Thanks a lot  
+You're welcome  
+Please  
+Excuse me  
+Nice to meet you too  
+How was your day?  
+I'm good  
+I'm tired  
+I'm busy  
+Not bad  
+So so  
+What's new?  
+Nothing much  
+Really?  
+That's great  
+That's too bad  
+Congratulations  
+Good luck  
+Don't worry  
+It's fine  
+I'm sorry  
+My bad  
+See you soon  
+Take your time  
+Good job  
+Well done  
+Cheers  
+
+👤 Self introduction
+My name is...  
+I'm from Taiwan  
+I live in Taipei  
+I'm 30 years old  
+What do you do?  
+I'm a student  
+I'm a teacher  
+I'm an engineer  
+I work for...  
+Where are you from?  
+How old are you?  
+I'm learning English  
+I speak Chinese  
+Do you speak English?  
+A little  
+I don't understand  
+Can you repeat?  
+Please speak slowly  
+What does this mean?  
+
+🚇 Transportation
+Where is the MRT?  
+How do I get there?  
+Is it far?  
+Go straight  
+Turn left  
+Turn right  
+Stop here  
+How long?  
+How much is the fare?  
+I want to go to...  
+Taxi  
+Bus stop  
+Train station  
+Airport  
+Which platform?  
+I'm lost  
+Can you show me on the map?  
+Is this the right way?  
+I'm in a hurry  
+Please drive slowly  
+
+🍽️ Restaurant
+A table for two  
+Menu, please  
+What do you recommend?  
+I'm vegetarian  
+I'm allergic to...  
+Water, please  
+No ice  
+Less sugar  
+To go  
+For here  
+Check, please  
+Can I pay by card?  
+Cash only  
+It's delicious  
+I'm full  
+Another one, please  
+Can I see the bill?  
+Keep the change  
+Is service included?  
+I'm ready to order  
+How much is this?  
+
+🛍️ Shopping
+Do you have...?  
+I'm just looking  
+Can I try it on?  
+What size?  
+Too big  
+Too small  
+Do you have a smaller size?  
+I'll take it  
+I'll think about it  
+Is there a discount?  
+Can you give me a discount?  
+Where is the fitting room?  
+I need a receipt  
+Cash or card?  
+It's too expensive  
+Do you accept...?  
+I'm looking for a gift  
+Can you wrap it?  
+Sold out  
+
+🏨 Hotel & travel
+I have a reservation  
+Check in  
+Check out  
+What time is check out?  
+Is breakfast included?  
+Wi-Fi password?  
+The key doesn't work  
+Can I have extra towels?  
+Air conditioning  
+It's too noisy  
+I need a taxi  
+Can you call a taxi?  
+Where is the nearest MRT?  
+Tourist information  
+Can I leave luggage?  
+What time does it open?  
+What time does it close?  
+Admission fee?  
+I'm traveling alone  
+Can you recommend a place?  
+
+🚨 Emergency
+Help  
+Call the police  
+Call an ambulance  
+I'm hurt  
+I feel sick  
+I lost my phone  
+I lost my wallet  
+I need a doctor  
+Where is the hospital?  
+It's an emergency  
+Fire  
+Stop thief  
+I'm allergic  
+Can you help me?  
+I don't feel well  
+I need medicine  
+Where is the pharmacy?  
+Please call my friend  
+I need help  
+
+💼 Work
+I have a meeting  
+Let's start  
+Can we reschedule?  
+I'll send you an email  
+Please check  
+I understand  
+I don't know  
+What do you think?  
+Good idea  
+I agree with you  
+Let's take a break  
+Deadline is...  
+Can you explain?  
+I need more time  
+I'm working from home  
+See you at the office  
+Can I ask a question?  
+I finished  
+I'll be late  
+Thank you for your help  
+
+❤️ Feelings
+I miss you  
+I like it  
+I love it  
+I'm happy  
+I'm sad  
+I'm angry  
+Let's hang out  
+Are you free?  
+What time  
+I appreciate it  
+You got this  
+
+---
+
+📙 中文篇
+
+🗣️ 日常問候
+待會見  
+明天見  
+保重  
+祝你有美好的一天  
+歡迎  
+謝謝  
+非常感謝  
+不客氣  
+請  
+不好意思  
+我也很高興認識你  
+今天過得怎樣  
+我很好  
+我累了  
+我很忙  
+還不錯  
+馬馬虎虎  
+有什麼新鮮事  
+沒什麼  
+真的嗎  
+太棒了  
+太可惜了  
+恭喜  
+祝好運  
+別擔心  
+沒事  
+抱歉  
+我的錯  
+很快見  
+慢慢來  
+做得好  
+很棒  
+乾杯  
+
+👤 自我介紹
+我叫...  
+我來自台灣  
+我住台北  
+我30歲  
+你做什麼工作  
+我是學生  
+我是老師  
+我是工程師  
+我在...工作  
+你從哪裡來  
+你幾歲  
+我在學英文  
+我說中文  
+你會說英文嗎  
+一點點  
+我聽不懂  
+可以重複嗎  
+請說慢一點  
+這是什麼意思  
+
+🚇 交通
+捷運在哪  
+怎麼去  
+遠嗎  
+直走  
+左轉  
+右轉  
+停這裡  
+要多久  
+車費多少  
+我要去...  
+計程車  
+公車站  
+火車站  
+機場  
+第幾月台  
+我迷路了  
+可以在地圖上指給我嗎  
+這條路對嗎  
+我趕時間  
+請開慢一點  
+
+🍽️ 餐廳
+兩位  
+菜單  
+有推薦的嗎  
+我吃素  
+我對...過敏  
+水  
+去冰  
+少糖  
+外帶  
+內用  
+買單  
+可以刷卡嗎  
+只收現金  
+很好吃  
+我飽了  
+再一個  
+可以看帳單嗎  
+不用找  
+含服務費嗎  
+我要點餐  
+這個多少錢  
+
+🛍️ 購物
+有...嗎  
+我先看看  
+可以試穿嗎  
+什麼尺寸  
+太大  
+太小  
+有小一點的嗎  
+我要買  
+我考慮一下  
+有折扣嗎  
+可以便宜一點嗎  
+試衣間在哪  
+我要收據  
+現金還是刷卡  
+太貴了  
+接受...嗎  
+我在找禮物  
+可以幫我包裝嗎  
+賣完了  
+
+🏨 住宿與旅遊
+我有訂房  
+入住  
+退房  
+幾點退房  
+含早餐嗎  
+Wi-Fi密碼  
+鑰匙不能用  
+可以多拿毛巾嗎  
+冷氣  
+太吵了  
+我需要計程車  
+可以幫我叫車嗎  
+最近捷運在哪  
+旅遊資訊  
+可以寄放行李嗎  
+幾點開  
+幾點關  
+門票多少  
+我一個人旅行  
+可以推薦地方嗎  
+
+🚨 緊急情況
+救命  
+叫警察  
+叫救護車  
+我受傷了  
+我不舒服  
+我手機掉了  
+我皮夾掉了  
+我需要醫生  
+醫院在哪  
+緊急狀況  
+火災  
+抓小偷  
+我過敏  
+可以幫我嗎  
+我不舒服  
+我需要藥  
+藥局在哪  
+請打給我朋友  
+我需要幫忙  
+
+💼 工作場合
+我有會議  
+開始吧  
+可以改期嗎  
+我會寄email給你  
+請確認  
+我懂了  
+我不知道  
+你覺得呢  
+好主意  
+我同意你  
+休息一下  
+截止日是...  
+可以解釋嗎  
+我需要多一點時間  
+我在家工作  
+辦公室見  
+可以問問題嗎  
+我完成了  
+我會遲到  
+謝謝你的幫忙  
+
+❤️ 情感心情
+我想你  
+我喜歡  
+我愛  
+我很開心  
+難過難過  
+我生氣  
+出來玩  
+有空嗎  
+幾點  
+我很感激  
+你可以的  
