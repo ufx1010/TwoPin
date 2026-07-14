@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的歌詞本</title>
+<style>
+  :root { --bg:#faf7f2; --card:#fff; --text:#2c2c2c; --accent:#d97757; }
+  body { margin:0; font-family:sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; user-select:none; }
+  header { position:sticky; top:0; z-index:40; padding:12px 16px; background:var(--card); display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,.06) }
+  .menu { position:fixed; inset:0; background:var(--bg); padding:60px 20px; display:none; z-index:50; flex-direction:column; overflow-y:auto }
+  .menu.active { display:flex }
+  .song-item { display:flex; justify-content:space-between; align-items:center; background:var(--card); padding:15px; margin-bottom:10px; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,.05) }
+  .btn-group { display:flex; gap:5px; }
+  main { flex:1; padding:20px; display:flex; justify-content:center }
+  .card { width:100%; max-width:680px; background:var(--card); border-radius:16px; padding:24px }
+  .line { padding:12px 0; border-bottom:1px dashed #eee; cursor:pointer }
+  .comment { color:#aaa; font-size:0.9em; font-style:italic; display:block; padding:10px 0; }
+  .pagination { display:flex; justify-content:center; gap:10px; margin:15px 0; align-items:center }
+  #editorModal { position:fixed; inset:0; background:var(--bg); z-index:100; display:none; flex-direction:column; padding:15px; }
+  #editorArea { flex:1; width:100%; font-size:18px; padding:15px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box; margin-bottom:10px; }
+  .btn-row { display:flex; gap:10px; }
+  .btn-row button { flex:1; padding:15px; border:none; border-radius:8px; font-weight:bold; color:white; }
+</style>
+</head>
+<body>
+<header>
+  <div style="width:30px"></div>
+  <div style="flex:1; text-align:center">
+    <h1 id="title" style="font-size:18px;margin:0">歌詞本</h1>
+    <div id="pageInfo" style="font-size:12px;color:#888;"></div>
+  </div>
+  <button onclick="document.getElementById('menu').classList.toggle('active')" style="border:none;background:none;font-size:22px;">☰</button>
+</header>
+
+<div class="menu" id="menu">
+  <div style="text-align:right"><button onclick="document.getElementById('menu').classList.remove('active')" style="font-size:24px;border:none;background:none;">✕</button></div>
+  <div id="songList"></div>
+  <div class="pagination" id="pagination"></div>
+  <button onclick="addNewSong()" style="padding:15px;margin-top:10px;background:var(--accent);color:white;border:none;border-radius:8px;width:100%">＋ 新增歌詞</button>
+  <div class="btn-row" style="margin-top:10px">
+    <button onclick="exportData()" style="background:#666">匯出</button>
+    <button onclick="document.getElementById('fileInput').click()" style="background:#666">匯入</button>
+  </div>
+  <input type="file" id="fileInput" style="display:none" accept=".json" onchange="importData(event)">
+</div>
+
+<main id="main"><div class="card" id="card"></div></main>
+
+<div id="editorModal">
+  <textarea id="editorArea"></textarea>
+  <div class="btn-row">
+    <button onclick="saveEdit()" style="background:var(--accent)">儲存</button>
+    <button onclick="document.getElementById('editorModal').style.display='none'" style="background:#888">取消</button>
+  </div>
+</div>
+
+<script>
+// 強制資料格式轉換函式[span_0](start_span)[span_0](end_span)
+function migrateData(data) {
+  return data.map(s => {
+    if (s.sections) {
+      // 若包含 sections，將所有 lines 中的 en 提取出來[span_1](start_span)[span_1](end_span)
+      let lines = [];
+      s.sections.forEach(sec => sec.lines.forEach(l => lines.push(l.en || l)));
+      return { title: s.title, lines: lines };
+    }
+    return s;
+  });
+}
+
+let songs = migrateData(JSON.parse(localStorage.getItem('songs_v4')||'[]'));
+let current = 0, page = 0, itemsPerPage = 8;
+
+function speak(text) {
+  window.speechSynthesis.cancel();
+  let cleanText = text.replace(/\[.*?\]/g, '').trim();
+  if (!cleanText) return;
+  const u = new SpeechSynthesisUtterance(cleanText);
+  const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF]/.test(cleanText);
+  const hasChinese = /[\u4E00-\u9FA5]/.test(cleanText);
+  u.lang = hasJapanese ? 'ja-JP' : (hasChinese ? 'zh-TW' : 'en-US');
+  window.speechSynthesis.speak(u);
+}
+
+function render() {
+  const s = songs[current] || {title:'尚未新增', lines:['無內容']};
+  document.getElementById('title').textContent = s.title;
+  document.getElementById('pageInfo').textContent = `第 ${current + 1} / ${songs.length} 首`;
+  let html = '';
+  s.lines.forEach(l => {
+    if(l.startsWith('[') && l.endsWith(']')) {
+      html += `<span class="comment">${l}</span>`;
+    } else {
+      html += `<div class="line" onclick="speak('${l.replace(/'/g, "")}')">${l}</div>`;
+    }
+  });
+  document.getElementById('card').innerHTML = html;
+  renderMenu();
+}
+
+function renderMenu(){
+  const list = document.getElementById('songList');
+  const start = page * itemsPerPage;
+  list.innerHTML = songs.slice(start, start + itemsPerPage).map((s,i) => `
+    <div class="song-item">
+      <span onclick="current=${start+i};render();document.getElementById('menu').classList.remove('active')">${s.title}</span>
+      <div class="btn-group">
+        <button onclick="openEditor(${start+i})">✎</button>
+        <button onclick="songs.splice(${start+i},1);save();renderMenu();render()">🗑️</button>
+      </div>
+    </div>`).join('');
+  const maxPage = Math.ceil(songs.length/itemsPerPage) || 1;
+  document.getElementById('pagination').innerHTML = `
+    <button ${page===0?'disabled':''} onclick="page--;renderMenu()">上一頁</button>
+    <span>${page+1}/${maxPage}</span>
+    <button ${page>=maxPage-1?'disabled':''} onclick="page++;renderMenu()">下一頁</button>`;
+}
+
+function openEditor(i) {
+  document.getElementById('editorArea').value = songs[i].title === '新歌曲' ? '' : songs[i].title + '\n' + songs[i].lines.join('\n');
+  document.getElementById('editorModal').style.display = 'flex';
+  window.editingIdx = i;
+}
+
+function saveEdit() {
+  let val = document.getElementById('editorArea').value;
+  let lines = val.split('\n');
+  if(lines.length > 0) {
+    songs[window.editingIdx] = {title: lines[0] || '無題', lines: lines.slice(1)};
+  }
+  save(); document.getElementById('editorModal').style.display = 'none'; render();
+}
+
+function addNewSong() {
+  songs.push({title:'新歌曲', lines:[]});
+  save(); renderMenu(); openEditor(songs.length - 1);
+}
+
+function save() { localStorage.setItem('songs_v4', JSON.stringify(songs)); }
+function exportData(){
+  const a = document.createElement("a");
+  a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(songs));
+  a.download = "songs.json"; a.click();
+}
+function importData(e){
+  const reader = new FileReader();
+  reader.onload = (e) => { 
+    // 匯入時強制執行 migrateData 轉換格式[span_2](start_span)[span_2](end_span)
+    songs = migrateData(JSON.parse(e.target.result)); 
+    save(); renderMenu(); render(); 
+  };
+  reader.readAsText(e.target.files[0]);
+}
+
+render();
+</script>
+</body>
+</html>
