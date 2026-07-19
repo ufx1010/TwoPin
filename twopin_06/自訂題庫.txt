@@ -1,1 +1,408 @@
-目前沒有
+👤 自我介紹與身份
+我叫... | My name is...
+我來自台灣 | I'm from Taiwan
+我住台北 | I live in Taipei
+我30歲 | I'm 30 years old
+你做什麼工作 | What do you do?
+我是學生 | I'm a student
+我是老師 | I'm a teacher
+我是工程師 | I'm an engineer
+我在...工作 | I work for...
+你從哪裡來 | Where are you from?
+你幾歲 | How old are you?
+我在學英文 | I'm learning English
+我說中文 | I speak Chinese
+你會說英文嗎 | Do you speak English?
+一點點 | A little
+我聽不懂 | I don't understand
+可以重複嗎 | Can you repeat?
+請說慢一點 | Please speak slowly
+這是什麼意思 | What does this mean?
+待會見 | See you later
+明天見 | See you tomorrow
+保重 | Take care
+祝你有美好的一天 | Have a nice day
+歡迎 | Welcome
+謝謝 | Thank you
+非常感謝 | Thanks a lot
+不客氣 | You're welcome
+請 | Please
+不好意思 | Excuse me
+我也很高興認識你 | Nice to meet you too
+今天過得怎樣 | How was your day?
+我很好 | I'm good
+我累了 | I'm tired
+我很忙 | I'm busy
+還不錯 | Not bad
+馬馬虎虎 | So so
+有什麼新鮮事 | What's new?
+沒什麼 | Nothing much
+真的嗎 | Really?
+太棒了 | That's great
+太可惜了 | That's too bad
+恭喜 | Congratulations
+祝好運 | Good luck
+別擔心 | Don't worry
+沒事 | It's fine
+抱歉 | I'm sorry
+我的錯 | My bad
+很快見 | See you soon
+慢慢來 | Take your time
+做得好 | Good job
+很棒 | Well done
+乾杯 | Cheers
+
+
+🚇 交通與問路
+捷運在哪 | Where is the MRT?
+怎麼去 | How do I get there?
+遠嗎 | Is it far?
+直走 | Go straight
+左轉 | Turn left
+右轉 | Turn right
+停這裡 | Stop here
+要多久 | How long?
+車費多少 | How much is the fare?
+我要去... | I want to go to...
+計程車 | Taxi
+公車站 | Bus stop
+火車站 | Train station
+機場 | Airport
+第幾月台 | Which platform?
+我迷路了 | I'm lost
+可以在地圖上指給我嗎 | Can you show me on the map?
+這條路對嗎 | Is this the right way?
+我趕時間 | I'm in a hurry
+請開慢一點 | Please drive slowly
+
+🍽️ 餐廳與飲食
+兩位 | A table for two
+菜單 | Menu, please
+有推薦的嗎 | What do you recommend?
+我吃素 | I'm vegetarian
+我對...過敏 | I'm allergic to...
+水 | Water, please
+去冰 | No ice
+少糖 | Less sugar
+外帶 | To go
+內用 | For here
+買單 | Check, please
+可以刷卡嗎 | Can I pay by card?
+只收現金 | Cash only
+很好吃 | It's delicious
+我飽了 | I'm full
+再一個 | Another one, please
+可以看帳單嗎 | Can I see the bill?
+不用找 | Keep the change
+含服務費嗎 | Is service included?
+我要點餐 | I'm ready to order
+這個多少錢 | How much is this?
+
+🛍️ 購物
+有...嗎 | Do you have...?
+我先看看 | I'm just looking
+可以試穿嗎 | Can I try it on?
+什麼尺寸 | What size?
+太大 | Too big
+太小 | Too small
+有小一點的嗎 | Do you have a smaller size?
+我要買 | I'll take it
+我考慮一下 | I'll think about it
+有折扣嗎 | Is there a discount?
+可以便宜一點嗎 | Can you give me a discount?
+試衣間在哪 | Where is the fitting room?
+我要收據 | I need a receipt
+現金還是刷卡 | Cash or card?
+太貴了 | It's too expensive
+接受...嗎 | Do you accept...?
+我在找禮物 | I'm looking for a gift
+可以幫我包裝嗎 | Can you wrap it?
+賣完了 | Sold ou
+
+🏨 住宿與旅遊
+我有訂房 | I have a reservation
+入住 | Check in
+退房 | Check out
+幾點退房 | What time is check out?
+含早餐嗎 | Is breakfast included?
+Wi-Fi密碼 | Wi-Fi password?
+鑰匙不能用 | The key doesn't work
+可以多拿毛巾嗎 | Can I have extra towels?
+冷氣 | Air conditioning
+太吵了 | It's too noisy
+我需要計程車 | I need a taxi
+可以幫我叫車嗎 | Can you call a taxi?
+最近捷運在哪 | Where is the nearest MRT?
+旅遊資訊 | Tourist information
+可以寄放行李嗎 | Can I leave luggage?
+幾點開 | What time does it open?
+幾點關 | What time does it close?
+門票多少 | Admission fee?
+我一個人旅行 | I'm traveling alone
+可以推薦地方嗎 | Can you recommend a place?
+
+🚨 緊急情況
+救命 | Help
+叫警察 | Call the police
+叫救護車 | Call an ambulance
+我受傷了 | I'm hurt
+我不舒服 | I feel sick
+我手機掉了 | I lost my phone
+我皮夾掉了 | I lost my wallet
+我需要醫生 | I need a doctor
+醫院在哪 | Where is the hospital?
+緊急狀況 | It's an emergency
+火災 | Fire
+抓小偷 | Stop thief
+我過敏 | I'm allergic
+可以幫我嗎 | Can you help me?
+我不舒服 | I don't feel well
+我需要藥 | I need medicine
+藥局在哪 | Where is the pharmacy?
+請打給我朋友 | Please call my friend
+我需要幫忙 | I need help
+
+💼 工作場合
+我有會議 | I have a meeting
+開始吧 | Let's start
+可以改期嗎 | Can we reschedule?
+我會寄email給你 | I'll send you an email
+請確認 | Please check
+我懂了 | I understand
+我不知道 | I don't know
+你覺得呢 | What do you think?
+好主意 | Good idea
+我同意你 | I agree with you
+休息一下 | Let's take a break
+截止日是... | Deadline is...
+可以解釋嗎 | Can you explain?
+我需要多一點時間 | I need more time
+我在家工作 | I'm working from home
+辦公室見 | See you at the office
+可以問問題嗎 | Can I ask a question?
+我完成了 | I finished
+我會遲到 | I'll be late
+謝謝你的幫忙 | Thank you for your help
+
+❤️ 情感與心情
+我想你 | I miss you
+我喜歡 | I like it
+我愛 | I love it
+我很開心 | I'm happy
+難過難過 | I'm sad
+我生氣 | I'm angry
+出來玩 | Let's hang out
+有空嗎 | Are you free?
+幾點 | What time
+我很感激 | I appreciate it
+你可以的 | You got this
+
+🗣️ 日常問候與交流
+你好 | Hello
+嗨 | Hi
+早安 | Good morning
+午安 | Good afternoon
+晚上好 | Good evening
+晚安 | Good night
+你好嗎 | How are you?
+我很好 | I'm fine
+很高興認識你 | Nice to meet you
+好久不見 | Long time no see
+怎麼了 | What's up?
+最近如何 | How's it going?
+待會見 | See you later
+明天見 | See you tomorrow
+保重 | Take care
+祝你有美好的一天 | Have a nice day
+祝你好運 | Good luck
+歡迎 | Welcome
+請進 | Come in
+請坐 | Have a seat
+謝謝你 | Thank you
+非常感謝 | Thanks a lot
+不客氣 | You're welcome
+沒問題 | No problem
+不客氣 | My pleasure
+不好意思 | Excuse me
+對不起 | I'm sorry
+請再說一次 | Pardon me
+沒關係 | That's okay
+沒關係 | Never mind
+
+✅ 基本回答
+是的 | Yes
+不是 | No
+也許 | Maybe
+當然 | Of course
+當然可以 | Sure
+我同意 | I agree
+我不同意 | I disagree
+我想是的 | I think so
+我不這麼認為 | I don't think so
+真的嗎 | Really?
+我知道 | I know
+我不知道 | I don't know
+我了解 | I understand
+我不懂 | I don't understand
+請再說一次 | Please repeat
+請說慢一點 | Speak slowly
+你能幫我嗎 | Can you help me?
+請幫幫我 | Please help me
+你是什麼意思 | What do you mean?
+這個怎麼說 | How do you say this?
+
+🕒 時間日期幾點了 | What time is it?
+一點鐘 | It's one o'clock
+兩點鐘 | It's two o'clock
+三點半 | It's half past three
+四點半 | It's four thirty
+現在 | Right now
+很快 | Soon
+稍後 | Later
+今天 | Today
+明天 | Tomorrow
+昨天 | Yesterday
+今天早上 | This morning
+今天下午 | This afternoon
+今晚 | Tonight
+本週 | This week
+下週 | Next week
+上週 | Last week
+本月 | This month
+下個月 | Next month
+上個月 | Last month
+今年 | This year
+明年 | Next year
+去年 | Last year
+📅 星期與月份
+星期一 | Monday
+星期二 | Tuesday
+星期三 | Wednesday
+星期四 | Thursday
+星期五 | Friday
+星期六 | Saturday
+星期日 | Sunday
+一月 | January
+二月 | February
+三月 | March
+四月 | April
+五月 | May
+六月 | June
+七月 | July
+八月 | August
+九月 | September
+十月 | October
+十一月 | November
+十二月 | December
+今天幾月幾日 | What is today's date?
+
+👤 自我介紹
+你幾歲 | How old are you?
+我二十歲 | I am twenty years old
+你來自哪裡 | Where are you from?
+我來自台灣 | I am from Taiwan
+你住在哪裡 | Where do you live?
+我住在台北 | I live in Taipei
+你叫什麼名字 | What is your name?
+我叫湯姆 | My name is Tom
+很高興認識你 | Nice to meet you
+
+😊 心情與狀態
+我餓了 | I'm hungry
+我渴了 | I'm thirsty
+我累了 | I'm tired
+我很忙 | I'm busy
+我有空 | I'm free
+我很開心 | I'm happy
+我很難過 | I'm sad
+我生病了 | I'm sick
+我感覺很好 | I feel good
+我感覺不好 | I feel bad
+
+🚀 行動與鼓勵
+我們走吧 | Let's go
+等一下 | Wait a moment
+快點 | Hurry up
+加油 | Come on
+小心 | Be careful
+別擔心 | Don't worry
+冷靜一點 | Calm down
+做得好 | Good job
+我喜歡 | I like it
+我很喜歡 | I love it
+我不喜歡 | I don't like it
+太棒了 | That's great
+太好了 | That's wonderful
+真令人驚訝 | That's amazing
+聽起來不錯 | Sounds good
+聽起來很棒 | Sounds great
+不可能 | No way
+為什麼不呢 | Why not?
+試試看吧 | Let's try
+我做得到 | I can do it
+我做不到 | I can't do it
+我需要幫助 | I need help
+我需要更多時間 | I need more time
+我準備好了 | I am ready
+開始吧 | Let's start
+停止吧 | Let's stop
+休息一下吧 | Let's take a break
+我完成了 | I'm finished
+
+💰 購物與餐飲
+多少錢 | How much is it?
+太貴了 | It's too expensive
+很便宜 | It's cheap
+我要買 | I'll take it
+可以刷卡嗎 | Can I pay by card?
+你有現金嗎 | Do you have cash?
+不用找了 | Keep the change
+我只是看看 | I am just looking
+有這個尺寸嗎 | Do you have this size?
+我可以試穿嗎 | Can I try it on?
+我可以看菜單嗎 | May I see the menu?
+我要點餐 | I'd like to order
+我要一些水 | I'd like some water
+我要一杯茶 | I'd like some tea
+我要一杯咖啡 | I'd like some coffee
+食物很好吃 | The food is delicious
+請買單 | Check please
+我吃飽了 | I'm full
+乾杯 | Cheers
+請慢用 | Enjoy your meal
+
+🚇 問路與交通
+洗手間在哪裡 | Where is the restroom?
+車站在哪裡 | Where is the station?
+我該怎麼去那裡 | How can I get there?
+我需要計程車 | I need a taxi
+我迷路了 | I'm lost
+你可以在地圖上指給我看嗎 | Can you show me on the map?
+有多遠 | How far is it?
+左轉 | Turn left
+右轉 | Turn right
+直走 | Go straight
+
+📱 聯絡與通訊
+晚點打給我 | Call me later
+傳訊息給我 | Send me a message
+我漏接你的電話 | I missed your call
+我的手機沒電了 | My phone is dead
+網路很慢 | The internet is slow
+你聽得到我嗎 | Can you hear me?
+我聽得到你 | I can hear you
+請再打一次 | Please call again
+保持聯絡 | Stay in touch
+再見 | See you again
+
+🔢 數字
+一 | One
+二 | Two
+三 | Three
+四 | Four
+五 | Five
+十 | Ten
+二十 | Twenty
+五十 | Fifty
+一百 | One hundred
+一千 | One thousand目前沒有
