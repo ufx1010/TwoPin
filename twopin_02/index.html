@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>多國語言單字配對遊戲 - 坦米爾語版</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght=600;700&family=Patrick+Hand&family=Schoolbell&family=Architects+Daughter&family=Short+Stack&family=Fredoka+One&family=Nunito:wght=700;800&family=Inter:wght=400;500;600;700;800&family=Noto+Sans+TC:wght=400;700&family=Noto+Serif:wght=400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --en-font-family:'Patrick Hand',cursive;
+ --primary:#1f4d44; --primary-dark:#163d35; --primary-light:#2c6358; --accent:#e0654f;
+ --bg:#f5f0e8; --card:#fffdf6; --text:#22302c;
+ --vowel-a:#ff1a1a; --vowel-e:#00c853; --vowel-i:#2979ff; --vowel-o:#ff6d00; --vowel-u:#d500f9;
+ --good:#5fc78a; --bad:#e0654f; --shadow:0 10px 30px rgba(0,0,0,0.3);
+ --en-card-size: 1.0;
+ --zh-card-size: 1.3;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Inter','Noto Sans TC',sans-serif;background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 50%,var(--primary-light) 100%);min-height:100vh;padding:12px;color:var(--text);overflow-x:hidden;}
+.container{max-width:900px;margin:0 auto;}
+header{text-align:center;color:#f4ecd8;margin-bottom:15px;}
+header .subtitle{font-size:12px;letter-spacing:0.1em;text-transform:uppercase;opacity:0.9;margin-bottom:5px;}
+header h1{font-family:'Caveat',cursive;font-size:clamp(28px,8vw,44px);margin:0;line-height:1.1;}
+header h1 .accent{color:var(--accent);}
+.hud{display:flex;justify-content:center;gap:8px;margin-bottom:15px;flex-wrap:wrap;}
+.pill{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:6px 14px;color:#f4ecd8;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;}
+.pill .dot{width:8px;height:8px;border-radius:50%;}
+.pill.timer .dot{background:#e8b339;} .pill.matched .dot{background:var(--good);}
+.quit-btn{background:transparent;border:1px solid rgba(255,255,255,0.3);color:#f4ecd8;border-radius:20px;padding:6px 16px;font-size:13px;cursor:pointer;font-weight:600;}
+.card{background:var(--card);border-radius:16px;padding:20px;box-shadow:var(--shadow);margin-bottom:15px;position:relative;}
+.card::before{content:"";position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7d6,#e8b339 60%,#b9851d 100%);box-shadow:0 3px 6px rgba(0,0,0,0.3);}
+.card h2{font-family:'Noto Sans TC',sans-serif;font-size:22px;margin:10px 0 15px;color:var(--text);}
+.section-title{font-size:13px;font-weight:700;color:#7a8278;text-transform:uppercase;letter-spacing:0.08em;margin:15px 0 10px;}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px;}
+.btn{flex:1;min-width:70px;padding:10px 12px;border:2px solid #e8dfc7;border-radius:12px;background:#fbf8ee;font-family:'Inter','Noto Sans TC',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s;text-align:center;}
+.btn:hover{transform:translateY(-2px);} .btn:active{transform:scale(0.96);}
+.btn.active{background:var(--primary);color:#f4ecd8;border-color:var(--primary);}
+.btn.small{padding:6px 10px;font-size:11px;min-width:40px;}
+.font-dropdown{margin-bottom:15px;}
+.font-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border:2px solid #e8dfc7;border-radius:12px;background:#fbf8ee;font-weight:700;font-size:13px;cursor:pointer;}
+.font-header .arrow{transition:transform 0.2s;}
+.font-header.open .arrow{transform:rotate(180deg);}
+.font-grid{display:none;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+.font-grid.open{display:grid;}
+.font-btn{padding:10px 6px;border:2px solid #e8dfc7;border-radius:12px;background:#fbf8ee;font-weight:700;font-size:11px;cursor:pointer;transition:all 0.15s;text-align:center;line-height:1.3;}
+.font-btn.active{background:var(--accent);color:white;border-color:var(--accent);}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:15px;}
+@media(min-width:600px){.board{grid-template-columns:repeat(4,1fr);}}
+.game-card{aspect-ratio:1;background:var(--card);border-radius:12px;border:2px solid #e8dfc7;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;cursor:pointer;text-align:center;transition:all 0.4s ease;box-shadow:0 4px 12px rgba(0,0,0,0.15);position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;}
+.game-card:hover{transform:translateY(-3px);}
+.game-card.selected{background:#fff3b0;border-color:#c98a00;border-width:3px;animation:flash-border 1s infinite;transform:scale(1.05);}
+@keyframes flash-border{0%, 100% { box-shadow: 0 0 0 4px rgba(232,179,57,0.4), 0 8px 20px rgba(0,0,0,0.2); }50% { box-shadow: 0 0 0 8px rgba(232,179,57,0.1), 0 8px 20px rgba(0,0,0,0.2); background: #ffe082; }}
+.game-card.correct{background:#e3f9ee;border-color:var(--good);animation:pop 0.3s;}
+.game-card.wrong{background:#fde7e2;border-color:var(--bad);animation:shake 0.4s;}
+.game-card.cleared{opacity:0;visibility:hidden;transform:scale(0.5) rotate(180deg);pointer-events:none;}
+.game-card.diagonal{transform:rotate(-15deg);}
+.game-card.diagonal.selected,.game-card.diagonal.correct{transform:rotate(-15deg) scale(1.05);}
+.game-card .text{font-size:clamp(13px,3.5vw,18px);font-weight:700;line-height:1.3;word-break:break-word;width:100%;pointer-events:none;}
+.game-card .phonetic{font-size:clamp(11px,2.8vw,14px);color:#666;font-family:'Noto Serif',serif;margin-top:2px;pointer-events:none;user-select:none;-webkit-user-select:none;}
+.game-card.en .text{font-family:var(--en-font-family);font-size:calc(clamp(16px,4vw,24px) * var(--en-card-size));font-weight:400;}
+.game-card.zh .text{font-family:'Noto Sans TC',sans-serif;font-size:calc(clamp(13px,3.5vw,18px) * var(--zh-card-size));font-weight:700;}
+.game-card .speaker{position:absolute;bottom:4px;right:6px;font-size:10px;opacity:0.4;pointer-events:none;}
+.v-a{color:var(--vowel-a);font-weight:800;} .v-e{color:var(--vowel-e);font-weight:800;} .v-i{color:var(--vowel-i);font-weight:800;} .v-o{color:var(--vowel-o);font-weight:800;} .v-u{color:var(--vowel-u);font-weight:800;}
+.start-btn{width:100%;padding:16px;border:none;border-radius:15px;background:linear-gradient(180deg,var(--primary-light),var(--primary));color:#f4ecd8;font-family:'Inter','Noto Sans TC',sans-serif;font-weight:800;font-size:17px;cursor:pointer;box-shadow:0 8px 20px rgba(31,77,68,0.4);transition:transform 0.15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.start-btn:hover{transform:translateY(-2px);} .start-btn:active{transform:scale(0.98);}
+.control-btns{display:flex;gap:8px;margin-top:15px;}
+.control-btn{flex:1;padding:14px;border:none;border-radius:12px;background:var(--primary);color:#f4ecd8;font-family:'Inter','Noto Sans TC',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all 0.15s;}
+.control-btn:hover{transform:translateY(-2px);} .control-btn.secondary{background:#2c5f55;}
+.custom-panel{display:none;margin-top:12px;padding:12px;background:#f5f0e8;border-radius:12px;border:2px dashed #e8dfc7;}
+.custom-panel.open{display:block;}
+.custom-textarea{width:100%;min-height:80px;padding:10px;border:2px solid #e8dfc7;border-radius:8px;background:#fffdf6;font-family:'Inter',sans-serif;font-size:12px;line-height:1.6;resize:vertical;}
+.custom-hint{font-size:11px;color:#7a8278;margin-bottom:8px;line-height:1.4;}
+.custom-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;}
+.custom-count{flex:1;font-size:11px;color:#7a8278;}
+.voice-input-container {margin:15px 0;padding:12px;background:#f5f0e8;border-radius:12px;border:2px solid #e8dfc7;display:flex;gap:8px;align-items:center;position:relative;}
+.voice-input-wrapper{flex:1;position:relative;display:flex;align-items:center;}
+.voice-input{width:100%;padding:10px 50px 10px 12px;border:2px solid #d4c9b3;border-radius:8px;background:#fff;font-family:'Inter','Noto Sans TC',sans-serif;font-size:15px;font-weight:600;color:var(--text);outline:none;transition:border-color 0.2s;}
+.voice-input:focus{border-color:var(--primary);}
+.voice-btn{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;transition:all 0.2s;flex-shrink:0;}
+.mic-btn{background:var(--accent);color:white;}
+.mic-btn.recording{background:#ff1a1a;animation:pulse-red 1s infinite;}
+@keyframes pulse-red{0%,100%{transform:scale(1);}50%{transform:scale(1.1);box-shadow:0 0 15px rgba(255,26,26,0.6);}}
+.lang-btn{background:#4f8fe0;color:white;font-size:12px;font-weight:700;min-width:44px;padding:0 4px;}
+.submit-btn{background:var(--primary);color:white;}
+.submit-btn:active{transform:scale(0.95);}
+.note{font-size:11px;color:#8b9389;text-align:center;margin-top:8px;}
+.hidden{display:none!important;}
+@keyframes pop{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-6px);}80%{transform:translateX(6px);}}
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,20,18,0.85);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;backdrop-filter:blur(4px);}
+.modal.active{display:flex;}
+.modal-content{background:var(--card);border-radius:20px;padding:30px 24px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4);}
+.modal-content h2{font-family:'Noto Sans TC',sans-serif;font-size:26px;margin-bottom:20px;color:var(--text);}
+.results{display:flex;justify-content:center;gap:20px;margin-bottom:20px;}
+.result-item{background:#fbf8ee;border-radius:12px;padding:14px 20px;}
+.result-item b{display:block;font-size:22px;font-weight:800;color:var(--primary);font-variant-numeric:tabular-nums;}
+.result-item span{font-size:11px;color:#7a8278;text-transform:uppercase;letter-spacing:0.05em;}
+.modal-buttons{display:flex;gap:8px;}
+.modal-buttons button{flex:1;padding:12px;border:none;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;transition:transform 0.15s;}
+.modal-buttons button:active{transform:scale(0.96);}
+.btn-home{background:#eee7d4;color:var(--text);} .btn-retry{background:var(--primary);color:#f4ecd8;}
+
+.toast-container {position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 500px;}
+.toast {
+  background: var(--card); 
+  color: var(--text); 
+  border: 3px solid var(--accent); 
+  padding: 16px 24px; 
+  border-radius: 16px; 
+  box-shadow: var(--shadow); 
+  text-align: center;
+  cursor: pointer; 
+  animation: slideDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.toast.success-toast { border-color: var(--good); }
+.toast.web-toast { border-color: #4f8fe0; }
+.toast.error-toast { border-color: var(--bad); background: #fde7e2; }
+.toast-input-line { font-size: 20px; font-weight: 800; color: var(--text); word-break: break-all; }
+.toast-trans-line { font-size: 16px; font-weight: 700; color: #666; border-top: 1px dashed #ddd; padding-top: 6px; word-break: break-all; }
+.toast.success-toast .toast-trans-line { color: var(--good); }
+.toast.web-toast .toast-trans-line { color: #4f8fe0; }
+.toast.error-toast .toast-trans-line { color: var(--bad); }
+@keyframes slideDown {from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; }}
+</style>
+</head>
+<body>
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="container">
+ <header>
+   <div class="subtitle">Word Match Game</div>
+   <h1>多國語言<span class="accent">單字配對</span>遊戲</h1>
+ </header>
+ <div id="startScreen" class="card">
+   <h2>開始挑戰</h2>
+   <div class="note">目前系統共 <b id="totalWords">0</b> 個單字可抽取。</div>
+   <div class="section-title">選擇字型</div>
+   <div class="font-dropdown">
+     <div class="font-header" onclick="toggleFontGrid()">
+       <span id="currentFontName">ABC 手寫1</span>
+       <span class="arrow">▾</span>
+     </div>
+     <div class="font-grid" id="fontGrid">
+       <button class="font-btn active" data-font="ABC 手寫1">ABC<br>手寫1</button>
+       <button class="font-btn" data-font="ABC 手寫2">ABC<br>手寫2</button>
+       <button class="font-btn" data-font="ABC 手寫3">ABC<br>手寫3</button>
+       <button class="font-btn" data-font="ABC 手寫4">ABC<br>手寫4</button>
+       <button class="font-btn" data-font="ABC 手寫5">ABC<br>手寫5</button>
+       <button class="font-btn" data-font="ABC 圓潤">ABC<br>圓潤</button>
+       <button class="font-btn" data-font="ABC 圓黑">ABC<br>圓黑</button>
+       <button class="font-btn" data-font="ABC 現代">ABC<br>現代</button>
+       <button class="font-btn" data-font="ABC 系統">ABC<br>系統</button>
+     </div>
+   </div>
+   
+   <div class="section-title">坦米爾文註解大小 (第一區)</div>
+   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+     <span style="font-size: 12px; color:#7a8278;">A-</span>
+     <input type="range" id="enSizeRange" min="0.5" max="4.0" step="0.1" value="1.0" style="flex:1;" oninput="updateFontSize('en', this.value)">
+     <span style="font-size: 24px; color:#7a8278;">A+</span>
+   </div>
+
+   <div class="section-title">中文文字大小 (第二區)</div>
+   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+     <span style="font-size: 12px; color:#7a8278;">A-</span>
+     <input type="range" id="zhSizeRange" min="0.5" max="4.0" step="0.1" value="1.3" style="flex:1;" oninput="updateFontSize('zh', this.value)">
+     <span style="font-size: 24px; color:#7a8278;">A+</span>
+   </div>
+
+   <div class="section-title">選擇單字數量</div>
+   <div class="btn-group">
+     <button class="btn active" data-count="6">6</button>
+     <button class="btn" data-count="12">12</button>
+     <button class="btn" data-count="21">21</button>
+   </div>
+   <button class="start-btn" onclick="startGame()">開始遊戲 ▶</button>
+   <div class="control-btns">
+     <button class="control-btn secondary" onclick="toggleCustomWords()">＋ 自訂單字／各國語言片語 ▾</button>
+   </div>
+   <div id="customPanel" class="custom-panel">
+     <div class="custom-hint">
+       每行一個，格式：<code>第一區文字(中文) | 第二區註解(坦米爾文) | [第三區註解/不發音]</code>
+     </div>
+     <textarea class="custom-textarea" id="customWords" placeholder="關於 💡 | பற்றி | [பற்றி]"></textarea>
+     <div class="custom-actions">
+       <button class="btn small" onclick="clearCustomWords()">清除</button>
+       <span class="custom-count"><span id="customCount">0</span> 個自訂項目</span>
+       <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer;">
+         <input type="checkbox" id="onlyCustom" onchange="updateCustomOnly()">
+         只用自訂單字
+       </label>
+     </div>
+   </div>
+ </div>
+ <div id="gameScreen" class="hidden">
+   <div class="hud">
+     <div class="pill timer"><span class="dot"></span><span id="timer">00:00</span></div>
+     <div class="pill matched"><span class="dot"></span><span id="matched">0</span> 對</div>
+     <button class="quit-btn" onclick="endGame()">結束 ✕</button>
+   </div>
+   <div class="voice-input-container">
+     <button class="voice-btn mic-btn" id="micBtn" onclick="toggleMic()">🎤</button>
+     <button class="voice-btn lang-btn" id="langBtn" onclick="toggleLang()">繁中</button>
+     <div class="voice-input-wrapper">
+       <input type="text" class="voice-input" id="voiceInput" placeholder="點擊輸入框打字..." autocomplete="off">
+     </div>
+     <button class="voice-btn submit-btn" onclick="submitInput()">➤</button>
+   </div>
+   <div class="board" id="board"></div>
+ </div>
+ <div id="endModal" class="modal">
+   <div class="modal-content">
+     <h2>🎉 完成！</h2>
+     <div class="results">
+       <div class="result-item"><b id="resTime">00:00</b><span>完成秒數</span></div>
+       <div class="result-item"><b id="resMatched">0</b><span>配對數量</span></div>
+     </div>
+     <div class="modal-buttons" style="margin-top:10px;">
+       <button class="btn-home" onclick="goHome()">回首頁</button>
+       <button class="btn-retry" onclick="retry()">再玩一次</button>
+     </div>
+   </div>
+ </div>
+</div>
+<script>
+const FONT_MAP = {'ABC 手寫1':"'Patrick Hand', cursive",'ABC 手寫2':"'Caveat', cursive",'ABC 手寫3':"'Schoolbell', cursive",'ABC 手寫4':"'Architects Daughter', cursive",'ABC 手寫5':"'Short Stack', cursive",'ABC 圓潤':"'Fredoka One', cursive",'ABC 圓黑':"'Nunito', sans-serif",'ABC 現代':"'Inter', sans-serif",'ABC 系統':"system-ui, -apple-system, sans-serif"};
+
+const VOICE_LANGS = [
+  {code: 'zh-TW', label: '繁中'}, 
+  {code: '', label: 'AUTO'}, 
+  {code: 'ta-IN', label: '坦米爾'}, 
+  {code: 'ja-JP', label: '日語'}, 
+  {code: 'ko-KR', label: '韓語'}
+];
+let currentLangIndex = 0;
+
+const BASE_VOCABULARY = [
+  {"zh":"貓 🐱","en":"பூனை","phonetic":""}, {"zh":"狗 🐶","en":"நாய்","phonetic":""}, {"zh":"鳥 🐦","en":"பறவை","phonetic":""}, {"zh":"魚 🐟","en":"மீன்","phonetic":""}, {"zh":"兔子 🐰","en":"முயல்","phonetic":""},
+  {"zh":"熊 🐻","en":"கரடி","phonetic":""}, {"zh":"老虎 🐯","en":"புலி","phonetic":""}, {"zh":"獅子 🦁","en":"சிங்கம்","phonetic":""}, {"zh":"母牛 🐄","en":"பசு","phonetic":""}, {"zh":"豬 🐷","en":"பன்றி","phonetic":""},
+  {"zh":"青蛙 🐸","en":"தவளை","phonetic":""}, {"zh":"猴子 🐒","en":"குரங்கு","phonetic":""}, {"zh":"馬 🐴","en":"குதிரை","phonetic":""}, {"zh":"綿羊 🐑","en":"செம்மறியாடு","phonetic":""}, {"zh":"雞 🐔","en":"கோழி","phonetic":""},
+  {"zh":"鴨子 🦆","en":"வாத்து","phonetic":""}, {"zh":"企鵝 🐧","en":"பென்குயின்","phonetic":""}, {"zh":"大象 🐘","en":"யானை","phonetic":""}, {"zh":"老鼠 🐭","en":"எலி","phonetic":""}, {"zh":"烏龜 🐢","en":"ஆமை","phonetic":""},
+  {"zh":"蛇 🐍","en":"பாம்பு","phonetic":""}, {"zh":"鯨魚 🐋","en":"திமிங்கலம்","phonetic":""}, {"zh":"海豚 🐬","en":"டால்பின்","phonetic":""}, {"zh":"蜜蜂 🐝","en":"தேனீ","phonetic":""}, {"zh":"蝴蝶 🦋","en":"வண்ணத்துப்பூச்சி","phonetic":""},
+  {"zh":"螞蟻 🐜","en":"எறும்பு","phonetic":""}, {"zh":"蜘蛛 🕷️","en":"சிலந்தி","phonetic":""}, {"zh":"螃蟹 🦀","en":"நண்டு","phonetic":""}, {"zh":"章魚 🐙","en":"ஆக்டோபஸ்","phonetic":""}, {"zh":"無尾熊 🐨","en":"கோலா","phonetic":""},
+  {"zh":"蘋果 🍎","en":"ஆப்பிள்","phonetic":""}, {"zh":"香蕉 🍌","en":"வாழைப்பழம்","phonetic":""}, {"zh":"橘子 🍊","en":"ஆரஞ்சு","phonetic":""}, {"zh":"葡萄 🍇","en":"திராட்சை","phonetic":""}, {"zh":"草莓 🍓","en":"ஸ்ட்ராபெரி","phonetic":""},
+  {"zh":"西瓜 🍉","en":"தர்பூசணி","phonetic":""}, {"zh":"桃子 🍑","en":"பீச்","phonetic":""}, {"zh":"梨子 🍐","en":"பேரிக்காய்","phonetic":""}, {"zh":"鳳梨 🍍","en":"அன்னாசி","phonetic":""}, {"zh":"檸檬 🍋","en":"எலுமிச்சை","phonetic":""},
+  {"zh":"櫻桃 🍒","en":"செர்ரி","phonetic":""}, {"zh":"番茄 🍅","en":"தக்காளி","phonetic":""}, {"zh":"茄子 🍆","en":"கத்தரிக்காய்","phonetic":""}, {"zh":"紅蘿蔔 🥕","en":"கேரட்","phonetic":""}, {"zh":"玉米 🌽","en":"சோளம்","phonetic":""},
+  {"zh":"馬鈴薯 🥔","en":"உருளைக்கிழங்கு","phonetic":""}, {"zh":"蘑菇 🍄","en":"காளான்","phonetic":""}, {"zh":"麵包 🍞","en":"ரொட்டி","phonetic":""}, {"zh":"米飯 🍚","en":"சாதம்","phonetic":""}, {"zh":"麵條 🍜","en":"நூடுல்ஸ்","phonetic":""},
+  {"zh":"壽司 🍣","en":"சுஷி","phonetic":""}, {"zh":"雞蛋 🥚","en":"முட்டை","phonetic":""}, {"zh":"起司 🧀","en":"சீஸ்","phonetic":""}, {"zh":"牛奶 🥛","en":"பால்","phonetic":""}, {"zh":"咖啡 ☕","en":"காபி","phonetic":""},
+  {"zh":"茶 🍵","en":"தேநீர்","phonetic":""}, {"zh":"果汁 🧃","en":"சாறு","phonetic":""}, {"zh":"水 💧","en":"தண்ணீர்","phonetic":""}, {"zh":"汽水 🥤","en":"சோடா","phonetic":""}, {"zh":"冰淇淋 🍦","en":"ஐஸ்கிரீம்","phonetic":""},
+  {"zh":"蛋糕 🍰","en":"கேக்","phonetic":""}, {"zh":"餅乾 🍪","en":"குக்கீ","phonetic":""}, {"zh":"巧克力 🍫","en":"சாக்லேட்","phonetic":""}, {"zh":"糖果 🍬","en":"மிட்டாய்","phonetic":""}, {"zh":"蜂蜜 🍯","en":"தேன்","phonetic":""},
+  {"zh":"漢堡 🍔","en":"பர்கர்","phonetic":""}, {"zh":"披薩 🍕","en":"பிஸ்ஸா","phonetic":""}, {"zh":"熱狗 🌭","en":"ஹாட் டாக்","phonetic":""}, {"zh":"三明治 🥪","en":"சாண்ட்விச்","phonetic":""}, {"zh":"爆米花 🍿","en":"பாப்கார்ன்","phonetic":""},
+  {"zh":"太陽 ☀️","en":"சூரியன்","phonetic":""}, {"zh":"月亮 🌙","en":"நிலா","phonetic":""}, {"zh":"星星 ⭐","en":"நட்சத்திரம்","phonetic":""}, {"zh":"雲 ☁️","en":"மேகம்","phonetic":""}, {"zh":"下雨 🌧️","en":"மழை","phonetic":""},
+  {"zh":"下雪 ❄️","en":"பனி","phonetic":""}, {"zh":"風 🌬️","en":"காற்று","phonetic":""}, {"zh":"閃電 ⚡","en":"மின்னல்","phonetic":""}, {"zh":"彩虹 🌈","en":"வானவில்","phonetic":""}, {"zh":"火 🔥","en":"நெருப்பு","phonetic":""},
+  {"zh":"樹木 🌳","en":"மரம்","phonetic":""}, {"zh":"花朵 🌸","en":"மலர்","phonetic":""}, {"zh":"玫瑰 🌹","en":"ரோஜா","phonetic":""}, {"zh":"向日葵 🌻","en":"சூரியகாந்தி","phonetic":""}, {"zh":"樹葉 🍃","en":"இலை","phonetic":""},
+  {"zh":"山 ⛰️","en":"மலை","phonetic":""}, {"zh":"火山 🌋","en":"எரிமலை","phonetic":""}, {"zh":"海洋 🌊","en":"பெருங்கடல்","phonetic":""}, {"zh":"河流 🏞️","en":"ஆறு","phonetic":""}, {"zh":"海灘 🏖️","en":"கடற்கரை","phonetic":""},
+  {"zh":"沙漠 🏜️","en":"பாலைவனம்","phonetic":""}, {"zh":"島嶼 🏝️","en":"தீவு","phonetic":""}, {"zh":"地球 🌍","en":"பூமி","phonetic":""}, {"zh":"岩石 🪨","en":"பாறை","phonetic":""}, {"zh":"種子 🌱","en":"விதை","phonetic":""},
+  {"zh":"汽車 🚗","en":"கார்","phonetic":""}, {"zh":"計程車 🚕","en":"டாக்ஸி","phonetic":""}, {"zh":"公車 🚌","en":"பேருந்து","phonetic":""}, {"zh":"火車 🚆","en":"ரயில்","phonetic":""}, {"zh":"地鐵 🚇","en":"மெட்ரோ","phonetic":""},
+  {"zh":"腳踏車 🚲","en":"மிதிவண்டி","phonetic":""}, {"zh":"摩托車 🏍️","en":"மோட்டார் சைக்கிள்","phonetic":""}, {"zh":"飛機 ✈️","en":"விமானம்","phonetic":""}, {"zh":"直升機 🚁","en":"ஹெலிகாப்டர்","phonetic":""}, {"zh":"小船 🚤","en":"படகு","phonetic":""},
+  {"zh":"輪船 🚢","en":"கப்பல்","phonetic":""}, {"zh":"火箭 🚀","en":"ராக்கெட்","phonetic":""}, {"zh":"卡車 🚚","en":"லாரி","phonetic":""}, {"zh":"救護車 🚑","en":"ஆம்புலன்ஸ்","phonetic":""}, {"zh":"警車 🚓","en":"காவல்துறை கார்","phonetic":""},
+  {"zh":"房子 🏠","en":"வீடு","phonetic":""}, {"zh":"門 🚪","en":"கதவு","phonetic":""}, {"zh":"窗戶 🪟","en":"ஜன்னல்","phonetic":""}, {"zh":"床 🛏️","en":"படுக்கை","phonetic":""}, {"zh":"椅子 🪑","en":"நாற்காலி","phonetic":""},
+  {"zh":"沙發 🛋️","en":"சோபா","phonetic":""}, {"zh":"燈泡 💡","en":"விளக்கு","phonetic":""}, {"zh":"馬桶 🚽","en":"கழிப்பறை","phonetic":""}, {"zh":"蓮蓬頭 🚿","en":"குளியல்","phonetic":""}, {"zh":"浴缸 🛁","en":"குளியல் தொட்டி","phonetic":""},
+  {"zh":"鏡子 🪞","en":"கண்ணாடி","phonetic":""}, {"zh":"時鐘 ⏰","en":"கடிகாரம்","phonetic":""}, {"zh":"鑰匙 🔑","en":"சாவி","phonetic":""}, {"zh":"鎖 🔒","en":"பூட்டு","phonetic":""}, {"zh":"禮物 🎁","en":"பரிசு","phonetic":""},
+  {"zh":"氣球 🎈","en":"பலூன்","phonetic":""}, {"zh":"蠟燭 🕯️","en":"மெழுகுவர்த்தி","phonetic":""}, {"zh":"掃把 🧹","en":"துடைப்பம்","phonetic":""}, {"zh":"水桶 🪣","en":"வளிமண்டலம்","phonetic":""}, {"zh":"肥皂 🧼","en":"சோப்பு","phonetic":""},
+  {"zh":"牙刷 🪥","en":"பல் துலக்கி","phonetic":""}, {"zh":"梳子 🪮","en":"சீப்பு","phonetic":""}, {"zh":"剪刀 ✂️","en":"கத்தரிக்கோல்","phonetic":""}, {"zh":"垃圾桶 🗑️","en":"குப்பைத் தொட்டி","phonetic":""}, {"zh":"盒子 📦","en":"பெட்டி","phonetic":""},
+  {"zh":"學校 🏫","en":"பள்ளி","phonetic":""}, {"zh":"書本 📖","en":"புத்தகம்","phonetic":""}, {"zh":"筆記本 📓","en":"நோட்டுப்புத்தகம்","phonetic":""}, {"zh":"原子筆 🖊️","en":"பேனா","phonetic":""}, {"zh":"鉛筆 ✏️","en":"பென்சில்","phonetic":""},
+  {"zh":"尺 📏","en":"அளவுகோல்","phonetic":""}, {"zh":"橡皮擦 🧽","en":"அழிப்பான்","phonetic":""}, {"zh":"紙張 📄","en":"காகிதம்","phonetic":""}, {"zh":"釘書機 📎","en":"ஸ்டேப்லர்","phonetic":""}, {"zh":"書包 🎒","en":"முதுகுப்பை","phonetic":""},
+  {"zh":"電腦 💻","en":"கணினி","phonetic":""}, {"zh":"電話 📱","en":"தொலைபேசி","phonetic":""}, {"zh":"滑鼠 🖱️","en":"மவுஸ்","phonetic":""}, {"zh":"鍵盤 ⌨️","en":"விசைப்பலகை","phonetic":""}, {"zh":"印表機 🖨️","en":"அச்சுப்பொறி","phonetic":""},
+  {"zh":"資料夾 📁","en":"கோப்புறை","phonetic":""}, {"zh":"日曆 📅","en":"நாட்காட்டி","phonetic":""}, {"zh":"地球儀 🌐","en":"பூகோளம்","phonetic":""}, {"zh":"油漆/繪畫 🎨","en":"வண்ணப்பூச்சு","phonetic":""}, {"zh":"蠟筆 🖍️","en":"க்ரேயான்","phonetic":""},
+  {"zh":"眼睛 👁️","en":"கண்","phonetic":""}, {"zh":"耳朵 👂","en":"காது","phonetic":""}, {"zh":"鼻子 👃","en":"மூக்கு","phonetic":""}, {"zh":"嘴巴 👄","en":"வாய்","phonetic":""}, {"zh":"手 ✋","en":"கை","phonetic":""},
+  {"zh":"腳 🦶","en":"கால்","phonetic":""}, {"zh":"心臟 ❤️","en":"இதயம்","phonetic":""}, {"zh":"大腦 🧠","en":"மூளை","phonetic":""}, {"zh":"牙齒 🦷","en":"பல்","phonetic":""}, {"zh":"骨頭 🦴","en":"எலும்பு","phonetic":""},
+  {"zh":"血液 🩸","en":"இரத்தம்","phonetic":""}, {"zh":"繃帶 🩹","en":"கட்டுத்துணி","phonetic":""}, {"zh":"藥丸 💊","en":"மாத்திரை","phonetic":""}, {"zh":"溫度計 🌡️","en":"வெப்பமானி","phonetic":""}, {"zh":"口罩 😷","en":"முகமூடி","phonetic":""},
+  {"zh":"帽子 🧢","en":"தொப்பி","phonetic":""}, {"zh":"皇冠 👑","en":"கிரீடம்","phonetic":""}, {"zh":"眼鏡 👓","en":"கண்ணாடி","phonetic":""}, {"zh":"太陽眼鏡 🕶️","en":"கூலிங்கிளாஸ்","phonetic":""}, {"zh":"襯衫 👕","en":"சட்டை","phonetic":""},
+  {"zh":"褲子 👖","en":"கால்சட்டை","phonetic":""}, {"zh":"連身裙 👗","en":"ஆடை","phonetic":""}, {"zh":"外套 🧥","en":"மேலங்கி","phonetic":""}, {"zh":"襪子 🧦","en":"கால் உறைகள்","phonetic":""}, {"zh":"鞋子 👟","en":"காலணிகள்","phonetic":""},
+  {"zh":"靴子 🥾","en":"பூட்ஸ்","phonetic":""}, {"zh":"包包 👜","en":"பை","phonetic":""}, {"zh":"雨傘 ☂️","en":"குடை","phonetic":""}, {"zh":"手套 🧤","en":"கையுறைகள்","phonetic":""}, {"zh":"圍巾 🧣","en":"மப்ளர்","phonetic":""},
+  {"zh":"醫院 🏥","en":"மருத்துவமனை","phonetic":""}, {"zh":"銀行 🏦","en":"வங்கி","phonetic":""}, {"zh":"商店 🏪","en":"கடை","phonetic":""}, {"zh":"飯店 🏨","en":"ஹோட்டல்","phonetic":""}, {"zh":"教堂 ⛪","en":"தேவாலயம்","phonetic":""},
+  {"zh":"城堡 🏰","en":"கோட்டை","phonetic":""}, {"zh":"公園 🏞️","en":"பூங்கா","phonetic":""}, {"zh":"圖書館 📚","en":"நூலகம்","phonetic":""}, {"zh":"工廠 🏭","en":"தொழிற்சாலை","phonetic":""}, {"zh":"體育場 🏟️","en":"விளையாட்டரங்கம்","phonetic":""},
+  {"zh":"橋樑 🌉","en":"பாலம்","phonetic":""}, {"zh":"帳篷 ⛺","en":"கூடாரம்","phonetic":""}, {"zh":"噴水池  fountains ⛲","en":"நீரூற்று ","phonetic":""}, {"zh":"雕像 🗽","en":"சிலை","phonetic":""}, {"zh":"旗幟 🚩","en":"கொடி","phonetic":""}
+];
+
+let state = {font:'ABC 手寫1', count:6, customWords:[], onlyCustom:false, matched:0, time:0, timerId:null, selected:null, soundEnabled:true, boardCards:[], recognition:null, isRecording:false, voiceLang:'zh-TW', usedWordZh: new Set(), allWords: []};
+function updateFontSize(type, val) { document.documentElement.style.setProperty(type === 'en' ? '--en-card-size' : '--zh-card-size', val); }
+function playBeepSound() { try { const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.value = 150; gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.2); } catch (e) { } }
+
+function showPureToast(inputText, translationText, type) { 
+  const container = document.getElementById('toastContainer'); 
+  const toast = document.createElement('div'); 
+  toast.className = `toast ${type === 'success' ? 'success-toast' : (type === 'web' ? 'web-toast' : (type === 'error' ? 'error-toast' : ''))}`; 
+  
+  const inputLine = document.createElement('div');
+  inputLine.className = 'toast-input-line';
+  inputLine.textContent = inputText;
+  
+  const transLine = document.createElement('div');
+  transLine.className = 'toast-trans-line';
+  transLine.textContent = translationText;
+  
+  toast.appendChild(inputLine);
+  toast.appendChild(transLine);
+  
+  toast.onclick = () => { if (toast.parentNode === container) container.removeChild(toast); };
+  container.appendChild(toast); 
+  
+  setTimeout(() => { if (toast.parentNode === container) container.removeChild(toast); }, 15000); 
+}
+
+function clearAllToasts() { const container = document.getElementById('toastContainer'); if (container) container.innerHTML = ''; }
+function init(){ initFontButtons(); initCountButtons(); const customWordsEl = document.getElementById('customWords'); customWordsEl.addEventListener('input', () => { state.customWords = parseCustomWords(); updateCustomCount(); updateTotalWords(); }); state.customWords = parseCustomWords(); updateCustomCount(); updateTotalWords(); document.documentElement.style.setProperty('--en-font-family', FONT_MAP['ABC 手寫1']); }
+function toggleFontGrid(){ document.getElementById('fontGrid').classList.toggle('open'); document.querySelector('.font-header').classList.toggle('open'); }
+function initFontButtons(){ document.querySelectorAll('#fontGrid .font-btn').forEach(b=>{ b.onclick=()=>{ document.querySelectorAll('#fontGrid .font-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); state.font=b.dataset.font; document.getElementById('currentFontName').textContent = state.font; document.documentElement.style.setProperty('--en-font-family', FONT_MAP[state.font]); }; }); }
+function initCountButtons(){ document.querySelectorAll('[data-count]').forEach(b=>{ b.onclick=()=>{ document.querySelectorAll('[data-count]').forEach(x=>x.classList.remove('active')); b.classList.add('active'); state.count=parseInt(b.dataset.count); }; }); }
+function updateTotalWords(){ document.getElementById('totalWords').textContent = filterVocabulary().length; }
+function filterVocabulary(){ if (state.onlyCustom) return [...state.customWords]; return [...BASE_VOCABULARY, ...state.customWords]; }
+function toggleCustomWords(){document.getElementById('customPanel').classList.toggle('open');}
+function clearCustomWords(){document.getElementById('customWords').value='';state.customWords=[];updateCustomCount();updateTotalWords();}
+function updateCustomOnly(){state.onlyCustom=document.getElementById('onlyCustom').checked;updateTotalWords();}
+function updateCustomCount(){document.getElementById('customCount').textContent=state.customWords.length;}
+
+function parseCustomWords(){ 
+  const text=document.getElementById('customWords').value.trim(); 
+  if(!text)return[]; 
+  return text.split('\n').filter(l=>l.trim()).map(line=>{ 
+    const parts=line.split('|').map(p=>p.trim()); 
+    let zh=parts[0]||'', en=parts[1]||'', phonetic=parts[2]||''; 
+    zh=zh.replace(/\[.*?\]/g,'').trim();
+    en=en.replace(/\[.*?\]/g,'').trim(); 
+    if(!phonetic){const m=line.match(/\[(.*?)\]/);if(m)phonetic=`[${m[1]}]`;} 
+    return{zh,en,phonetic}; 
+  }).filter(w=>w.zh&&w.en); 
+}
+
+function startGame(){ 
+  state.customWords=parseCustomWords(); 
+  updateCustomCount(); 
+  state.allWords = filterVocabulary(); 
+  if(state.allWords.length===0){showPureToast('無單字數據','請新增單字', 'error');return;} 
+  state.usedWordZh = new Set(); 
+  state.boardCards = []; 
+  const initialPool = state.allWords.sort(()=>Math.random()-0.5).slice(0,state.count); 
+  initialPool.forEach(w => { 
+    state.usedWordZh.add(w.zh); 
+    state.boardCards.push({type:'zh',text:w.zh,word:w},{type:'en',text:w.en,phonetic:w.phonetic,word:w}); 
+  }); 
+  state.matched=0; 
+  state.time=0; 
+  state.selected=null; 
+  document.getElementById('startScreen').classList.add('hidden'); 
+  document.getElementById('gameScreen').classList.remove('hidden'); 
+  document.getElementById('matched').textContent='0'; 
+  document.getElementById('timer').textContent='00:00'; 
+  document.getElementById('voiceInput').value = ''; 
+  document.getElementById('langBtn').textContent = VOICE_LANGS[currentLangIndex].label; 
+  
+  renderBoard(); 
+  state.timerId=setInterval(()=>{ 
+    state.time++; 
+    document.getElementById('timer').textContent=`${String(Math.floor(state.time/60)).padStart(2,'0')}:${String(state.time%60).padStart(2,'0')}`; 
+  },1000); 
+}
+
+function renderBoard(){ 
+  const b=document.getElementById('board'); 
+  b.innerHTML=''; 
+  state.boardCards.sort(()=>Math.random()-0.5).forEach((cardData,index)=>{ 
+    cardData.diagonal=Math.random()>0.7; 
+    const d=document.createElement('div'); 
+    d.className=`game-card ${cardData.type}${cardData.diagonal?' diagonal':''}`; 
+    d.setAttribute('data-index', index); 
+    let t=cardData.text; 
+    if(cardData.type==='en') t=highlightVowels(t); 
+    d.innerHTML=`<div class="text">${t}</div>${(cardData.phonetic && cardData.type==='en')?`<div class="phonetic">${cardData.phonetic}</div>`:''}<div class="speaker">🔊</div>`; 
+    d.onclick=(e)=>handleCardClick(e,d,cardData); 
+    b.appendChild(d); 
+    cardData.dom = d; 
+    cardData.index = index; 
+  }); 
+}
+
+function highlightVowels(w){ 
+  return w.split('').map(c=>{ 
+    const l=c.toLowerCase(); 
+    if('aeiou'.includes(l)) return `<span class="v-${l}">${c}</span>`; 
+    return c; 
+  }).join(''); 
+}
+
+function handleCardClick(e,cardDom,cardData){ 
+  if(e){e.preventDefault(); e.stopPropagation();} 
+  if(cardDom.classList.contains('cleared') || cardDom.classList.contains('correct'))return; 
+  if(!state.isRecording && 'speechSynthesis' in window){ 
+    window.speechSynthesis.cancel(); 
+    if(state.soundEnabled) {
+      if(cardData.type === 'zh') {
+        const cleanZh = cardData.word.zh.replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
+        speak(cleanZh, 'zh-TW');
+      } else {
+        const cleanEn = cardData.word.en.replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
+        speak(cleanEn, 'ta-IN');
+      }
+    }
+  } 
+  if(state.selected && state.selected.card === cardDom){ cardDom.classList.remove('selected'); state.selected = null; return; } 
+  if(!state.selected){ 
+    state.selected={card: cardDom, cardData}; 
+    cardDom.classList.add('selected'); 
+  }else{ 
+    const f=state.selected, s={card: cardDom, cardData}; 
+    if(f.cardData.type!==s.cardData.type && f.cardData.word.zh===s.cardData.word.zh){ 
+      f.card.classList.remove('selected'); 
+      f.card.classList.add('correct'); 
+      s.card.classList.add('correct'); 
+      state.matched++; 
+      document.getElementById('matched').textContent=state.matched; 
+      state.selected=null; 
+      setTimeout(()=>{ shiftAndRefill(f.card, s.card); },400); 
+    }else{ 
+      f.card.classList.remove('selected'); 
+      f.card.classList.add('wrong'); 
+      s.card.classList.add('wrong'); 
+      setTimeout(()=>{f.card.classList.remove('wrong');s.card.classList.remove('wrong');},400); 
+      state.selected=null; 
+    } 
+  } 
+}
+
+function shiftAndRefill(firstDom, secondDom) { 
+  const board = document.getElementById('board'); 
+  state.boardCards = state.boardCards.filter(c => c.dom !== firstDom && c.dom !== secondDom); 
+  let available = state.allWords.filter(w => !state.usedWordZh.has(w.zh)); 
+  if (available.length === 0) { 
+    state.usedWordZh.clear(); 
+    state.boardCards.forEach(c => state.usedWordZh.add(c.word.zh)); 
+    available = state.allWords.filter(w => !state.usedWordZh.has(w.zh)); 
+  } 
+  if (available.length > 0) { 
+    available.sort(() => Math.random() - 0.5); 
+    const newWord = available[0]; 
+    state.usedWordZh.add(newWord.zh); 
+    state.boardCards.push({ type: 'zh', text: newWord.zh, word: newWord }, { type: 'en', text: newWord.en, phonetic: newWord.phonetic, word: newWord }); 
+  } 
+  state.boardCards.sort(() => Math.random() - 0.5); 
+  board.innerHTML = ''; 
+  state.boardCards.forEach((cardData, idx) => { 
+    cardData.diagonal = Math.random() > 0.7; 
+    const d = document.createElement('div'); 
+    d.className = `game-card ${cardData.type}${cardData.diagonal ? ' diagonal' : ''}`; 
+    let t = cardData.text; 
+    if (cardData.type === 'en') t = highlightVowels(t); 
+    d.innerHTML = `<div class="text">${t}</div>${(cardData.phonetic && cardData.type==='en') ? `<div class="phonetic">${cardData.phonetic}</div>` : ''}<div class="speaker">🔊</div>`; 
+    d.onclick = (e) => handleCardClick(e, d, cardData); 
+    board.appendChild(d); 
+    cardData.dom = d; 
+    cardData.index = idx; 
+  }); 
+}
+
+function speak(text, lang='ta-IN'){ 
+  if('speechSynthesis' in window){ 
+    const cleanText = text.replace(/[\[\]]/g, '').trim(); 
+    if(!cleanText) return; 
+    const u=new SpeechSynthesisUtterance(cleanText); 
+    u.lang=lang; 
+    u.rate=0.9; 
+    u.pitch=1; 
+    window.speechSynthesis.speak(u); 
+  } 
+}
+
+function toggleLang(){ 
+  const btn = document.getElementById('langBtn'); 
+  currentLangIndex = (currentLangIndex + 1) % VOICE_LANGS.length; 
+  const selected = VOICE_LANGS[currentLangIndex]; 
+  state.voiceLang = selected.code; 
+  btn.textContent = selected.label; 
+}
+
+async function toggleMic(){ 
+  const btn = document.getElementById('micBtn'); 
+  const input = document.getElementById('voiceInput'); 
+  if(!state.isRecording){ 
+    try{ 
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition; 
+      if(!SR){ 
+        showPureToast('不支援語音辨識','請手動打字輸入', 'error'); 
+        return; 
+      } 
+      if('speechSynthesis' in window) window.speechSynthesis.cancel(); 
+      state.recognition = new SR(); 
+      state.recognition.lang = state.voiceLang; 
+      
+      state.recognition.onstart = () => { 
+        state.isRecording = true; 
+        btn.classList.add('recording'); 
+      }; 
+      state.recognition.onresult = (e) => { 
+        input.value = e.results[0][0].transcript; 
+        stopRecording(); 
+        submitInput(); 
+      }; 
+      state.recognition.onend = () => stopRecording(); 
+      state.recognition.start(); 
+    }catch(err){ 
+      stopRecording(); 
+    } 
+  }else{ 
+    if(state.recognition) try { state.recognition.stop(); } catch(e){} 
+    stopRecording(); 
+  } 
+}
+function stopRecording(){ state.isRecording = false; const btn = document.getElementById('micBtn'); if(btn) btn.classList.remove('recording'); }
+function cleanText(str) { return str.toLowerCase().replace(/[\s\p{P}\p{S}]/gu, ''); }
+
+async function fetchOnlineTranslation(text) {
+  try {
+    const isTamil = /[\u0B80-\u0BFF]/.test(text);
+    const pair = isTamil ? "ta|zh-TW" : "zh-TW|ta";
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${pair}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data && data.responseData && data.responseData.translatedText) {
+      let result = data.responseData.translatedText.trim();
+      if (cleanText(result) === cleanText(text)) return null; 
+      return result;
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function submitInput(){ 
+  const input = document.getElementById('voiceInput'); 
+  const text = input.value.trim(); 
+  if(!text) return; 
+  
+  clearAllToasts();
+  input.blur(); 
+  
+  const userCleaned = cleanText(text); 
+  let matchedCards = state.boardCards.filter(c => userCleaned === cleanText(c.text)); 
+  
+  if(matchedCards.length > 0){ 
+    const targetZh = matchedCards[0].word.zh; 
+    const targetEn = matchedCards[0].word.en;
+    const pair = state.boardCards.filter(c => c.word.zh === targetZh); 
+    
+    showPureToast(targetZh, targetEn, 'success');
+    
+    pair.forEach(c => c.dom.classList.add('correct')); 
+    state.matched++; 
+    document.getElementById('matched').textContent = state.matched; 
+    if('speechSynthesis' in window && state.soundEnabled) {
+      const cleanEn = targetEn.replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
+      speak(cleanEn, 'ta-IN'); 
+    }
+    setTimeout(()=>{ shiftAndRefill(pair[0].dom, pair[1]?.dom || pair[0].dom); }, 400); 
+  } else { 
+    const foundInDict = BASE_VOCABULARY.find(v => cleanText(v.zh) === userCleaned || cleanText(v.en) === userCleaned);
+    const foundInCustom = state.customWords.find(v => cleanText(v.zh) === userCleaned || cleanText(v.en) === userCleaned);
+    const existInVocabulary = foundInDict || foundInCustom;
+
+    if(existInVocabulary) {
+      showPureToast(existInVocabulary.zh, existInVocabulary.en, 'success');
+      if('speechSynthesis' in window && state.soundEnabled) {
+        const cleanEn = existInVocabulary.en.replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
+        speak(cleanEn, 'ta-IN');
+      }
+    } else {
+      const onlineResult = await fetchOnlineTranslation(text);
+      if (onlineResult) {
+        const isTamil = /[\u0B80-\u0BFF]/.test(text);
+        const zhPart = isTamil ? onlineResult : text;
+        const enPart = isTamil ? text : onlineResult;
+        
+        showPureToast(zhPart, enPart, 'web');
+        if('speechSynthesis' in window && state.soundEnabled) {
+          speak(enPart, 'ta-IN');
+        }
+      } else {
+        playBeepSound(); 
+        showPureToast("網路查無文字", "網路搜尋不到，字庫也無此單字！", 'error');
+      }
+    }
+  } 
+  input.value = ''; 
+}
+
+function endGame(){ clearInterval(state.timerId); document.getElementById('resTime').textContent=document.getElementById('timer').textContent; document.getElementById('resMatched').textContent=state.matched; document.getElementById('endModal').classList.add('active'); }
+function goHome(){ document.getElementById('endModal').classList.remove('active'); document.getElementById('gameScreen').classList.add('hidden'); document.getElementById('startScreen').classList.remove('hidden'); clearInterval(state.timerId); updateTotalWords(); }
+function retry(){document.getElementById('endModal').classList.remove('active');startGame();}
+init();
+</script>
+</body>
+</html>
