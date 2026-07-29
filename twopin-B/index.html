@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinguaBook </title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body {
+    overflow-y: auto !important;
+    touch-action: pan-y pinch-zoom;
+  }
+  section {
+    touch-action: pan-y pinch-zoom;
+  }
+  .no-select {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  /* 自動調整高度且預設為一行的 textarea 樣式 */
+  .auto-textarea {
+    resize: none;
+    overflow-y: hidden;
+    line-height: 1.5rem;
+    min-height: calc(1.5rem + 1.5rem); /* 上下 padding 加上一行高度的空間 */
+  }
+</style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-y-auto">
+<!-- 頂部導覽列：歌曲名稱輸入框 -->
+<header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center shadow-md w-full shrink-0">
+<div class="flex items-center w-full bg-slate-950 border border-slate-800 px-4 py-2 rounded-xl">
+<input type="text" id="songTitleInput" value="" class="bg-transparent text-base md:text-lg text-slate-200 font-bold outline-none focus:text-emerald-400 w-full text-center placeholder-slate-600" placeholder="請輸入歌曲名稱">
+</div>
+</header>
+
+<!-- 主要內容導覽 -->
+<main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- 左側：影音播放與設定 (佔 2 欄) -->
+<section class="lg:col-span-2 flex flex-col gap-4">
+<!-- 媒體播放器容器 -->
+<div id="mediaContainer" class="bg-black rounded-2xl overflow-hidden aspect-[9/16] max-h-[750px] mx-auto w-full max-w-[420px] relative flex items-center justify-center border border-slate-800 shadow-2xl select-none" style="touch-action: pan-x pan-y;">
+<audio id="audioPlayer" class="hidden" playsinline></audio>
+<div id="imageLayer" class="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing pointer-events-none hidden z-0">
+<img id="imageElement" class="w-full h-full object-contain pointer-events-none select-none" alt="背景圖片">
+</div>
+<div id="videoLayer" class="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing pointer-events-none hidden z-1">
+<video id="videoPlayer" class="w-full h-full object-contain pointer-events-none" playsinline></video>
+</div>
+<div id="imagePlaceholder" class="hidden"></div>
+
+<!-- 字幕層 -->
+<div id="draggableSubtitle" 
+class="absolute bottom-4 left-4 right-4 bg-transparent px-3 py-3 rounded-xl text-center z-50 flex flex-col gap-1.5 group no-select hidden cursor-pointer pointer-events-auto"
+style="touch-action: none;">
+<div id="subtitleTimeContainer" class="hidden">
+<span id="subtitleTimeDisplay" class="hidden"></span>
+</div>
+<div id="mainPrimaryLyric" class="font-bold text-emerald-300 tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] pointer-events-none transition-all duration-75" style="font-size: 14px;"></div>
+<div id="mainTranslationLyric" class="text-slate-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] pointer-events-none transition-all duration-75" style="font-size: 12px;"></div>
+</div>
+</div>
+
+<!-- 音樂與媒體控制面板 -->
+<div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex flex-col gap-4 shadow-lg">
+<div class="flex flex-col gap-1.5">
+<div id="progressBarContainer" class="w-full h-3 bg-slate-800 rounded-full cursor-pointer relative overflow-hidden group py-1">
+<div class="w-full h-full bg-slate-800 rounded-full relative pointer-events-none">
+<div id="progressBar" class="h-full bg-slate-800 w-0 transition-all duration-75 relative rounded-full">
+<div id="progressHandle" class="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full shadow"></div>
+</div>
+</div>
+</div>
+<div class="flex justify-between text-xs text-slate-400 font-mono">
+<span id="currentTimeDisplay">00:00</span>
+<span id="durationDisplay">00:00</span>
+</div>
+</div>
+<div class="flex items-center justify-around pt-1">
+<button onclick="app.toggleLoop()" id="loopBtn" class="text-slate-400 hover:text-slate-200 transition text-sm flex items-center gap-1">
+<svg id="loopIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+</button>
+<button onclick="app.prevLine()" class="text-slate-300 hover:text-white transition p-2">
+<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+</button>
+<button onclick="app.togglePlay()" id="playPauseBtn" class="w-14 h-14 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full flex items-center justify-center text-slate-100 shadow-lg transition active:scale-95">
+<svg id="playIcon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+<svg id="pauseIcon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+</button>
+<button onclick="app.nextLine()" class="text-slate-300 hover:text-white transition p-2">
+<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+</button>
+<button onclick="app.cycleRate()" id="rateBtn" class="text-slate-400 hover:text-slate-200 transition text-xs font-mono font-bold bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg">
+1.0x
+</button>
+</div>
+</div>
+
+<!-- 功能按鈕網格區：5欄 × 2列 -->
+<div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 grid grid-cols-5 gap-2.5 shadow-lg">
+<!-- 上排第 1 格 -->
+<label id="btnImageContainer" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-1 py-1.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center text-slate-200 text-xs text-center font-medium select-none h-14">
+<span class="text-xs leading-none">🖼️圖案</span>
+<span class="text-[9px] text-slate-400 leading-none mt-1">IMG</span>
+<input type="file" accept="image/*" class="hidden" onchange="app.loadImage(event)">
+</label>
+<!-- 上排第 2 格 -->
+<label id="btnAudioContainer" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-1 py-1.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center text-slate-200 text-xs text-center font-medium select-none h-14">
+<span class="text-xs leading-none">🎵音樂</span>
+<span class="text-[9px] text-slate-400 leading-none mt-1">AUDIO</span>
+<input type="file" accept="audio/*" class="hidden" onchange="app.loadAudio(event)">
+</label>
+<!-- 上排第 3 格 -->
+<label id="btnVideoContainer" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-1 py-1.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center text-slate-200 text-xs text-center font-medium select-none h-14">
+<span class="text-xs leading-none">🎬影片</span>
+<span class="text-[9px] text-slate-400 leading-none mt-1">MP4</span>
+<input type="file" accept="video/*" class="hidden" onchange="app.loadVideo(event)">
+</label>
+<!-- 上排第 4 格 -->
+<button onclick="app.clearMediaFile()" id="clearMediaBtn" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-1 py-1.5 rounded-xl transition flex flex-col items-center justify-center text-xs font-medium h-14">
+<span class="text-xs leading-none">🗑️清除</span>
+<span class="text-[9px] text-slate-400 leading-none mt-1">RESET</span>
+</button>
+<!-- 上排第 5 格 -->
+<button onclick="app.toggleRecording()" id="recordBtn" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-1 py-1.5 rounded-xl transition flex flex-col items-center justify-center text-xs font-medium h-14">
+<span class="text-xs leading-none">🎙️錄音</span>
+<span id="recordText" class="text-[9px] text-slate-400 leading-none mt-1">WEBM</span>
+</button>
+
+<!-- 下排第 1 格 -->
+<label class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-1 py-1.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center font-medium text-xs text-slate-200 relative overflow-hidden select-none h-14">
+<span class="text-xs leading-none">🎨原文</span>
+<span class="text-[9px] text-slate-400 leading-none mt-1">COLOR</span>
+<input type="color" id="primaryColorPicker" value="#6ee7b7" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" onchange="app.changePrimaryColor(this.value)">
+</label>
+<!-- 下排第 2 格 -->
+<label class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-1 py-1.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center font-medium text-xs text-slate-200 relative overflow-hidden select-none h-14">
+<span class="text-xs leading-none">🎨翻譯</span>
+<span class="text-[9px] text-slate-400 leading-none mt-1">COLOR</span>
+<input type="color" id="translationColorPicker" value="#cbd5e1" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" onchange="app.changeTranslationColor(this.value)">
+</label>
+<!-- 下排第 3 格 -->
+<button onclick="app.exportLrc()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-1 py-1.5 rounded-xl text-xs text-slate-200 font-medium transition flex flex-col items-center justify-center h-14">
+<span class="text-xs leading-none">📤存檔</span>
+<span class="text-[9px] text-slate-400 leading-none mt-1">LRC</span>
+</button>
+<!-- 下排第 4 格 -->
+<label class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-1 py-1.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center text-xs text-slate-200 font-medium select-none h-14">
+<span class="text-xs leading-none">📥讀取</span>
+<span class="text-[9px] text-slate-400 leading-none mt-1">LRC/TXT</span>
+<input type="file" accept=".lrc,.txt" class="hidden" onchange="app.importLrc(event)">
+</label>
+<!-- 下排第 5 格 -->
+<button onclick="app.toggleTTS()" id="ttsToggleBtn" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-1 py-1.5 rounded-xl transition flex flex-col items-center justify-center font-medium text-xs h-14">
+<span class="text-xs leading-none">🗣️朗讀</span>
+<span id="ttsToggleText" class="text-[9px] text-slate-400 leading-none mt-1">SPEECH</span>
+</button>
+</div>
+</section>
+
+<!-- 右側：雙語歌詞編輯區 -->
+<section class="bg-slate-900 rounded-2xl border border-slate-800 p-4 flex flex-col h-auto shadow-2xl">
+<div class="flex border-b border-slate-800 pb-3 mb-3 justify-between items-center shrink-0">
+<h2 class="font-bold text-slate-200">雙語歌詞編輯</h2>
+<div class="flex bg-slate-950 border border-slate-800 rounded-lg p-0.5">
+<button onclick="app.switchMode('text')" id="modeTextBtn" class="px-3 py-1 text-xs rounded-md font-medium transition bg-emerald-600 text-white">文字框模式</button>
+<button onclick="app.switchMode('structure')" id="modeStructBtn" class="px-3 py-1 text-xs rounded-md font-medium transition text-slate-400 hover:text-white">結構化</button>
+</div>
+</div>
+<!-- 模式 1：文字框模式 -->
+<div id="textModeContainer" class="flex flex-col gap-3">
+<div class="flex flex-col gap-1.5">
+<label class="text-xs text-slate-400 font-medium flex justify-between">
+<span>主要語言歌詞 (原文)</span>
+</label>
+<div class="relative flex flex-col">
+<textarea id="primaryInput" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 pr-9 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 auto-textarea" oninput="app.autoResizeTextarea(this); app.markUserEdited();" placeholder="請輸入原文歌詞..."></textarea>
+<button onclick="app.clearTextArea('primaryInput')" title="清除主歌詞" class="absolute right-2.5 bottom-3 w-5 h-5 bg-slate-800 hover:bg-red-500/80 text-slate-400 hover:text-white rounded-full flex items-center justify-center text-[10px] font-bold transition">✕</button>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-xs text-slate-400 font-medium flex justify-between">
+<span>第二語言歌詞 (翻譯)</span>
+</label>
+<div class="relative flex flex-col">
+<textarea id="translationInput" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 pr-9 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 auto-textarea" oninput="app.autoResizeTextarea(this); app.markUserEdited();" placeholder="請輸入第二語言/翻譯歌詞..."></textarea>
+<button onclick="app.clearTextArea('translationInput')" title="清除翻譯歌詞" class="absolute right-2.5 bottom-3 w-5 h-5 bg-slate-800 hover:bg-red-500/80 text-slate-400 hover:text-white rounded-full flex items-center justify-center text-[10px] font-bold transition">✕</button>
+</div>
+</div>
+</div>
+<!-- 模式 2：結構化模式 -->
+<div id="structureModeContainer" class="hidden flex flex-col gap-3">
+<div class="flex justify-between items-center text-xs text-slate-400 px-1 shrink-0">
+<span>原文與翻譯卡片清單</span>
+<button onclick="app.addLyricRow()" class="text-emerald-400 hover:underline">+ 新增一行</button>
+</div>
+<div id="structuredList" class="flex flex-col gap-3"></div>
+</div>
+</section>
+</main>
+
+<!-- 編輯彈出視窗 (Modal) -->
+<div id="quickEditModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+<div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 flex flex-col gap-4 shadow-2xl">
+<div class="flex justify-between items-center border-b border-slate-800 pb-3">
+<h3 class="font-bold text-slate-200 text-sm">編輯目前歌詞</h3>
+<button onclick="app.closeQuickEdit()" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex flex-col gap-1">
+<label class="text-xs text-slate-400 font-mono">時間軸 (mm:ss.ms)</label>
+<input type="text" id="quickEditTime" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-emerald-400 font-mono outline-none focus:border-emerald-500">
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-xs text-slate-400">主要語言歌詞 (原文)</label>
+<textarea id="quickEditPrimary" rows="2" class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 outline-none focus:border-emerald-500 resize-none"></textarea>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-xs text-slate-400">第二語言歌詞 (翻譯)</label>
+<textarea id="quickEditTranslation" rows="2" class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-400 outline-none focus:border-emerald-500 resize-none"></textarea>
+</div>
+</div>
+<div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+<button onclick="app.closeQuickEdit()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition">取消</button>
+<button onclick="app.saveQuickEdit()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-medium transition">儲存變更</button>
+</div>
+</div>
+</div>
+
+<!-- 核心應用程式邏輯 -->
+<script>
+class LinguaBookApp {
+constructor() {
+this.audioElement = document.getElementById('audioPlayer');
+this.videoElement = document.getElementById('videoPlayer');
+this.imageElement = document.getElementById('imageElement');
+this.imageLayer = document.getElementById('imageLayer');
+this.videoLayer = document.getElementById('videoLayer');
+this.imagePlaceholder = document.getElementById('imagePlaceholder');
+this.currentTimeDisplay = document.getElementById('currentTimeDisplay');
+this.durationDisplay = document.getElementById('durationDisplay');
+this.progressBar = document.getElementById('progressBar');
+this.progressHandle = document.getElementById('progressHandle');
+this.progressBarContainer = document.getElementById('progressBarContainer');
+this.mainPrimaryLyric = document.getElementById('mainPrimaryLyric');
+this.mainTranslationLyric = document.getElementById('mainTranslationLyric');
+this.subtitleTimeDisplay = document.getElementById('subtitleTimeDisplay');
+this.draggableSubtitle = document.getElementById('draggableSubtitle');
+this.songTitleInput = document.getElementById('songTitleInput');
+
+this.activeMedia = this.audioElement;
+this.lyricsData = [];
+this.currentIndex = -1;
+this.rates = [0.5, 0.75, 1.0, 1.25, 1.5];
+this.rateIndex = 2;
+this.currentMode = 'text';
+
+this.ttsEnabled = false;
+this.syntheticDuration = 0;
+this.isSyntheticPlaying = false;
+this.syntheticCurrentTime = 0;
+this.syntheticAnimFrame = null;
+this.lastSpokenIndex = -1;
+
+this.mediaRecorder = null;
+this.audioChunks = [];
+this.isRecording = false;
+
+this.availableVoices = [];
+if ('speechSynthesis' in window) {
+window.speechSynthesis.onvoiceschanged = () => {
+this.availableVoices = window.speechSynthesis.getVoices();
+};
+this.availableVoices = window.speechSynthesis.getVoices();
+}
+
+this.primary0Size = 14;
+this.trans0Size = 12;
+this.scaleMultiplier = 1.0;
+
+this.primaryColor = '#6ee7b7';
+this.translationColor = '#cbd5e1';
+
+this.isSyncing = false; 
+this.hasUserEdited = false;
+
+this.updateInputsFromData();
+this.initHighSpeedSubtitleControl();
+this.initInteractiveLayer(this.imageLayer);
+this.initInteractiveLayer(this.videoLayer);
+this.initProgressBarDrag();
+
+[this.audioElement, this.videoElement].forEach(media => {
+media.addEventListener('timeupdate', () => {
+if (this.activeMedia === media) this.handleTimeUpdate();
+});
+media.addEventListener('ended', () => {
+if (this.activeMedia === media) {
+if (media.loop) {
+media.currentTime = 0;
+media.play();
+} else {
+media.currentTime = 0;
+media.pause();
+this.updatePlayState(false);
+this.currentIndex = -1;
+this.updateMainDisplay();
+}
+}
+});
+media.addEventListener('loadedmetadata', () => {
+if (this.activeMedia === media && media.duration) {
+this.durationDisplay.textContent = this.formatTime(media.duration);
+}
+});
+});
+
+// 即時雙向同步：當文字框內容改變時，自動更新資料與時間軸
+document.getElementById('primaryInput').addEventListener('input', () => {
+this.syncFromInputsSilent();
+});
+document.getElementById('translationInput').addEventListener('input', () => {
+this.syncFromInputsSilent();
+});
+}
+
+getSongTitle() {
+const val = this.songTitleInput.value.trim();
+return val ? val : '未命名歌曲';
+}
+
+clearTextArea(elementId) {
+const textarea = document.getElementById(elementId);
+if (textarea) {
+textarea.value = '';
+this.autoResizeTextarea(textarea);
+textarea.focus();
+this.syncFromInputsSilent();
+}
+}
+
+/* 修正行動端無限拉伸的關鍵函式 */
+autoResizeTextarea(textarea) {
+  if (!textarea) return;
+  // 先將高度強制歸零，清除殘留的快取佈局高度
+  textarea.style.height = '0px';
+  // 重新獲取真實的文字內容高度並賦值（CSS 的 min-height 會自動保護最小高度限制）
+  textarea.style.height = textarea.scrollHeight + 'px';
+}
+
+markUserEdited() {
+this.hasUserEdited = true;
+}
+
+syncFromInputsSilent() {
+const primaryRaw = document.getElementById('primaryInput').value;
+const transRaw = document.getElementById('translationInput').value;
+
+const primaryLines = primaryRaw.split(/\r?\n/);
+const transLines = transRaw.split(/\r?\n/);
+
+const maxLen = Math.max(primaryLines.length, transLines.length);
+let newItems = [];
+let fallbackTime = 0.0;
+
+for (let i = 0; i < maxLen; i++) {
+const primary = primaryLines[i] !== undefined ? primaryLines[i].trim() : '';
+const translation = transLines[i] !== undefined ? transLines[i].trim() : '';
+
+if (primary === '' && translation === '') {
+continue;
+}
+
+let time = (this.lyricsData[i] && this.lyricsData[i].time !== undefined) ? this.lyricsData[i].time : fallbackTime;
+newItems.push({ time, primary, translation, endTime: time + 1.5 });
+fallbackTime += 5.0;
+}
+
+this.lyricsData = newItems;
+this.calculateDynamicTimings();
+if (this.currentMode === 'structure') {
+this.renderStructureUI();
+}
+this.updateMainDisplay();
+}
+
+calculateDynamicTimings() {
+let currentTime = 0.0;
+const rate = (this.rates && this.rates[this.rateIndex]) ? this.rates[this.rateIndex] : 1.0;
+
+for (let i = 0; i < this.lyricsData.length; i++) {
+const item = this.lyricsData[i];
+this.lyricsData[i].time = Number(currentTime.toFixed(2));
+
+const primaryLen = item.primary ? item.primary.length : 0;
+const transLen = item.translation ? item.translation.length : 0;
+
+const primaryDuration = Math.max(0.8, (primaryLen / 3.8)) / rate;
+const transDuration = transLen > 0 ? (Math.max(0.6, (transLen / 4.0)) / rate) : 0;
+
+const baseLen = Math.max(primaryLen, transLen);
+const dynamicPause = Math.min(3.5, Math.max(1.2, baseLen * 0.15)) / rate;
+
+const totalLineDuration = primaryDuration + (transLen > 0 ? (0.3 + transDuration) : 0) + dynamicPause;
+this.lyricsData[i].endTime = Number((currentTime + totalLineDuration).toFixed(2));
+currentTime += totalLineDuration;
+}
+
+this.updateDurationDisplay();
+}
+
+updateDurationDisplay() {
+if (this.activeMedia.src && this.activeMedia.duration && !isNaN(this.activeMedia.duration)) {
+this.durationDisplay.textContent = this.formatTime(this.activeMedia.duration);
+} else if (this.lyricsData.length > 0) {
+const maxTime = this.lyricsData[this.lyricsData.length - 1].endTime + 1.0;
+this.syntheticDuration = maxTime;
+this.durationDisplay.textContent = this.formatTime(maxTime);
+} else {
+this.syntheticDuration = 0;
+this.durationDisplay.textContent = "00:00";
+}
+}
+
+changePrimaryColor(hexColor) {
+this.primaryColor = hexColor;
+this.updateMainDisplay(false);
+}
+
+changeTranslationColor(hexColor) {
+this.translationColor = hexColor;
+this.updateMainDisplay(false);
+}
+
+toggleTTS() {
+this.ttsEnabled = !this.ttsEnabled;
+
+if (this.ttsEnabled) {
+alert("已開啟朗讀功能（將根據內文長度自動計算各句間隔）");
+if (this.lyricsData.length > 0) {
+this.calculateDynamicTimings();
+}
+} else {
+alert("已關閉朗讀功能");
+}
+
+if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+this.currentIndex = -1;
+this.lastSpokenIndex = -1;
+this.syntheticCurrentTime = 0;
+
+if (this.activeMedia && this.activeMedia.src) {
+this.activeMedia.currentTime = 0;
+}
+if (this.isSyntheticPlaying) {
+this.startSyntheticPlayback();
+} else {
+this.handleSyntheticTimeUpdate();
+}
+
+const btn = document.getElementById('ttsToggleBtn');
+const textSpan = document.getElementById('ttsToggleText');
+
+if (this.ttsEnabled) {
+btn.className = "bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 px-1 py-1.5 rounded-xl transition flex flex-col items-center justify-center font-medium text-xs shadow-sm h-14";
+textSpan.textContent = "SPEECH";
+} else {
+btn.className = "bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-1 py-1.5 rounded-xl transition flex flex-col items-center justify-center font-medium text-xs h-14";
+textSpan.textContent = "SPEECH";
+}
+}
+
+async toggleRecording() {
+const btn = document.getElementById('recordBtn');
+const recordText = document.getElementById('recordText');
+if (!this.isRecording) {
+try {
+const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+this.mediaRecorder = new MediaRecorder(stream);
+this.audioChunks = [];
+
+this.mediaRecorder.ondataavailable = (e) => {
+if (e.data.size > 0) this.audioChunks.push(e.data);
+};
+
+this.mediaRecorder.onstop = () => {
+const blob = new Blob(this.audioChunks, { type: 'audio/webm' });
+const defaultName = this.getSongTitle() + '_錄音';
+const fileNameInput = prompt("請輸入要儲存的錄音檔檔名：", defaultName);
+if (fileNameInput !== null) {
+const fileName = (fileNameInput.trim() || defaultName) + '.webm';
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = fileName;
+a.click();
+URL.revokeObjectURL(url);
+}
+stream.getTracks().forEach(track => track.stop());
+};
+
+this.mediaRecorder.start();
+this.isRecording = true;
+btn.className = "bg-red-950/60 border border-red-500/60 text-red-300 px-1 py-1.5 rounded-xl transition flex flex-col items-center justify-center text-xs font-medium shadow-sm animate-pulse h-14";
+recordText.textContent = "STOP";
+} catch (err) {
+alert("無法存取麥克風，請檢查權限設定！");
+}
+} else {
+if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+this.mediaRecorder.stop();
+}
+this.isRecording = false;
+btn.className = "bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-1 py-1.5 rounded-xl transition flex flex-col items-center justify-center text-xs font-medium h-14";
+recordText.textContent = "WEBM";
+}
+}
+
+clearMediaFile() {
+this.imageElement.src = '';
+this.imageLayer.classList.add('hidden');
+this.videoElement.src = '';
+this.videoElement.pause();
+this.videoLayer.classList.add('hidden');
+this.activeMedia = this.audioElement;
+this.audioElement.src = '';
+this.updatePlayState(false);
+this.updateDurationDisplay();
+
+if (this.isRecording && this.mediaRecorder) {
+this.mediaRecorder.stop();
+this.isRecording = false;
+}
+
+const defaultClass = "bg-slate-800 hover:bg-slate-700 border border-slate-700 px-1 py-1.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center text-slate-200 text-xs text-center font-medium select-none h-14";
+document.getElementById('btnImageContainer').className = defaultClass;
+document.getElementById('btnAudioContainer').className = defaultClass;
+document.getElementById('btnVideoContainer').className = defaultClass;
+document.getElementById('recordBtn').className = "bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-1 py-1.5 rounded-xl transition flex flex-col items-center justify-center text-xs font-medium h-14";
+document.getElementById('recordText').textContent = "WEBM";
+}
+
+speakSequence(currentItem, onComplete) {
+if (!this.ttsEnabled || !currentItem || !('speechSynthesis' in window)) {
+if (onComplete) onComplete();
+return;
+}
+if (this.availableVoices.length === 0) {
+this.availableVoices = window.speechSynthesis.getVoices();
+}
+const rate = this.activeMedia.playbackRate || 1.0;
+
+const speakPart = (text, voiceIndex, nextCallback) => {
+if (!text) {
+if (nextCallback) nextCallback();
+return;
+}
+const utterance = new SpeechSynthesisUtterance(text);
+utterance.rate = rate;
+const detectedLang = this.detectLanguage(text);
+utterance.lang = detectedLang;
+
+if (this.availableVoices.length > 0) {
+const matchedVoices = this.availableVoices.filter(v =>
+v.lang.toLowerCase() === detectedLang.toLowerCase() ||
+v.lang.toLowerCase().startsWith(detectedLang.substring(0, 2).toLowerCase())
+);
+utterance.voice = matchedVoices.length > 0 ? (voiceIndex === 1 && matchedVoices.length > 1 ? matchedVoices[1] : matchedVoices[0]) : this.availableVoices[0];
+}
+utterance.onend = () => { if (nextCallback) nextCallback(); };
+utterance.onerror = () => { if (nextCallback) nextCallback(); };
+window.speechSynthesis.speak(utterance);
+};
+
+speakPart(currentItem.primary, 0, () => {
+setTimeout(() => {
+speakPart(currentItem.translation, 1, () => {
+const baseLen = Math.max(currentItem.primary ? currentItem.primary.length : 0, currentItem.translation ? currentItem.translation.length : 0);
+const pauseMs = Math.min(3500, Math.max(1200, baseLen * 150));
+setTimeout(() => {
+if (onComplete) onComplete();
+}, pauseMs);
+});
+}, 300);
+});
+}
+
+detectLanguage(text) {
+if (!text) return 'zh-TW';
+if (/[\u3040-\u309F\u30A0-\u30FF]/.test(text)) return 'ja-JP';
+if (/[\uAC00-\uD7AF\u1100-\u11FF]/.test(text)) return 'ko-KR';
+if (/^[a-zA-Z\s.,!?'"()0-9-]+$/.test(text)) return 'en-US';
+return 'zh-TW';
+}
+
+initInteractiveLayer(layerElement) {
+let scale = 1, posX = 0, posY = 0, isDragging = false, startX, startY;
+layerElement.addEventListener('mousedown', (e) => {
+isDragging = true;
+startX = e.clientX - posX;
+startY = e.clientY - posY;
+e.preventDefault();
+});
+window.addEventListener('mousemove', (e) => {
+if (!isDragging) return;
+posX = e.clientX - startX;
+posY = e.clientY - startY;
+layerElement.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+});
+window.addEventListener('mouseup', () => { isDragging = false; });
+layerElement.addEventListener('wheel', (e) => {
+e.preventDefault();
+scale = e.deltaY < 0 ? scale + 0.1 : Math.max(0.5, scale - 0.1);
+layerElement.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+}, { passive: false });
+}
+
+initHighSpeedSubtitleControl() {
+const subtitle = document.getElementById('draggableSubtitle');
+const container = document.getElementById('mediaContainer');
+
+let isDragging = false;
+let startX = 0, startY = 0;
+let initialLeft = 0, initialTop = 0;
+let longPressTimer = null;
+let hasMoved = false;
+
+let initialPinchDistance = 0;
+let baseMultiplier = this.scaleMultiplier;
+
+const getDistance = (touches) => {
+const dx = touches[0].clientX - touches[1].clientX;
+const dy = touches[0].clientY - touches[1].clientY;
+return Math.sqrt(dx * dx + dy * dy);
+};
+
+const onPointerDown = (e) => {
+if (e.touches && e.touches.length === 2) {
+isDragging = false;
+if (longPressTimer) clearTimeout(longPressTimer);
+initialPinchDistance = getDistance(e.touches);
+baseMultiplier = this.scaleMultiplier;
+if (e.cancelable) e.preventDefault();
+return;
+}
+
+hasMoved = false;
+isDragging = true;
+
+const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+startX = clientX;
+startY = clientY;
+
+const rect = subtitle.getBoundingClientRect();
+const parentRect = container.getBoundingClientRect();
+initialLeft = rect.left - parentRect.left;
+initialTop = rect.top - parentRect.top;
+
+longPressTimer = setTimeout(() => {
+if (!hasMoved) this.openQuickEdit();
+}, 600);
+
+if (e.cancelable && !e.touches) e.preventDefault();
+};
+
+const onPointerMove = (e) => {
+if (e.touches && e.touches.length === 2) {
+if (initialPinchDistance > 0) {
+const currentDistance = getDistance(e.touches);
+const scaleFactor = currentDistance / initialPinchDistance;
+this.scaleMultiplier = Math.max(0.7, Math.min(2.5, baseMultiplier * scaleFactor));
+this.updateMainDisplay();
+}
+if (e.cancelable) e.preventDefault();
+return;
+}
+
+if (!isDragging) return;
+const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+const dx = clientX - startX;
+const dy = clientY - startY;
+
+if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+hasMoved = true;
+if (longPressTimer) clearTimeout(longPressTimer);
+}
+
+let newLeft = initialLeft + dx;
+let newTop = initialTop + dy;
+
+const parentRect = container.getBoundingClientRect();
+const subRect = subtitle.getBoundingClientRect();
+
+newLeft = Math.max(0, Math.min(newLeft, parentRect.width - subRect.width));
+newTop = Math.max(0, Math.min(newTop, parentRect.height - subRect.height));
+
+subtitle.style.bottom = 'auto';
+subtitle.style.left = newLeft + 'px';
+subtitle.style.top = newTop + 'px';
+
+if (e.cancelable) e.preventDefault();
+};
+
+const onPointerUp = () => {
+isDragging = false;
+initialPinchDistance = 0;
+if (longPressTimer) clearTimeout(longPressTimer);
+};
+
+subtitle.addEventListener('mousedown', onPointerDown);
+window.addEventListener('mousemove', onPointerMove);
+window.addEventListener('mouseup', onPointerUp);
+subtitle.addEventListener('touchstart', onPointerDown, { passive: false });
+window.addEventListener('touchmove', onPointerMove, { passive: false });
+window.addEventListener('touchend', onPointerUp);
+
+subtitle.addEventListener('contextmenu', (e) => {
+e.preventDefault();
+this.openQuickEdit();
+});
+}
+
+openQuickEdit() {
+if (this.currentIndex < 0 || !this.lyricsData[this.currentIndex]) {
+alert("目前沒有選中的歌詞可供編輯！");
+return;
+}
+const item = this.lyricsData[this.currentIndex];
+const totalSecs = Math.max(0, item.time);
+const mins = String(Math.floor(totalSecs / 60)).padStart(2, '0');
+const secs = String(Math.floor(totalSecs % 60)).padStart(2, '0');
+const millis = Math.floor((totalSecs % 1) * 100);
+
+document.getElementById('quickEditTime').value = `${mins}:${secs}.${String(millis).padStart(2, '0')}`;
+document.getElementById('quickEditPrimary').value = item.primary || '';
+document.getElementById('quickEditTranslation').value = item.translation || '';
+document.getElementById('quickEditModal').classList.remove('hidden');
+}
+
+closeQuickEdit() {
+document.getElementById('quickEditModal').classList.add('hidden');
+}
+
+saveQuickEdit() {
+if (this.currentIndex < 0 || !this.lyricsData[this.currentIndex]) return;
+
+const timeStr = document.getElementById('quickEditTime').value;
+const parts = timeStr.replace(/[^\d:.]/g, '').split(':');
+if (parts.length === 2) {
+this.lyricsData[this.currentIndex].time = (parseFloat(parts[0]) || 0) * 60 + (parseFloat(parts[1]) || 0);
+}
+
+this.lyricsData[this.currentIndex].primary = document.getElementById('quickEditPrimary').value.trim();
+this.lyricsData[this.currentIndex].translation = document.getElementById('quickEditTranslation').value.trim();
+
+this.updateInputsFromData();
+if (this.currentMode === 'structure') this.renderStructureUI();
+this.updateMainDisplay();
+this.closeQuickEdit();
+}
+
+initProgressBarDrag() {
+let isDraggingBar = false;
+
+const updateSeekFromEvent = (e) => {
+if (e.touches && e.touches.length >= 2) return;
+const rect = this.progressBarContainer.getBoundingClientRect();
+const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+let percentage = (clientX - rect.left) / rect.width;
+percentage = Math.max(0, Math.min(1, percentage));
+
+if (!this.activeMedia.src) {
+this.syntheticCurrentTime = percentage * (this.syntheticDuration || 0);
+this.lastSpokenIndex = this.currentIndex;
+this.handleSyntheticTimeUpdate();
+} else if (this.activeMedia.duration) {
+this.activeMedia.currentTime = percentage * this.activeMedia.duration;
+this.lastSpokenIndex = this.currentIndex;
+}
+};
+
+this.progressBarContainer.addEventListener('mousedown', (e) => {
+isDraggingBar = true;
+updateSeekFromEvent(e);
+e.preventDefault();
+});
+window.addEventListener('mousemove', (e) => { if (isDraggingBar) updateSeekFromEvent(e); });
+window.addEventListener('mouseup', () => { isDraggingBar = false; });
+this.progressBarContainer.addEventListener('touchstart', (e) => {
+if (e.touches && e.touches.length >= 2) return;
+isDraggingBar = true;
+updateSeekFromEvent(e);
+}, { passive: true });
+window.addEventListener('touchmove', (e) => {
+if (e.touches && e.touches.length >= 2) { isDraggingBar = false; return; }
+if (isDraggingBar) updateSeekFromEvent(e);
+}, { passive: true });
+window.addEventListener('touchend', () => { isDraggingBar = false; });
+}
+
+switchMode(mode) {
+this.currentMode = mode;
+const textContainer = document.getElementById('textModeContainer');
+const structContainer = document.getElementById('structureModeContainer');
+const textBtn = document.getElementById('modeTextBtn');
+const structBtn = document.getElementById('modeStructBtn');
+
+if (mode === 'text') {
+textContainer.classList.remove('hidden');
+structContainer.classList.add('hidden');
+textBtn.className = "px-3 py-1 text-xs rounded-md font-medium transition bg-emerald-600 text-white";
+structBtn.className = "px-3 py-1 text-xs rounded-md font-medium transition text-slate-400 hover:text-white";
+this.updateInputsFromData();
+} else {
+textContainer.classList.add('hidden');
+structContainer.classList.remove('hidden');
+structBtn.className = "px-3 py-1 text-xs rounded-md font-medium transition bg-emerald-600 text-white";
+textBtn.className = "px-3 py-1 text-xs rounded-md font-medium transition text-slate-400 hover:text-white";
+this.renderStructureUI();
+}
+}
+
+loadImage(event) {
+const file = event.target.files[0];
+if (!file) return;
+this.videoElement.pause();
+this.videoLayer.classList.add('hidden');
+this.imageElement.src = URL.createObjectURL(file);
+this.imageLayer.classList.remove('hidden');
+this.imagePlaceholder.classList.add('hidden');
+this.draggableSubtitle.classList.remove('hidden');
+
+document.getElementById('btnImageContainer').className = "bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 px-1 py-1.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center text-xs text-center font-medium select-none shadow-sm h-14";
+event.target.value = '';
+}
+
+loadAudio(event) {
+const file = event.target.files[0];
+if (!file) return;
+const name = file.name;
+const idx = name.lastIndexOf('.');
+this.songTitleInput.value = idx !== -1 ? name.substring(0, idx) : name;
+this.videoElement.pause();
+this.audioElement.src = URL.createObjectURL(file);
+this.audioElement.load();
+this.activeMedia = this.audioElement;
+this.audioElement.pause();
+this.updatePlayState(false);
+this.imagePlaceholder.classList.add('hidden');
+this.draggableSubtitle.classList.remove('hidden');
+this.updateDurationDisplay();
+
+document.getElementById('btnAudioContainer').className = "bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 px-1 py-1.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center text-xs text-center font-medium select-none shadow-sm h-14";
+event.target.value = '';
+}
+
+loadVideo(event) {
+const file = event.target.files[0];
+if (!file) return;
+const name = file.name;
+const idx = name.lastIndexOf('.');
+this.songTitleInput.value = idx !== -1 ? name.substring(0, idx) : name;
+this.audioElement.pause();
+this.imageElement.src = '';
+this.imageLayer.classList.add('hidden');
+this.videoElement.src = URL.createObjectURL(file);
+this.videoElement.load();
+this.activeMedia = this.videoElement;
+this.videoLayer.classList.remove('hidden');
+this.imagePlaceholder.classList.add('hidden');
+this.draggableSubtitle.classList.remove('hidden');
+this.videoElement.pause();
+this.updatePlayState(false);
+this.updateDurationDisplay();
+
+document.getElementById('btnVideoContainer').className = "bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 px-1 py-1.5 rounded-xl cursor-pointer transition flex flex-col items-center justify-center text-xs text-center font-medium select-none shadow-sm h-14";
+event.target.value = '';
+}
+
+togglePlay() {
+if (!this.activeMedia.src) {
+if (this.isSyntheticPlaying) {
+this.pauseSyntheticPlayback();
+} else {
+if (this.lyricsData.length > 0) {
+this.calculateDynamicTimings();
+}
+this.startSyntheticPlayback();
+}
+return;
+}
+if (this.activeMedia.paused) {
+this.activeMedia.play();
+this.updatePlayState(true);
+} else {
+this.activeMedia.pause();
+this.updatePlayState(false);
+if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+}
+
+startSyntheticPlayback() {
+if (this.lyricsData.length === 0) return;
+this.isSyntheticPlaying = true;
+this.updatePlayState(true);
+
+if (this.syntheticCurrentTime >= (this.syntheticDuration || 10)) {
+this.syntheticCurrentTime = 0;
+this.lastSpokenIndex = -1;
+}
+
+const startTimeStamp = performance.now() - (this.syntheticCurrentTime * 1000);
+
+const step = () => {
+if (!this.isSyntheticPlaying) return;
+const elapsed = (performance.now() - startTimeStamp) / 1000;
+const maxDur = this.syntheticDuration || (this.lyricsData.length * 2.0);
+
+if (elapsed >= maxDur) {
+if (this.audioElement.loop) {
+this.syntheticCurrentTime = 0;
+this.startSyntheticPlayback();
+return;
+} else {
+this.syntheticCurrentTime = 0;
+this.pauseSyntheticPlayback();
+this.currentIndex = -1;
+this.updateMainDisplay();
+this.handleSyntheticTimeUpdate();
+return;
+}
+}
+
+this.syntheticCurrentTime = elapsed;
+this.handleSyntheticTimeUpdate();
+this.syntheticAnimFrame = requestAnimationFrame(step);
+};
+this.syntheticAnimFrame = requestAnimationFrame(step);
+}
+
+pauseSyntheticPlayback() {
+this.isSyntheticPlaying = false;
+if (this.syntheticAnimFrame) cancelAnimationFrame(this.syntheticAnimFrame);
+this.updatePlayState(false);
+if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+
+handleSyntheticTimeUpdate() {
+const currentTime = this.syntheticCurrentTime;
+const duration = this.syntheticDuration || 1;
+this.currentTimeDisplay.textContent = this.formatTime(currentTime);
+this.progressBar.style.width = `${(currentTime / duration) * 100}%`;
+
+let activeIdx = -1;
+for (let i = 0; i < this.lyricsData.length; i++) {
+if (currentTime >= this.lyricsData[i].time) activeIdx = i;
+else break;
+}
+
+if (activeIdx !== this.currentIndex) {
+this.currentIndex = activeIdx;
+this.updateMainDisplay();
+}
+
+if (activeIdx !== -1 && activeIdx !== this.lastSpokenIndex && this.ttsEnabled && this.isSyntheticPlaying) {
+this.lastSpokenIndex = activeIdx;
+this.speakSequence(this.lyricsData[activeIdx], null);
+}
+}
+
+updatePlayState(isPlaying) {
+const playIcon = document.getElementById('playIcon');
+const pauseIcon = document.getElementById('pauseIcon');
+if (isPlaying) {
+playIcon.classList.add('hidden');
+pauseIcon.classList.remove('hidden');
+} else {
+playIcon.classList.remove('hidden');
+pauseIcon.classList.add('hidden');
+}
+}
+
+prevLine() {
+if (this.currentIndex > 0) {
+this.currentIndex--;
+this.lastSpokenIndex = this.currentIndex;
+const targetTime = this.lyricsData[this.currentIndex].time;
+if (!this.activeMedia.src) {
+this.syntheticCurrentTime = targetTime;
+this.handleSyntheticTimeUpdate();
+} else {
+this.activeMedia.currentTime = targetTime;
+}
+this.updateMainDisplay();
+if (this.ttsEnabled) {
+if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+this.speakSequence(this.lyricsData[this.currentIndex], null);
+}
+}
+}
+
+nextLine() {
+if (this.currentIndex < this.lyricsData.length - 1) {
+this.currentIndex++;
+this.lastSpokenIndex = this.currentIndex;
+const targetTime = this.lyricsData[this.currentIndex].time;
+if (!this.activeMedia.src) {
+this.syntheticCurrentTime = targetTime;
+this.handleSyntheticTimeUpdate();
+} else {
+this.activeMedia.currentTime = targetTime;
+}
+this.updateMainDisplay();
+if (this.ttsEnabled) {
+if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+this.speakSequence(this.lyricsData[this.currentIndex], null);
+}
+}
+}
+
+toggleLoop() {
+const isLooping = !this.audioElement.loop;
+this.audioElement.loop = isLooping;
+this.videoElement.loop = isLooping;
+
+const loopBtn = document.getElementById('loopBtn');
+const loopIcon = document.getElementById('loopIcon');
+const progressBar = document.getElementById('progressBar');
+
+if (isLooping) {
+loopBtn.classList.remove('text-slate-400');
+loopBtn.classList.add('text-emerald-300');
+loopIcon.style.color = '#6ee7b7';
+progressBar.style.backgroundColor = '#6ee7b7';
+} else {
+loopBtn.classList.remove('text-emerald-300');
+loopBtn.classList.add('text-slate-400');
+loopIcon.style.color = '';
+progressBar.style.backgroundColor = '';
+}
+}
+
+cycleRate() {
+this.rateIndex = (this.rateIndex + 1) % this.rates.length;
+const rate = this.rates[this.rateIndex];
+this.audioElement.playbackRate = rate;
+this.videoElement.playbackRate = rate;
+document.getElementById('rateBtn').textContent = `${rate}x`;
+}
+
+updateInputsFromData() {
+if (this.isSyncing) return;
+this.isSyncing = true;
+const primaryEl = document.getElementById('primaryInput');
+const transEl = document.getElementById('translationInput');
+
+primaryEl.value = this.lyricsData.map(i => i.primary).join('\n');
+transEl.value = this.lyricsData.map(i => i.translation).join('\n');
+
+this.autoResizeTextarea(primaryEl);
+this.autoResizeTextarea(transEl);
+
+this.updateDurationDisplay();
+this.isSyncing = false;
+}
+
+renderStructureUI() {
+const container = document.getElementById('structuredList');
+container.innerHTML = this.lyricsData.map((item, index) => {
+const totalSecs = Math.max(0, item.time);
+const mins = String(Math.floor(totalSecs / 60)).padStart(2, '0');
+const secs = String(Math.floor(totalSecs % 60)).padStart(2, '0');
+const millis = Math.floor((totalSecs % 1) * 100);
+return `<div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="text-[11px] text-emerald-300 font-mono">時間:</span>
+<input type="text" value="${mins}:${secs}.${String(millis).padStart(2, '0')}" onchange="app.updateStructuredTime(${index}, this.value)" class="bg-slate-900 text-emerald-300 border border-slate-800 px-2 py-0.5 rounded text-[11px] font-mono w-24 text-center outline-none focus:border-emerald-500 focus:text-emerald-400">
+</div>
+<div class="flex items-center gap-2">
+<button onclick="app.insertLyricRow(${index})" class="text-emerald-400 hover:text-emerald-300 text-xs">+ 插入</button>
+<button onclick="app.deleteLyricRow(${index})" class="text-slate-500 hover:text-red-400 text-xs">刪除</button>
+</div>
+</div>
+<input type="text" value="${item.primary}" oninput="app.updateStructuredData(${index}, 'primary', this.value)" placeholder="原文歌詞" class="bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 outline-none focus:border-emerald-500">
+<input type="text" value="${item.translation}" oninput="app.updateStructuredData(${index}, 'translation', this.value)" placeholder="第二語言/翻譯歌詞" class="bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-400 outline-none focus:border-emerald-500">
+</div>`;
+}).join('');
+}
+
+updateStructuredTime(index, timeStr) {
+const parts = timeStr.replace(/[^\d:.]/g, '').split(':');
+if (parts.length === 2) {
+this.lyricsData[index].time = (parseFloat(parts[0]) || 0) * 60 + (parseFloat(parts[1]) || 0);
+this.updateInputsFromData();
+this.renderStructureUI();
+this.updateMainDisplay();
+}
+}
+
+updateStructuredData(index, field, value) {
+this.lyricsData[index][field] = value.trim();
+this.calculateDynamicTimings();
+this.updateMainDisplay();
+}
+
+addLyricRow() {
+const lastTime = this.lyricsData.length > 0 ? this.lyricsData[this.lyricsData.length - 1].time + 5.0 : 0.0;
+this.lyricsData.push({ time: lastTime, primary: '', translation: '', endTime: lastTime + 1.5 });
+this.calculateDynamicTimings();
+this.updateInputsFromData();
+if (this.currentMode === 'structure') this.renderStructureUI();
+this.updateMainDisplay();
+}
+
+insertLyricRow(index) {
+const newTime = (this.lyricsData[index].time || 0) + 5.0;
+this.lyricsData.splice(index + 1, 0, { time: newTime, primary: '', translation: '', endTime: newTime + 1.5 });
+this.calculateDynamicTimings();
+this.updateInputsFromData();
+if (this.currentMode === 'structure') this.renderStructureUI();
+this.updateMainDisplay();
+}
+
+deleteLyricRow(index) {
+this.lyricsData.splice(index, 1);
+this.calculateDynamicTimings();
+this.updateInputsFromData();
+if (this.currentMode === 'structure') this.renderStructureUI();
+this.updateMainDisplay();
+}
+
+updateMainDisplay() {
+const hasContent = this.lyricsData.length > 0 && (this.lyricsData.some(i => i.primary.trim() !== '' || i.translation.trim() !== ''));
+if (hasContent) this.draggableSubtitle.classList.remove('hidden');
+else this.draggableSubtitle.classList.add('hidden');
+
+this.mainPrimaryLyric.style.fontSize = `${Math.round(this.primary0Size * this.scaleMultiplier)}px`;
+this.mainTranslationLyric.style.fontSize = `${Math.round(this.trans0Size * this.scaleMultiplier)}px`;
+
+if (this.currentIndex >= 0 && this.lyricsData[this.currentIndex]) {
+const currentItem = this.lyricsData[this.currentIndex];
+this.mainPrimaryLyric.textContent = currentItem.primary || '';
+this.mainTranslationLyric.textContent = currentItem.translation || '';
+} else {
+this.mainPrimaryLyric.textContent = '';
+this.mainTranslationLyric.textContent = '';
+}
+
+this.mainPrimaryLyric.style.color = this.primaryColor;
+this.mainTranslationLyric.style.color = this.translationColor;
+}
+
+handleTimeUpdate() {
+const currentTime = this.activeMedia.currentTime;
+const duration = this.activeMedia.duration || 1;
+this.currentTimeDisplay.textContent = this.formatTime(currentTime);
+this.progressBar.style.width = `${(currentTime / duration) * 100}%`;
+
+let activeIdx = -1;
+for (let i = 0; i < this.lyricsData.length; i++) {
+if (currentTime >= this.lyricsData[i].time) activeIdx = i;
+else break;
+}
+
+if (activeIdx !== this.currentIndex) {
+this.currentIndex = activeIdx;
+this.updateMainDisplay();
+}
+
+if (activeIdx !== -1 && activeIdx !== this.lastSpokenIndex && this.ttsEnabled && !this.activeMedia.paused) {
+this.lastSpokenIndex = activeIdx;
+this.speakSequence(this.lyricsData[activeIdx], () => {
+if (this.ttsEnabled && activeIdx === this.lyricsData.length - 1 && this.audioElement.loop) {
+this.activeMedia.currentTime = 0;
+this.activeMedia.play();
+this.currentIndex = -1;
+this.lastSpokenIndex = -1;
+}
+});
+}
+}
+
+formatTime(seconds) {
+const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+const s = String(Math.floor(seconds % 60)).padStart(2, '0');
+return `${m}:${s}`;
+}
+
+exportLrc() {
+if (this.lyricsData.length === 0) {
+alert("目前沒有任何歌詞可供匯出！");
+return;
+}
+const title = this.getSongTitle();
+let lrcContent = `[ti:${title}]\n[by:LinguaBook]\n`;
+for (let item of this.lyricsData) {
+const totalSecs = Math.max(0, item.time);
+const mins = String(Math.floor(totalSecs / 60)).padStart(2, '0');
+const secs = String(Math.floor(totalSecs % 60)).padStart(2, '0');
+const millis = Math.floor((totalSecs % 1) * 100);
+let lineText = item.primary;
+if (item.translation) lineText += ` / ${item.translation}`;
+lrcContent += `[${mins}:${secs}.${String(millis).padStart(2, '0')}]${lineText}\n`;
+}
+const blob = new Blob([lrcContent], { type: 'text/plain;charset=utf-8' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = `${title}.lrc`;
+a.click();
+URL.revokeObjectURL(url);
+}
+
+importLrc(event) {
+const file = event.target.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = (e) => this.parseLrcContent(e.target.result);
+reader.readAsText(file, 'utf-8');
+event.target.value = '';
+}
+
+parseLrcContent(text) {
+const lines = text.split(/\r?\n/);
+const primaryList = [];
+const transList = [];
+const timeList = [];
+const timeReg = /\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]/g;
+
+for (let line of lines) {
+const matches = [...line.matchAll(timeReg)];
+if (matches.length > 0) {
+const lastMatch = matches[matches.length - 1];
+const textContent = line.substring(lastMatch.index + lastMatch[0].length).trim();
+const mins = parseInt(lastMatch[1], 10) || 0;
+const secs = parseInt(lastMatch[2], 10) || 0;
+const millisStr = lastMatch[3] ? (lastMatch[3].length === 2 ? lastMatch[3] + '0' : lastMatch[3]) : '0';
+const timeInSec = mins * 60 + secs + parseInt(millisStr, 10) / 1000;
+
+let primary = textContent;
+let translation = '';
+if (textContent.includes(' / ')) {
+const parts = textContent.split(' / ');
+primary = parts[0].trim();
+translation = parts.slice(1).join(' / ').trim();
+}
+primaryList.push(primary);
+transList.push(translation);
+timeList.push(timeInSec);
+}
+}
+
+if (primaryList.length > 0) {
+this.lyricsData = primaryList.map((primary, index) => ({
+time: timeList[index] !== undefined ? timeList[index] : (index * 5.0),
+primary,
+translation: transList[index],
+endTime: (timeList[index] !== undefined ? timeList[index] : (index * 5.0)) + 1.5
+}));
+this.calculateDynamicTimings();
+this.updateInputsFromData();
+if (this.currentMode === 'structure') this.renderStructureUI();
+this.updateMainDisplay();
+alert("歌詞匯入成功！");
+} else {
+alert("無法解析該檔案格式。");
+}
+}
+}
+
+const app = new LinguaBookApp();
+
+// 初始化時觸發一次調整文字框高度，確保預設為緊湊的一行高度
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('.auto-textarea').forEach(el => app.autoResizeTextarea(el));
+});
+</script>
+</body>
+</html>
