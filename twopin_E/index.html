@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中英文打字練習</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            color: #e0e0e0;
+        }
+        .container {
+            background: #1e1e1e;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 100%;
+            max-width: 750px;
+            margin-bottom: 20px;
+            border: 1px solid #2d2d2d;
+        }
+        h1 {
+            margin: 2px 0 10px 0;
+            color: #ffffff;
+            font-size: 22px;
+        }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+            background: #252525;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #333333;
+        }
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e1e;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            padding: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            min-height: 42px;
+        }
+        .grid-item select {
+            width: 95%;
+            padding: 5px 4px;
+            border-radius: 4px;
+            border: 1px solid #444444;
+            font-size: 14px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            cursor: pointer;
+            text-align: center;
+            text-align-last: center;
+            margin: 0 auto;
+        }
+
+        button {
+            padding: 6px 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 95%;
+            margin: 0 auto;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            transition: opacity 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+        button.secondary-gray {
+            background-color: #6c757d;
+        }
+        button.primary-blue {
+            background-color: #3b82f6;
+        }
+        button.danger {
+            background-color: #dc3545;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        .modal-content {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 600px;
+            text-align: left;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #333333;
+            color: #ffffff;
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #ffffff;
+        }
+
+        .batch-textarea {
+            width: 100%;
+            height: 280px;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            border: 1px solid #444444;
+            border-radius: 6px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            resize: vertical;
+            outline: none;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        .batch-tip {
+            font-size: 12px;
+            color: #aaaaaa;
+            margin-top: 5px;
+            line-height: 1.5;
+            background: #252525;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #6c757d;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-top: 1px solid #333333;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .modal-buttons-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        #importFile {
+            display: none;
+        }
+
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 8px 0;
+            text-align: left;
+        }
+        .compare-row {
+            background: #252525;
+            border: 1px solid #333333;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: none;
+            position: relative;
+            min-height: 120px;
+            overflow: hidden; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .compare-en {
+            font-size: 20px;
+            font-family: Arial, sans-serif;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.8;
+            text-align: center;
+            width: 100%;
+            color: #ffffff;
+        }
+
+        .line-block {
+            display: block;
+            width: 100%;
+        }
+
+        #info-panel {
+            margin: 10px 0;
+            font-size: 16px;
+            color: #e0e0e0;
+            background: #252525;
+            border: 1px solid #333333;
+            padding: 12px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        .info-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        
+        .info-group {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            width: auto;
+            max-width: 100%;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            text-align: center;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .info-group:hover {
+            background: #333333;
+        }
+        
+        #translation-display {
+            font-size: 20px;
+            font-weight: bold;
+            color: #3b82f6;
+            display: inline-block;
+            width: auto;
+            max-width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            text-align: center;
+        }
+
+        #note-display {
+            font-size: 15px;
+            color: #aaaaaa;
+            display: inline-block;
+            width: auto;
+            max-width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            text-align: center;
+        }
+
+        #phonics-display {
+            font-size: 15px;
+            color: #f39c12;
+            display: inline-block;
+            width: auto;
+            max-width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            text-align: center;
+        }
+
+        .correct-char {
+            color: #2ecc71 !important;
+        }
+        .incorrect-char {
+            color: #e74c3c !important;
+            background-color: #4a2c2c;
+        }
+        .normal-char {
+            color: #888888;
+        }
+
+        .fake-display-box {
+            position: relative;
+            width: 100%;
+            height: 60px;
+            border: 2px solid #6c757d;
+            border-radius: 6px;
+            background: #1e1e1e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 8px;
+            overflow: hidden;
+            cursor: text;
+        }
+
+        #hiddenInput {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            border: none;
+            background: transparent;
+            font-size: 24px;
+            z-index: 2;
+        }
+
+        .status-text-layer {
+            font-size: 24px;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            color: #ffffff;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        #stats {
+            margin-top: 10px;
+            color: #aaaaaa;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-container">
+    <h1>中英文打字練習</h1>
+    
+    <div class="grid-menu">
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="openModal()">修改</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="exportArticle()">匯出</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="triggerImport()">匯入</button>
+            <input type="file" id="importFile" accept=".txt,.json" onchange="importArticle(event)">
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="restartPractice()">重來</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" id="muteBtn" class="secondary-gray" onclick="toggleMute()">開啟 🔊</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" id="modeBtn" class="primary-blue" onclick="toggleMode()"> 英打</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" id="audioModeBtn" class="primary-blue" onclick="toggleAudioMode()">單字模式</button>
+        </div>
+        <div class="grid-item" style="grid-column: span 2; justify-content: center; align-items: center;">
+            <select id="speedSelect" onchange="updateSpeed()">
+                <option value="0.3">0.3x</option>
+                <option value="0.5">0.5x</option>
+                <option value="0.8">0.8x</option>
+                <option value="1.0" selected>1.0x</option>
+                <option value="1.3">1.3x</option>
+                <option value="1.6">1.6x</option>
+                <option value="2.0">2.0x</option>
+                <option value="2.5">2.5x</option>
+                <option value="3.0">3.0x</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="comparison-display" class="comparison-container"></div>
+
+    <div id="info-panel">
+        <div class="info-row">
+            <div class="info-group" id="group-trans">
+                <span id="translation-display">(無)</span>
+                <span id="note-display"></span>
+                <span id="phonics-display"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="fake-display-box" onclick="focusHiddenInput()">
+        <input type="search" id="hiddenInput" name="typing_practice_field" autocomplete="one-time-code" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="status-text-layer" id="statusDisplay">請點擊此處開始打字</div>
+    </div>
+
+    <div id="stats">進度: <span id="progress">0 / 0</span> | 正確句子數: <span id="score">0</span></div>
+</div>
+
+<div id="articleModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>編輯句庫內容</h3>
+        <div style="font-size: 13px; color: #aaaaaa; margin-bottom: 8px;">請依格式輸入（原文｜翻譯｜註解1｜自然註解2）：</div>
+        <textarea id="batchTextarea" class="batch-textarea"></textarea>
+        <div class="batch-tip">
+            <b>格式說明：</b><br>每行一組，以「｜」或「|」隔開（例如：Hello|你好|zhāo_hū|hel·lo），可留空白或省略。
+        </div>
+
+        <div class="modal-buttons">
+            <button type="button" class="danger" onclick="clearModalText()" style="width: auto;">刪除全部</button>
+            <div class="modal-buttons-right">
+                <button type="button" class="secondary-gray" onclick="closeModal()" style="width: auto;">取消</button>
+                <button type="button" class="secondary-gray" onclick="confirmCustomArticle()" style="width: auto;">確定套用</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let linesList = [];
+    let currentLineIndex = 0;
+    let score = 0;
+    let practiceMode = 'en'; 
+    let audioMode = 'word';
+    let lastSpokenKey = ""; 
+    let loopTimeout = null; 
+    
+    let rawArticleText = 
+    "Hello|你好|zhāo_hū|hel·lo\n" +
+    "Hi|嗨||hi\n" +
+    "Good morning|早安|cháng_yòng|good mor·ning\n" +
+    "Good afternoon|午安||good af·ter·noon\n" +
+    "Good evening|晚安||good eve·ning\n" +
+    "Good night|晚安||good night\n" +
+    "Nice to meet you|很高興認識你||nice to meet you\n" +
+    "Long time no see|好久不見||long time no see\n" +
+    "Welcome|歡迎||wel·come\n" +
+    "How are you?|你好嗎？||how are you?\n" +
+    "I'm fine|我很好||i'm fine\n" +
+    "What's up?|怎麼了？||what's up?\n" +
+    "How's it going?|怎麼樣了？||how's it go·ing?\n" +
+    "See you again|再見||see you a·gain\n" +
+    "See you later|稍後見||see you la·ter\n" +
+    "See you tomorrow|明天見||see you to·mor·row\n" +
+    "Stay in touch|保持聯繫||stay in touch\n" +
+    "Call me later|稍後給我打電話||call me la·ter\n" +
+    "Send me a message|給我留言||send me a mes·sage\n" +
+    "I missed your call|我錯過了你的電話||i missed your call\n" +
+    "My phone is dead|我的手機沒電了||my phone is dead\n" +
+    "The internet is slow|網速很慢||the in·ter·net is slow\n" +
+    "Can you hear me?|你聽得到我說話嗎？||can you hear me?\n" +
+    "I can hear you|我聽得到你的聲音||i can hear you\n" +
+    "Please call again|請再次致電||please call a·gain\n" +
+    "Take care|保重||take care\n" +
+    "Have a nice day|祝你有美好的一天||have a nice day\n" +
+    "Good luck|祝你好運||good luck\n" +
+    "Come on|來吧||come on\n" +
+    "Be careful|小心點||be care·ful\n" +
+    "Don't worry|別擔心||don't wor·ry\n" +
+    "Calm down|冷靜下來||calm down\n" +
+    "Good job|幹得好||good job\n" +
+    "Thank you|謝謝你||thank you\n" +
+    "Thanks a lot|非常感謝||thanks a lot\n" +
+    "You're welcome|bù_kè_qì|you're wel·come\n" +
+    "No problem|沒問題||no prob·lem\n" +
+    "My pleasure|我的榮幸||my pleas·ure\n" +
+    "Excuse me|對不起||ex·cuse me\n" +
+    "I'm sorry|對不起||i'm sor·ry\n" +
+    "Pardon me|請原諒我||par·don me\n" +
+    "That's okay|沒關係||that's o·kay\n" +
+    "Never mind|沒關係||ne·ver mind\n" +
+    "Yes|是的||yes\n" +
+    "No.|否||no\n" +
+    "Maybe|也許||may·be\n" +
+    "Of course|當然||of course\n" +
+    "Sure|當然可以||sure\n" +
+    "I agree|我同意||i a·gree\n" +
+    "I disagree|我不同意||i dis·a·gree\n" +
+    "I think so|我想是的||i think so\n" +
+    "I don't think so|我不這麼認為||i don't think so\n" +
+    "Really?|真的嗎？||real·ly?\n" +
+    "I know|我知道||i know\n" +
+    "I don't know|我不知道||i don't know\n" +
+    "I understand|我明白了||i un·der·stand\n" +
+    "I don't understand|我不明白||i don't un·der·stand\n" +
+    "What time is it?|現在幾點了？||what time is it?\n" +
+    "It's one o'clock|現在一點鐘了||it's one o'clock\n" +
+    "It's two o'clock|已經兩點了||it's two o'clock\n" +
+    "It's half past three|已經三點半了||it's half past three\n" +
+    "It's four thirty|四點三十分||it's four thir·ty\n" +
+    "Right now|現在||right now\n" +
+    "Soon|很快||soon\n" +
+    "Later|後來||la·ter\n" +
+    "Today|今天||to·day\n" +
+    "Tomorrow|明天||to·mor·row\n" +
+    "Yesterday|昨天||yes·ter·day\n" +
+    "This year|今年||this year\n" +
+    "Next year|明年||next year\n" +
+    "Last year|去年||last year\n" +
+    "Monday|星期一||mon·day\n" +
+    "Tuesday|星期二||tues·day\n" +
+    "Wednesday|星期三||wednes·day\n" +
+    "Thursday|星期四||thurs·day\n" +
+    "Friday|週五||fri·day\n" +
+    "Saturday|星期六||sat·ur·day\n" +
+    "Sunday|週日||sun·day\n" +
+    "January|一月||jan·u·ar·y\n" +
+    "February|二月||feb·ru·ar·y\n" +
+    "March|三月||march\n" +
+    "April|四月||a·pril\n" +
+    "May|五月||may\n" +
+    "June|六月||june\n" +
+    "July|七月||ju·ly\n" +
+    "August|八月||au·gust\n" +
+    "September|九月||sep·tem·ber\n" +
+    "October|十月||oc·to·ber\n" +
+    "November|十一月||no·vem·ber\n" +
+    "December|十二月||de·cem·ber\n" +
+    "I'm hungry|我餓了||i'm hun·gry\n" +
+    "I'm thirsty|我渴了||i'm thirs·ty\n" +
+    "I'm tired|我累了||i'm tired\n" +
+    "I'm busy|我很忙||i'm bus·y\n" +
+    "I'm free|我有空||i'm free\n" +
+    "I'm happy|我很高興||i'm hap·py\n" +
+    "I'm sad|我很傷心||i'm sad\n" +
+    "I'm sick|我病了||i'm sick\n" +
+    "I feel good|我感覺很好||i feel good\n" +
+    "I feel bad|我感覺很糟糕||i feel bad\n" +
+    "Let's go|我們走吧||let's go\n" +
+    "Wait a moment|稍等一下||wait a mo·ment\n" +
+    "Hurry up|快點||hur·ry up\n" +
+    "Let's try|讓我們嘗試一下||let's try\n" +
+    "I can do it|我能做到||i can do it\n" +
+    "I can't do it|我做不到||i can't do it\n" +
+    "Let's start|讓我們開始吧||let's start\n" +
+    "Let's stop|我們停下來吧||let's stop\n" +
+    "Let's take a break|我們休息一下吧||let's take a break\n" +
+    "I'm finished|我完成了||i'm fin·ished\n" +
+    "How much is it?|多少錢？||how much is it?\n" +
+    "It's too expensive|太貴了||it's too ex·pen·sive\n" +
+    "It's cheap|很便宜||it's cheap\n" +
+    "I'll take it|我會接受的||i'll take it\n" +
+    "Can I pay by card?|我可以用卡片支付嗎？||can i pay by card?\n" +
+    "Do you have cash?|你有現金嗎？||do you have cash?\n" +
+    "Keep the change|保留零錢||keep the change\n" +
+    "I'd like to order|我想訂購||i'd like to or·der\n" +
+    "I'd like some water|我想要一些水||i'd like some wa·ter\n" +
+    "I'd like some tea|我想要一些茶||i'd like some tea\n" +
+    "I'd like some coffee|我想要一些科菲||i'd like some cof·fee\n" +
+    "The food is delicious|食物很美味||the food is de·li·cious\n" +
+    "Check please|請檢查||check please\n" +
+    "I'm full|我吃飽了||i'm full\n" +
+    "Cheers|乾杯||cheers\n" +
+    "Enjoy your meal|享受您的用餐||en·joy your meal\n" +
+    "Where is the restroom?|洗手間在哪裡？||where is the rest·room?\n" +
+    "Where is the station?|車站在哪裡？||where is the sta·tion?\n" +
+    "How can I get there?|我怎樣才能到達那裡？||how can i get there?\n" +
+    "I need a taxi|我需要一輛計程車||i need a tax·i\n" +
+    "I'm lost|我迷路了||i'm lost\n" +
+    "Can you show me on the map?|你能在地圖上指給我看嗎？||can you show me on the map?\n" +
+    "How far is it?|有多遠？||how far is it?\n" +
+    "Turn left|左轉||turn left\n" +
+    "Turn right|右轉||turn right\n" +
+    "Go straight|直走||go straight";
+    
+    let currentTypedText = "";
+    let isMuted = false;
+    let currentSpeed = 1.0;
+    let audioCtx = null;
+    let isInputLocked = false;
+
+    function stopLoopSound() {
+        if (loopTimeout) {
+            clearTimeout(loopTimeout);
+            loopTimeout = null;
+        }
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+        lastSpokenKey = "";
+    }
+
+    function cleanText(str) {
+        return str.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()？！？，。、「」『』【】（）"'+?]/g, "").replace(/\s+/g, " ").trim();
+    }
+
+    function focusHiddenInput() {
+        const hiddenInput = document.getElementById('hiddenInput');
+        hiddenInput.focus();
+    }
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        const muteBtn = document.getElementById('muteBtn');
+        if (isMuted) {
+            muteBtn.textContent = "靜音 🔇";
+            stopLoopSound();
+        } else {
+            muteBtn.textContent = "開啟 🔊";
+        }
+    }
+
+    function toggleMode() {
+        stopLoopSound();
+        practiceMode = (practiceMode === 'en') ? 'zh' : 'en';
+        const modeBtn = document.getElementById('modeBtn');
+        if (practiceMode === 'en') {
+            modeBtn.textContent = "英打";
+            modeBtn.className = "primary-blue";
+        } else {
+            modeBtn.textContent = "中打";
+            modeBtn.className = "secondary-gray";
+        }
+        currentTypedText = "";
+        hiddenInput.value = "";
+        isInputLocked = false;
+        lastSpokenKey = "";
+        renderComparisonView();
+        updateInfoPanel();
+    }
+
+    function toggleAudioMode() {
+        stopLoopSound();
+        audioMode = (audioMode === 'word') ? 'sentence' : 'word';
+        const audioModeBtn = document.getElementById('audioModeBtn');
+        if (audioMode === 'word') {
+            audioModeBtn.textContent = "單字模式";
+            audioModeBtn.className = "primary-blue";
+        } else {
+            audioModeBtn.textContent = "整句模式";
+            audioModeBtn.className = "secondary-gray";
+        }
+        lastSpokenKey = "";
+    }
+
+    function updateSpeed() {
+        const select = document.getElementById('speedSelect');
+        currentSpeed = parseFloat(select.value);
+    }
+
+    function openModal() {
+        document.getElementById('batchTextarea').value = rawArticleText;
+        document.getElementById('articleModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('articleModal').style.display = 'none';
+    }
+
+    function clearModalText() {
+        if (confirm('確定要清空所有內容嗎？')) {
+            document.getElementById('batchTextarea').value = '';
+        }
+    }
+
+    async function confirmCustomArticle() {
+        const text = document.getElementById('batchTextarea').value;
+        if (!text.trim()) {
+            alert('請輸入有效的內容！');
+            return;
+        }
+        closeModal();
+        try {
+            loadDataFromCustomFormat(text);
+        } catch(err) {
+            alert('格式解析失敗，請確保格式正確！');
+        }
+    }
+
+    function exportArticle() {
+        let userFileName = prompt("請輸入要儲存的檔案名稱：", "⌨️中英文打字練習");
+        if (userFileName === null) return;
+        
+        let trimmedName = userFileName.trim();
+        if (!trimmedName) {
+            trimmedName = "⌨️中英文打字練習";
+        }
+        if (!trimmedName.toLowerCase().endsWith('.txt') && !trimmedName.toLowerCase().endsWith('.json')) {
+            trimmedName += '.txt';
+        }
+
+        let exportParts = [];
+        linesList.forEach(item => {
+            exportParts.push(`${item.en}|${item.zh}|${item.note}|${item.phonics}`);
+        });
+
+        const fileContent = exportParts.join('\n');
+        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = trimmedName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function triggerImport() {
+        document.getElementById('importFile').click();
+    }
+
+    function importArticle(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const content = e.target.result;
+            if (!content.trim()) {
+                alert('匯入的檔案內容為空！');
+                event.target.value = '';
+                return;
+            }
+
+            try {
+                loadDataFromCustomFormat(content);
+                alert('檔案匯入成功！');
+            } catch (err) {
+                alert('檔案格式錯誤，請確認是否符合指定格式！');
+            }
+            event.target.value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    function loadDataFromCustomFormat(text) {
+        stopLoopSound();
+        rawArticleText = text;
+        let itemTexts = text.split(/\r?\n/);
+        let parsedLines = [];
+
+        itemTexts.forEach((lineStr) => {
+            if (!lineStr.trim()) return;
+            let parts = lineStr.split(/[|｜]/);
+            if (parts.length >= 2) {
+                let en = parts[0].trim();
+                let zh = parts[1].trim();
+                let note = parts[2] ? parts[2].trim() : "";
+                let phonics = parts[3] ? parts[3].trim() : "";
+                if (en && zh) {
+                    parsedLines.push({ en: en, zh: zh, note: note, phonics: phonics });
+                }
+            }
+        });
+
+        if (parsedLines.length === 0) {
+            throw new Error("無效的格式");
+        }
+
+        linesList = parsedLines;
+        currentLineIndex = 0;
+        score = 0;
+        scoreDisplay.textContent = score;
+        currentTypedText = "";
+        hiddenInput.value = "";
+        statusDisplay.textContent = "";
+        isInputLocked = false;
+        lastSpokenKey = "";
+
+        progressDisplay.textContent = `1 / ${linesList.length}`;
+        renderComparisonView();
+        updateInfoPanel();
+    }
+
+    function playErrorSound() {
+        if (isMuted) return;
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.15);
+    }
+
+    function speakText(text, lang = 'en-US', callback) {
+        if (isMuted || !('speechSynthesis' in window)) {
+            if (callback) callback();
+            return;
+        }
+        window.speechSynthesis.cancel();
+        let utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        utterance.rate = currentSpeed;
+        if (callback) {
+            utterance.onend = () => callback();
+            utterance.onerror = () => callback();
+        }
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function startLoopSound(textToRead, lang, uniqueKey, intervalTime = 1500) {
+        if (isMuted || !('speechSynthesis' in window)) return;
+        if (lastSpokenKey === uniqueKey && loopTimeout) return;
+        
+        stopLoopSound();
+        lastSpokenKey = uniqueKey;
+
+        const scheduleNext = () => {
+            if (isMuted || lastSpokenKey !== uniqueKey) return;
+            loopTimeout = setTimeout(() => {
+                if (isMuted || lastSpokenKey !== uniqueKey) return;
+                speakText(textToRead, lang, () => {
+                    scheduleNext();
+                });
+            }, intervalTime); 
+        };
+        
+        speakText(textToRead, lang, () => {
+            scheduleNext();
+        });
+    }
+
+    const comparisonDisplay = document.getElementById('comparison-display');
+    const translationDisplay = document.getElementById('translation-display');
+    const noteDisplay = document.getElementById('note-display');
+    const phonicsDisplay = document.getElementById('phonics-display');
+    const hiddenInput = document.getElementById('hiddenInput');
+    const statusDisplay = document.getElementById('statusDisplay');
+    const progressDisplay = document.getElementById('progress');
+    const scoreDisplay = document.getElementById('score');
+
+    function getCurrentSentenceObj() {
+        return linesList[currentLineIndex] || null;
+    }
+
+    function renderComparisonView() {
+        if (currentLineIndex >= linesList.length) {
+            comparisonDisplay.innerHTML = '<div class="compare-row"><div class="compare-en" style="text-align: center; color: #2ecc71; font-weight: bold; font-size: 20px;">太棒了！練習已全部完成！</div></div>';
+            translationDisplay.textContent = "(完成)";
+            noteDisplay.textContent = "";
+            phonicsDisplay.textContent = "";
+            return;
+        }
+
+        const sentenceObj = linesList[currentLineIndex];
+        const targetText = (practiceMode === 'en') ? sentenceObj.en : sentenceObj.zh;
+        let lineHtml = '';
+        
+        let targetIdx = 0;
+        let typedIdx = 0;
+
+        while (targetIdx < targetText.length) {
+            const char = targetText[targetIdx];
+
+            if (typedIdx < currentTypedText.length) {
+                const typedChar = currentTypedText[typedIdx];
+                if (typedChar === char) {
+                    lineHtml += `<span class="correct-char">${char}</span>`;
+                } else {
+                    lineHtml += `<span class="incorrect-char">${typedChar}</span>`;
+                }
+                typedIdx++;
+            } else {
+                lineHtml += `<span>${char}</span>`;
+            }
+            targetIdx++;
+        }
+
+        comparisonDisplay.innerHTML = `
+            <div class="compare-row">
+                <div class="compare-en"><div class="line-block">${lineHtml}</div></div>
+            </div>
+        `;
+    }
+
+    function updateInfoPanel() {
+        const sentenceObj = getCurrentSentenceObj();
+        if (!sentenceObj) return;
+
+        translationDisplay.textContent = (practiceMode === 'en') ? sentenceObj.zh : sentenceObj.en;
+        noteDisplay.textContent = sentenceObj.note ? sentenceObj.note : "";
+        phonicsDisplay.textContent = sentenceObj.phonics ? sentenceObj.phonics : "";
+        statusDisplay.textContent = currentTypedText;
+        hiddenInput.value = currentTypedText;
+    }
+
+    hiddenInput.addEventListener('input', () => {
+        if (currentLineIndex >= linesList.length || isInputLocked) return;
+        
+        const sentenceObj = getCurrentSentenceObj();
+        if (!sentenceObj) return;
+
+        const targetText = (practiceMode === 'en') ? sentenceObj.en : sentenceObj.zh;
+        let fullVal = hiddenInput.value;
+
+        if (fullVal.length > 0) {
+            let lastCharIdx = fullVal.length - 1;
+            let typedChar = fullVal[lastCharIdx];
+
+            if (typedChar === ' ') {
+                stopLoopSound();
+                score++;
+                scoreDisplay.textContent = score;
+                currentLineIndex++;
+                currentTypedText = "";
+                hiddenInput.value = "";
+                isInputLocked = false;
+                lastSpokenKey = "";
+
+                if (currentLineIndex >= linesList.length) {
+                    comparisonDisplay.innerHTML = '<div class="compare-row"><div class="compare-en" style="text-align: center; color: #2ecc71; font-weight: bold; font-size: 20px;">太棒了！練習已全部完成！</div></div>';
+                    translationDisplay.textContent = "(完成)";
+                    noteDisplay.textContent = "";
+                    phonicsDisplay.textContent = "";
+                    statusDisplay.textContent = "練習完成！";
+                    progressDisplay.textContent = `${linesList.length} / ${linesList.length}`;
+                    return;
+                }
+
+                progressDisplay.textContent = `${currentLineIndex + 1} / ${linesList.length}`;
+                renderComparisonView();
+                updateInfoPanel();
+                return;
+            }
+
+            if (lastCharIdx < targetText.length) {
+                let expectedChar = targetText[lastCharIdx];
+                while (lastCharIdx < targetText.length && /^[.,\/#!$%\^&\*;:{}=\-_`~()？！？，。、「」『』【】（）"'\s+]+$/.test(targetText[lastCharIdx])) {
+                    if (targetText[lastCharIdx] === ' ' && typedChar === ' ') {
+                        break;
+                    }
+                    lastCharIdx++;
+                }
+                
+                if (lastCharIdx < targetText.length) {
+                    expectedChar = targetText[lastCharIdx];
+                    if (typedChar !== expectedChar && typedChar !== ' ') {
+                        playErrorSound();
+                        hiddenInput.value = currentTypedText;
+                        return;
+                    }
+                }
+                
+                currentTypedText = targetText.substring(0, lastCharIdx + 1);
+            }
+
+            let speakLang = (practiceMode === 'en') ? 'en-US' : 'zh-TW';
+            let words = targetText.split(" ");
+
+            if (audioMode === 'sentence') {
+                if (currentTypedText.length === 1) {
+                    let sentenceKey = `sentence-${currentLineIndex}-${targetText}`;
+                    startLoopSound(targetText, speakLang, sentenceKey, 1500);
+                } else if (currentTypedText === targetText) {
+                    stopLoopSound();
+                }
+            } else {
+                let accumulatedLength = 0;
+                let activeWordObj = null;
+                let wordIndex = 0;
+
+                for (let w of words) {
+                    let cleanW = w.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()？！？，。、「」『』【】（）"'+?]/g, "");
+                    let wordStart = accumulatedLength;
+                    let wordEnd = accumulatedLength + w.length;
+
+                    if (currentTypedText.length > wordStart && currentTypedText.length <= wordEnd) {
+                        if (cleanW) {
+                            activeWordObj = {
+                                word: cleanW,
+                                start: wordStart,
+                                end: wordEnd,
+                                index: wordIndex
+                            };
+                        }
+                        break;
+                    }
+                    accumulatedLength += w.length + 1;
+                    wordIndex++;
+                }
+
+                if (activeWordObj) {
+                    let typedSoFarInWord = currentTypedText.substring(activeWordObj.start);
+                    if (typedSoFarInWord === activeWordObj.word) {
+                        stopLoopSound();
+                    } else {
+                        let wordKey = `word-${currentLineIndex}-${activeWordObj.index}-${activeWordObj.word}`;
+                        startLoopSound(activeWordObj.word, speakLang, wordKey, 1500);
+                    }
+                } else {
+                    stopLoopSound();
+                }
+            }
+        } else if (fullVal.length < currentTypedText.length) {
+            currentTypedText = fullVal;
+            stopLoopSound(); 
+        }
+
+        renderComparisonView();
+        updateInfoPanel();
+    });
+
+    function restartPractice() {
+        stopLoopSound();
+        loadDataFromCustomFormat(rawArticleText);
+    }
+
+    window.onload = async () => {
+        loadDataFromCustomFormat(rawArticleText);
+    };
+</script>
+
+</body>
+</html>
