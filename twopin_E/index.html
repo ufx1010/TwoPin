@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中英文打字練習</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            color: #e0e0e0;
+        }
+        .container {
+            background: #1e1e1e;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 100%;
+            max-width: 750px;
+            margin-bottom: 20px;
+            border: 1px solid #2d2d2d;
+        }
+        h1 {
+            margin: 2px 0 10px 0;
+            color: #ffffff;
+            font-size: 22px;
+        }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+            background: #252525;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #333333;
+        }
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e1e;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            padding: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            min-height: 42px;
+        }
+        .grid-item select {
+            width: 95%;
+            padding: 5px 4px;
+            border-radius: 4px;
+            border: 1px solid #444444;
+            font-size: 14px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            cursor: pointer;
+            text-align: center;
+            text-align-last: center;
+            margin: 0 auto;
+        }
+
+        button {
+            padding: 6px 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 95%;
+            margin: 0 auto;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            transition: opacity 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+        button.secondary-gray {
+            background-color: #6c757d;
+        }
+        button.primary-blue {
+            background-color: #3b82f6;
+        }
+        button.danger {
+            background-color: #dc3545;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        .modal-content {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 600px;
+            text-align: left;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #333333;
+            color: #ffffff;
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #ffffff;
+        }
+
+        .batch-textarea {
+            width: 100%;
+            height: 280px;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            border: 1px solid #444444;
+            border-radius: 6px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            resize: vertical;
+            outline: none;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        .batch-tip {
+            font-size: 12px;
+            color: #aaaaaa;
+            margin-top: 5px;
+            line-height: 1.5;
+            background: #252525;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #6c757d;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-top: 1px solid #333333;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .modal-buttons-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        #importFile {
+            display: none;
+        }
+
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 8px 0;
+            text-align: left;
+        }
+        .compare-row {
+            background: #252525;
+            border: 1px solid #333333;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: none;
+            position: relative;
+            min-height: 60px;
+            overflow: hidden; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .compare-en {
+            font-size: 20px;
+            font-family: Arial, sans-serif;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.8;
+            text-align: center;
+            width: 100%;
+            color: #ffffff;
+        }
+
+        .line-block {
+            display: block;
+            width: 100%;
+        }
+
+        #info-panel {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
+        }
+        .info-row {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+        
+        .info-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            background: #252525;
+            border: 1px solid #333333;
+            padding: 14px 16px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            text-align: center;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            min-height: 56px;
+            cursor: pointer;
+        }
+        .info-group:hover {
+            background: #2a2a2a;
+        }
+        
+        #translation-display {
+            font-size: 20px;
+            font-weight: bold;
+            color: #3b82f6;
+            display: block;
+            width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            text-align: center;
+        }
+
+        #note-display {
+            font-size: 16px;
+            color: #aaaaaa;
+            display: block;
+            width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            text-align: center;
+        }
+
+        #phonics-display {
+            font-size: 16px;
+            color: #f39c12;
+            display: block;
+            width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            text-align: center;
+        }
+
+        .correct-char {
+            color: #2ecc71 !important;
+        }
+        .incorrect-char {
+            color: #e74c3c !important;
+            background-color: #4a2c2c;
+        }
+        .normal-char {
+            color: #888888;
+        }
+
+        .fake-display-box {
+            position: relative;
+            width: 100%;
+            height: 60px;
+            border: 2px solid #3b82f6;
+            border-radius: 6px;
+            background: #1e1e1e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 8px;
+            overflow: hidden;
+            cursor: text;
+        }
+
+        #hiddenInput {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            border: none;
+            background: transparent;
+            font-size: 24px;
+            z-index: 2;
+        }
+
+        .status-text-layer {
+            font-size: 20px;
+            font-family: Arial, sans-serif;
+            color: #888888;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        #stats {
+            margin-top: 10px;
+            color: #aaaaaa;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-container">
+    <h1>中英文打字練習</h1>
+    
+    <div class="grid-menu">
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="openModal()">修改</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="exportArticle()">匯出</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="triggerImport()">匯入</button>
+            <input type="file" id="importFile" accept=".txt,.json" onchange="importArticle(event)">
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="restartPractice()">重來</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" id="muteBtn" class="secondary-gray" onclick="toggleMute()">開啟 🔊</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" id="modeBtn" class="primary-blue" onclick="toggleMode()"> 英打</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" id="audioModeBtn" class="primary-blue" onclick="toggleAudioMode()">單字模式</button>
+        </div>
+        <div class="grid-item" style="grid-column: span 2; justify-content: center; align-items: center;">
+            <select id="speedSelect" onchange="updateSpeed()">
+                <option value="0.3">0.3x</option>
+                <option value="0.5">0.5x</option>
+                <option value="0.8">0.8x</option>
+                <option value="1.0" selected>1.0x</option>
+                <option value="1.3">1.3x</option>
+                <option value="1.6">1.6x</option>
+                <option value="2.0">2.0x</option>
+                <option value="2.5">2.5x</option>
+                <option value="3.0">3.0x</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="comparison-display" class="comparison-container"></div>
+
+    <div class="fake-display-box" onclick="focusHiddenInput()">
+        <input type="search" id="hiddenInput" name="typing_practice_field" autocomplete="one-time-code" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="status-text-layer" id="statusDisplay">點擊此處開始打字...</div>
+    </div>
+
+    <div id="info-panel">
+        <div class="info-row">
+            <div class="info-group" id="group-trans">
+                <span id="translation-display">(無)</span>
+            </div>
+            <div class="info-group">
+                <span id="note-display">(無註解)</span>
+            </div>
+            <div class="info-group">
+                <span id="phonics-display">(無自然拼讀)</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="stats">進度: <span id="progress">0 / 0</span> | 正確句子數: <span id="score">0</span></div>
+</div>
+
+<div id="articleModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>編輯句庫內容</h3>
+        <div style="font-size: 13px; color: #aaaaaa; margin-bottom: 8px;">請依格式輸入（原文｜翻譯｜註解1｜自然註解2）：</div>
+        <textarea id="batchTextarea" class="batch-textarea"></textarea>
+        <div class="batch-tip">
+            <b>格式說明：</b><br>每行一組，以「｜」或「|」隔開（例如：Hello|你好|zhāo_hū|hel·lo），可留空白或省略。
+        </div>
+
+        <div class="modal-buttons">
+            <button type="button" class="danger" onclick="clearModalText()" style="width: auto;">刪除全部</button>
+            <div class="modal-buttons-right">
+                <button type="button" class="secondary-gray" onclick="closeModal()" style="width: auto;">取消</button>
+                <button type="button" class="secondary-gray" onclick="confirmCustomArticle()" style="width: auto;">確定套用</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let linesList = [];
+    let currentLineIndex = 0;
+    let score = 0;
+    let practiceMode = 'en'; 
+    let audioMode = 'word';
+    let lastSpokenKey = ""; 
+    let loopTimeout = null; 
+    
+    let rawArticleText = 
+    "Short Vowel|短元音||short vow·el\n" +
+    "Let's learn words, me and you|讓我們來學習單字吧，我和你|ràng_wǒ_men_lái_xué_xí_dān_zì_ba，wǒ_hé_nǐ|let's learn words, me and you\n" +
+    "Short vowel words, sing along|短元音單字，跟著唱|duǎn_yuán_yīn_dān_zì，gēn_zhe_chàng|short vow·el words, sing a·long\n" +
+    "Phonics makes us strong|自然拼讀法使我們變得堅強|zì_rán_pīn_dú_fǎ_shǐ_wǒ_men_biàn_de_jiān_qiáng|phon·ics makes us strong\n" +
+    "cat|貓，一隻小貓|māo，yì_zhī_xiǎo_māo|cat\n" +
+    "bat|蝙蝠，會飛的蝙蝠|biān_fú，huì_fēi_de_biān_fú|bat\n" +
+    "hat|帽子，有趣的帽子|mào_zi，yǒu_qù_de_mào_zi|hat\n" +
+    "bag|包，小包|bāo，xiǎo_bāo|bag\n" +
+    "map|地圖，簡單的地圖|dì_tú，jiǎn_dān_de_dì_tú|map\n" +
+    "fan|扇子，小扇子|shàn_zi，xiǎo_shàn_zi|fan\n" +
+    "pan|平底鍋，平底鍋|píng_dǐ_guō，píng_dǐ_guō|pan\n" +
+    "can|可以，一點點可以|kě_yǐ，yì_diǎn_diǎn_kě_yǐ|can\n" +
+    "hen|母雞，一隻小母雞|mǔ_jī，yì_zhī_xiǎo_mǔ_jī|hen\n" +
+    "pen|鋼筆，書寫筆|gāng_bǐ，shū_xiě_bǐ|pen\n" +
+    "bed|床，一張舒服的床|chuáng，yì_zhāng_shū_fu_de_chuáng|bed\n" +
+    "bell|鐘聲，敲響的鐘聲|zhōng_shēng，qiāo_xiǎng_de_zhōng_shēng|bell\n" +
+    "net|網，一點網|wǎng，yì_diǎn_wǎng|net\n" +
+    "tent|帳篷，露營帳篷|zhàng_péng，lù_yíng_zhàng_péng|tent\n" +
+    "jet|噴射機，飛行的噴射機|pēn_shè_jī，fēi_xíng_de_pēn_shè_jī|jet\n" +
+    "pig|豬，一隻小豬|zhū，yì_zhī_xiǎo_zhū|pig\n" +
+    "wig|假髮，有趣的假髮|jiǎ_fǎ，yǒu_qù_de_jiǎ_fǎ|wig\n" +
+    "pin|針，一根小針|zhēn，yì_gēn_xiǎo_zhēn|pin\n" +
+    "fish|魚，一條小魚|yú，yì_tiáo_xiǎo_yú|fish\n" +
+    "ship|船，一艘帆船|chuán，yì_sōu_fān_chuán|ship\n" +
+    "ring|戒指，閃亮的戒指|jiè_zhǐ，shǎn_liàng_de_jiè_zhǐ|ring\n" +
+    "dog|狗，一隻小狗|gǒu，yì_zhī_xiǎo_gǒu|dog\n" +
+    "fox|狐狸，聰明的狐狸|hú_li，cōng_míng_de_hú_li|fox\n" +
+    "box|盒子，小盒子|hé_zi，xiǎo_hé_zi|box\n" +
+    "sock|襪子，舒適的襪子|wà_zi，shū_shì_de_wà_zi|sock\n" +
+    "frog|青蛙，跳躍的青蛙|qīng_wā，tiào_yuè_de_qīng_wā|frog\n" +
+    "log|圓木，木頭圓木|yuán_mù，mù_tou_yuán_mù|log\n" +
+    "bug|蟲，一隻小蟲|chóng，yì_zhī_xiǎo_chóng|bug\n" +
+    "mug|馬克杯，一個小馬克杯|mǎ_kè_bēi，yí_gè_xiǎo_mǎ_kè_bēi|mug\n" +
+    "cup|杯子，一個小杯子|bēi_zi，yí_gè_xiǎo_bēi_zi|cup\n" +
+    "sun|太陽，燦爛的太陽|tài_yáng，càn_làn_de_tài_yáng|sun\n" +
+    "bus|巴士，大巴士|bā_shì，dà_bā_shì|bus\n" +
+    "drum|鼓，響亮的鼓|gǔ，xiǎng_liàng_de_gǔ|drum\n" +
+    "Short vowel words, we know them too|短元音單字，我們也認識|duǎn_yuán_yīn_dān_zì，wǒ_men_yě_rèn_shí|short vow·el words, we know them too\n" +
+    "Cat, hen, pig, dog, bug|貓、母雞、豬、狗、蟲|māo、mǔ_jī、zhū、gǒu、chóng|cat, hen, pig, dog, bug\n" +
+    "Five short vowels give a hug|五個短元音給你一個擁抱|wǔ_gè_duǎn_yuán_yīn_gěi_nǐ_yí_gè_yōng_bào|five short vow·els give a hug\n" +
+    "Read the words and sing them too|讀這些單字，也一起唱|dú_zhè_xiē_dān_zì，yě_yì_qǐ_chàng|read the words and sing them too\n" +
+    "Phonics friends, come and play|自然拼讀好朋友，快來玩|zì_rán_pīn_dú_hǎo_péng_yǒu，kuài_lái_wán|phon·ics friends, come and play\n" +
+    "Learn English every day|每天學習英語|měi_tiān_xué_xí_yīng_yǔ|learn en·glish ev·ery day";
+    
+    let currentTypedText = "";
+    let isMuted = false;
+    let currentSpeed = 1.0;
+    let audioCtx = null;
+    let isInputLocked = false;
+
+    function stopLoopSound() {
+        if (loopTimeout) {
+            clearTimeout(loopTimeout);
+            loopTimeout = null;
+        }
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+        lastSpokenKey = "";
+    }
+
+    function cleanText(str) {
+        return str.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()？！？，。、「」『』【】（）"'+?]/g, "").replace(/\s+/g, " ").trim();
+    }
+
+    function focusHiddenInput() {
+        const hiddenInput = document.getElementById('hiddenInput');
+        hiddenInput.focus();
+    }
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        const muteBtn = document.getElementById('muteBtn');
+        if (isMuted) {
+            muteBtn.textContent = "靜音 🔇";
+            stopLoopSound();
+        } else {
+            muteBtn.textContent = "開啟 🔊";
+        }
+    }
+
+    function toggleMode() {
+        stopLoopSound();
+        practiceMode = (practiceMode === 'en') ? 'zh' : 'en';
+        const modeBtn = document.getElementById('modeBtn');
+        if (practiceMode === 'en') {
+            modeBtn.textContent = "英打";
+            modeBtn.className = "primary-blue";
+        } else {
+            modeBtn.textContent = "中打";
+            modeBtn.className = "secondary-gray";
+        }
+        currentTypedText = "";
+        hiddenInput.value = "";
+        isInputLocked = false;
+        lastSpokenKey = "";
+        renderComparisonView();
+        updateInfoPanel();
+    }
+
+    function toggleAudioMode() {
+        stopLoopSound();
+        audioMode = (audioMode === 'word') ? 'sentence' : 'word';
+        const audioModeBtn = document.getElementById('audioModeBtn');
+        if (audioMode === 'word') {
+            audioModeBtn.textContent = "單字模式";
+            audioModeBtn.className = "primary-blue";
+        } else {
+            audioModeBtn.textContent = "整句模式";
+            audioModeBtn.className = "secondary-gray";
+        }
+        lastSpokenKey = "";
+    }
+
+    function updateSpeed() {
+        const select = document.getElementById('speedSelect');
+        currentSpeed = parseFloat(select.value);
+    }
+
+    function openModal() {
+        document.getElementById('batchTextarea').value = rawArticleText;
+        document.getElementById('articleModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('articleModal').style.display = 'none';
+    }
+
+    function clearModalText() {
+        if (confirm('確定要清空所有內容嗎？')) {
+            document.getElementById('batchTextarea').value = '';
+        }
+    }
+
+    async function confirmCustomArticle() {
+        const text = document.getElementById('batchTextarea').value;
+        if (!text.trim()) {
+            alert('請輸入有效的內容！');
+            return;
+        }
+        closeModal();
+        try {
+            loadDataFromCustomFormat(text);
+        } catch(err) {
+            alert('格式解析失敗，請確保格式正確！');
+        }
+    }
+
+    function exportArticle() {
+        let userFileName = prompt("請輸入要儲存的檔案名稱：", "⌨️中英文打字練習");
+        if (userFileName === null) return;
+        
+        let trimmedName = userFileName.trim();
+        if (!trimmedName) {
+            trimmedName = "⌨️中英文打字練習";
+        }
+        if (!trimmedName.toLowerCase().endsWith('.txt') && !trimmedName.toLowerCase().endsWith('.json')) {
+            trimmedName += '.txt';
+        }
+
+        let exportParts = [];
+        linesList.forEach(item => {
+            exportParts.push(`${item.en}|${item.zh}|${item.note}|${item.phonics}`);
+        });
+
+        const fileContent = exportParts.join('\n');
+        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = trimmedName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function triggerImport() {
+        document.getElementById('importFile').click();
+    }
+
+    function importArticle(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const content = e.target.result;
+            if (!content.trim()) {
+                alert('匯入的檔案內容為空！');
+                event.target.value = '';
+                return;
+            }
+
+            try {
+                loadDataFromCustomFormat(content);
+                alert('檔案匯入成功！');
+            } catch (err) {
+                alert('檔案格式錯誤，請確認是否符合指定格式！');
+            }
+            event.target.value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    function loadDataFromCustomFormat(text) {
+        stopLoopSound();
+        rawArticleText = text;
+        let itemTexts = text.split(/\r?\n/);
+        let parsedLines = [];
+
+        itemTexts.forEach((lineStr) => {
+            if (!lineStr.trim()) return;
+            let parts = lineStr.split(/[|｜]/);
+            if (parts.length >= 2) {
+                let en = parts[0].trim();
+                let zh = parts[1].trim();
+                let note = parts[2] ? parts[2].trim() : "";
+                let phonics = parts[3] ? parts[3].trim() : "";
+                if (en && zh) {
+                    parsedLines.push({ en: en, zh: zh, note: note, phonics: phonics });
+                }
+            }
+        });
+
+        if (parsedLines.length === 0) {
+            throw new Error("無效的格式");
+        }
+
+        linesList = parsedLines;
+        currentLineIndex = 0;
+        score = 0;
+        scoreDisplay.textContent = score;
+        currentTypedText = "";
+        hiddenInput.value = "";
+        statusDisplay.textContent = "點擊此處開始打字...";
+        isInputLocked = false;
+        lastSpokenKey = "";
+
+        progressDisplay.textContent = `1 / ${linesList.length}`;
+        renderComparisonView();
+        updateInfoPanel();
+    }
+
+    function playErrorSound() {
+        if (isMuted) return;
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.15);
+    }
+
+    function speakText(text, lang = 'en-US', callback) {
+        if (isMuted || !('speechSynthesis' in window)) {
+            if (callback) callback();
+            return;
+        }
+        window.speechSynthesis.cancel();
+        let utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        utterance.rate = currentSpeed;
+        if (callback) {
+            utterance.onend = () => callback();
+            utterance.onerror = () => callback();
+        }
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function startLoopSound(textToRead, lang, uniqueKey, intervalTime = 1500) {
+        if (isMuted || !('speechSynthesis' in window)) return;
+        if (lastSpokenKey === uniqueKey && loopTimeout) return;
+        
+        stopLoopSound();
+        lastSpokenKey = uniqueKey;
+
+        const scheduleNext = () => {
+            if (isMuted || lastSpokenKey !== uniqueKey) return;
+            loopTimeout = setTimeout(() => {
+                if (isMuted || lastSpokenKey !== uniqueKey) return;
+                speakText(textToRead, lang, () => {
+                    scheduleNext();
+                });
+            }, intervalTime); 
+        };
+        
+        speakText(textToRead, lang, () => {
+            scheduleNext();
+        });
+    }
+
+    const comparisonDisplay = document.getElementById('comparison-display');
+    const translationDisplay = document.getElementById('translation-display');
+    const noteDisplay = document.getElementById('note-display');
+    const phonicsDisplay = document.getElementById('phonics-display');
+    const hiddenInput = document.getElementById('hiddenInput');
+    const statusDisplay = document.getElementById('statusDisplay');
+    const progressDisplay = document.getElementById('progress');
+    const scoreDisplay = document.getElementById('score');
+
+    function getCurrentSentenceObj() {
+        return linesList[currentLineIndex] || null;
+    }
+
+    function renderComparisonView() {
+        if (currentLineIndex >= linesList.length) {
+            comparisonDisplay.innerHTML = '<div class="compare-row"><div class="compare-en" style="text-align: center; color: #2ecc71; font-weight: bold; font-size: 20px;">太棒了！練習已全部完成！</div></div>';
+            translationDisplay.textContent = "(完成)";
+            noteDisplay.textContent = "(無註解)";
+            phonicsDisplay.textContent = "(無註解)";
+            return;
+        }
+
+        const sentenceObj = linesList[currentLineIndex];
+        const targetText = (practiceMode === 'en') ? sentenceObj.en : sentenceObj.zh;
+        let lineHtml = '';
+        
+        let targetIdx = 0;
+        let typedIdx = 0;
+
+        while (targetIdx < targetText.length) {
+            const char = targetText[targetIdx];
+
+            if (typedIdx < currentTypedText.length) {
+                const typedChar = currentTypedText[typedIdx];
+                if (typedChar === char) {
+                    lineHtml += `<span class="correct-char">${char}</span>`;
+                } else {
+                    lineHtml += `<span class="incorrect-char">${typedChar}</span>`;
+                }
+                typedIdx++;
+            } else {
+                lineHtml += `<span>${char}</span>`;
+            }
+            targetIdx++;
+        }
+
+        comparisonDisplay.innerHTML = `
+            <div class="compare-row">
+                <div class="compare-en"><div class="line-block">${lineHtml}</div></div>
+            </div>
+        `;
+    }
+
+    function updateInfoPanel() {
+        const sentenceObj = getCurrentSentenceObj();
+        if (!sentenceObj) return;
+
+        translationDisplay.textContent = (practiceMode === 'en') ? sentenceObj.zh : sentenceObj.en;
+        noteDisplay.textContent = sentenceObj.note ? sentenceObj.note : "(無註解)";
+        phonicsDisplay.textContent = sentenceObj.phonics ? sentenceObj.phonics : "(無自然拼讀)";
+        statusDisplay.textContent = currentTypedText ? currentTypedText : "點擊此處開始打字...";
+        hiddenInput.value = currentTypedText;
+    }
+
+    hiddenInput.addEventListener('input', () => {
+        if (currentLineIndex >= linesList.length || isInputLocked) return;
+        
+        const sentenceObj = getCurrentSentenceObj();
+        if (!sentenceObj) return;
+
+        const targetText = (practiceMode === 'en') ? sentenceObj.en : sentenceObj.zh;
+        let fullVal = hiddenInput.value;
+
+        if (fullVal.length > 0) {
+            let lastCharIdx = fullVal.length - 1;
+            let typedChar = fullVal[lastCharIdx];
+
+            if (typedChar === ' ') {
+                stopLoopSound();
+                score++;
+                scoreDisplay.textContent = score;
+                currentLineIndex++;
+                currentTypedText = "";
+                hiddenInput.value = "";
+                isInputLocked = false;
+                lastSpokenKey = "";
+
+                if (currentLineIndex >= linesList.length) {
+                    comparisonDisplay.innerHTML = '<div class="compare-row"><div class="compare-en" style="text-align: center; color: #2ecc71; font-weight: bold; font-size: 20px;">太棒了！練習已全部完成！</div></div>';
+                    translationDisplay.textContent = "(完成)";
+                    noteDisplay.textContent = "(無註解)";
+                    phonicsDisplay.textContent = "(無自然拼讀)";
+                    statusDisplay.textContent = "練習完成！";
+                    progressDisplay.textContent = `${linesList.length} / ${linesList.length}`;
+                    return;
+                }
+
+                progressDisplay.textContent = `${currentLineIndex + 1} / ${linesList.length}`;
+                renderComparisonView();
+                updateInfoPanel();
+                return;
+            }
+
+            if (lastCharIdx < targetText.length) {
+                let expectedChar = targetText[lastCharIdx];
+                while (lastCharIdx < targetText.length && /^[.,\/#!$%\^&\*;:{}=\-_`~()？！？，。、「」『』【】（）"'\s+]+$/.test(targetText[lastCharIdx])) {
+                    if (targetText[lastCharIdx] === ' ' && typedChar === ' ') {
+                        break;
+                    }
+                    lastCharIdx++;
+                }
+                
+                if (lastCharIdx < targetText.length) {
+                    expectedChar = targetText[lastCharIdx];
+                    if (typedChar !== expectedChar && typedChar !== ' ') {
+                        playErrorSound();
+                        hiddenInput.value = currentTypedText;
+                        return;
+                    }
+                }
+                
+                currentTypedText = targetText.substring(0, lastCharIdx + 1);
+            }
+
+            let speakLang = (practiceMode === 'en') ? 'en-US' : 'zh-TW';
+            let words = targetText.split(" ");
+
+            if (audioMode === 'sentence') {
+                if (currentTypedText.length === 1) {
+                    let sentenceKey = `sentence-${currentLineIndex}-${targetText}`;
+                    startLoopSound(targetText, speakLang, sentenceKey, 1500);
+                } else if (currentTypedText === targetText) {
+                    stopLoopSound();
+                }
+            } else {
+                let accumulatedLength = 0;
+                let activeWordObj = null;
+                let wordIndex = 0;
+
+                for (let w of words) {
+                    let cleanW = w.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()？！？，。、「」『』【】（）"'+?]/g, "");
+                    let wordStart = accumulatedLength;
+                    let wordEnd = accumulatedLength + w.length;
+
+                    if (currentTypedText.length > wordStart && currentTypedText.length <= wordEnd) {
+                        if (cleanW) {
+                            activeWordObj = {
+                                word: cleanW,
+                                start: wordStart,
+                                end: wordEnd,
+                                index: wordIndex
+                            };
+                        }
+                        break;
+                    }
+                    accumulatedLength += w.length + 1;
+                    wordIndex++;
+                }
+
+                if (activeWordObj) {
+                    let typedSoFarInWord = currentTypedText.substring(activeWordObj.start);
+                    if (typedSoFarInWord === activeWordObj.word) {
+                        stopLoopSound();
+                    } else {
+                        let wordKey = `word-${currentLineIndex}-${activeWordObj.index}-${activeWordObj.word}`;
+                        startLoopSound(activeWordObj.word, speakLang, wordKey, 1500);
+                    }
+                } else {
+                    stopLoopSound();
+                }
+            }
+        } else if (fullVal.length < currentTypedText.length) {
+            currentTypedText = fullVal;
+            stopLoopSound(); 
+        }
+
+        renderComparisonView();
+        updateInfoPanel();
+    });
+
+    function restartPractice() {
+        stopLoopSound();
+        loadDataFromCustomFormat(rawArticleText);
+    }
+
+    window.onload = async () => {
+        loadDataFromCustomFormat(rawArticleText);
+    };
+</script>
+
+</body>
+</html>
