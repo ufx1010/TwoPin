@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>文字編輯器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #f5f7fa;
+            --surface: #ffffff;
+            --border: #d0d7de;
+            --text: #1f2937;
+            --text-secondary: #6b7280;
+            --radius: 8px;
+            --safe-bottom: env(safe-area-inset-bottom, 16px);
+        }
+
+        body {
+            height: 100vh;
+            height: 100svh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text);
+            overflow: hidden;
+            padding: 4px 4px calc(4px + var(--safe-bottom));
+            touch-action: manipulation;
+        }
+
+        .app {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* 編輯器區域疊加層設計（用於高亮紅字） */
+        .editor-wrapper {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+            min-height: 20px;
+        }
+
+        .line-numbers {
+            background: #f8fafc;
+            color: var(--text-secondary);
+            padding: 10px 6px;
+            text-align: right;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            border-right: 1px solid var(--border);
+            overflow: hidden;
+            user-select: none;
+            min-width: 35px;
+            flex-shrink: 0;
+            white-space: pre;
+            z-index: 2;
+        }
+
+        .line-numbers.hidden {
+            display: none;
+        }
+
+        .editor-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: var(--surface);
+        }
+
+        #backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 10px 12px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre;
+            word-wrap: normal;
+            color: transparent;
+            pointer-events: none;
+            overflow: hidden;
+            tab-size: 2;
+        }
+
+        #backdrop.wrap-soft {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        #backdrop mark {
+            background-color: transparent;
+            color: #ff3b30;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        #editor {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding: 10px 12px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: none;
+            outline: none;
+            overflow: auto;
+            background: transparent;
+            color: var(--text);
+            tab-size: 2;
+            white-space: pre;
+            -webkit-tap-highlight-color: transparent;
+            z-index: 1;
+        }
+
+        #editor.wrap-soft {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* 狀態列 */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2px 8px;
+            background: #f8fafc;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            min-height: 26px;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .status-left {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+            overflow: hidden;
+        }
+
+        .status-right {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .stat-item {
+            background: #eef2f6;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            white-space: nowrap;
+            color: #333;
+        }
+
+        .status-msg {
+            font-size: 11px;
+            color: #888;
+        }
+        .status-msg.error {
+            color: #d32f2f;
+            font-weight: 500;
+        }
+
+        /* 工具列 */
+        .toolbar {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 6px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .toolbar .row {
+            display: flex;
+            gap: 3px;
+            align-items: center;
+        }
+
+        .toolbar .row-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            width: 28px;
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .editable-field {
+            flex: 1 1 0;
+            min-width: 60px;
+            padding: 4px 8px;
+            font-size: 13px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text);
+            outline: none;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .editable-field:focus {
+            border-color: #999;
+        }
+
+        .editable-field:empty:before {
+            content: attr(data-placeholder);
+            color: #aaa;
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 3px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .row-actions .btn {
+            min-width: 38px;
+            flex: 0 0 auto;
+        }
+
+        .btn {
+            padding: 2px 5px;
+            font-size: 11px;
+            font-weight: 500;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #e8e8e8;
+            color: #444;
+            cursor: pointer;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 32px;
+            min-width: 38px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.1s;
+        }
+
+        .btn:active {
+            background: #d0d0d0;
+        }
+
+        .btn-toggle {
+            background: #e8e8e8;
+            color: #777;
+            border: 1px solid #ccc;
+        }
+        .btn-toggle.active {
+            background: #d0d0d0;
+            color: #111;
+            border-color: #aaa;
+            font-weight: 600;
+        }
+
+        .bottom-actions {
+            display: flex;
+            gap: 3px;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 2px;
+            scrollbar-width: none;
+            justify-content: flex-start;
+        }
+        .bottom-actions::-webkit-scrollbar {
+            display: none;
+        }
+        .bottom-actions .btn {
+            flex-shrink: 0;
+        }
+
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app">
+        <!-- 編輯器 -->
+        <div class="editor-wrapper">
+            <div id="lineNumbers" class="line-numbers">1</div>
+            <div class="editor-container">
+                <div id="backdrop"></div>
+                <textarea id="editor" wrap="off" spellcheck="false"></textarea>
+            </div>
+        </div>
+
+        <!-- 狀態列 -->
+        <div class="status-bar">
+            <div class="status-left">
+                <span class="stat-item" id="statLines">行 1</span>
+                <span class="stat-item" id="statWords">字 0</span>
+                <span class="stat-item" id="statChars">字元 0</span>
+                <span class="stat-item" id="statCursor">1:1</span>
+                <span id="statusMsg" class="status-msg"></span>
+            </div>
+            <div class="status-right">
+                <span id="matchCountDisplay" class="stat-item" style="background:#e0e0e0;min-width:30px;">0</span>
+                <span id="wrapIndicator" class="stat-item" style="background:#e0e0e0;color:#333;">整行</span>
+            </div>
+        </div>
+
+        <!-- 工具列 -->
+        <div class="toolbar">
+            <!-- 搜尋列 -->
+            <div class="row">
+                <span class="row-label">搜尋</span>
+                <div id="findStr" class="editable-field" contenteditable="true" data-placeholder="關鍵字…"></div>
+                <div class="row-actions">
+                    <button class="btn btn-toggle" id="caseBtn" title="區分大小寫">A/a</button>
+                    <button class="btn" id="findNextBtn">下個</button>
+                    <button class="btn" id="findPrevBtn">上個</button>
+                </div>
+            </div>
+
+            <!-- 取代列 -->
+            <div class="row">
+                <span class="row-label">取代</span>
+                <div id="replaceStr" class="editable-field" contenteditable="true" data-placeholder="取代為…"></div>
+                <div class="row-actions">
+                    <button class="btn btn-toggle" id="fullWidthBtn" title="全形/半形">全/半</button>
+                    <button class="btn" id="replaceOneBtn">一個</button>
+                    <button class="btn" id="replaceAllBtn">全部</button>
+                </div>
+            </div>
+
+            <!-- 功能鍵列 -->
+            <div class="bottom-actions">
+                <button class="btn" id="importBtn">📂 匯入</button>
+                <button class="btn" id="exportBtn">💾 匯出</button>
+                <button class="btn" id="wrapToggleBtn">↩️換行</button>
+                <button class="btn" id="clearBtn">🗑 清空</button>
+                <button class="btn" id="undoBtn">⤴️復原</button>
+                <button class="btn" id="redoBtn">⤵️重做</button>
+                <button class="btn" id="copyBtn">📋 複製</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".txt,.md,.js,.html,.css,.json,.csv,.log,.xml,.yaml,.yml,.toml,.ini,.cfg,.conf,.sh,.py,.java,.c,.cpp,.h,.go,.rs,.ts,.jsx,.tsx,.vue,.svelte" />
+
+    <script>
+        (function() {
+            'use strict';
+
+            const editor = document.getElementById('editor');
+            const backdrop = document.getElementById('backdrop');
+            const lineNumbers = document.getElementById('lineNumbers');
+            const statusMsg = document.getElementById('statusMsg');
+            const findStrEl = document.getElementById('findStr');
+            const replaceStrEl = document.getElementById('replaceStr');
+            const matchCountDisplay = document.getElementById('matchCountDisplay');
+            const statLines = document.getElementById('statLines');
+            const statWords = document.getElementById('statWords');
+            const statChars = document.getElementById('statChars');
+            const statCursor = document.getElementById('statCursor');
+            const wrapIndicator = document.getElementById('wrapIndicator');
+            const fileInput = document.getElementById('fileInput');
+
+            const caseBtn = document.getElementById('caseBtn');
+            const fullWidthBtn = document.getElementById('fullWidthBtn');
+
+            let wrapMode = 'hard';
+            let currentFileName = 'untitled.txt';
+            let history = [];
+            let historyIndex = -1;
+            const MAX_HISTORY = 50;
+            let isUndoing = false;
+
+            let isCaseSensitive = false;
+            let isFullWidthAware = false;
+
+            function setStatus(msg, isError = false) {
+                if (msg) {
+                    statusMsg.textContent = msg;
+                    statusMsg.classList.toggle('error', isError);
+                } else {
+                    statusMsg.textContent = '';
+                    statusMsg.classList.remove('error');
+                }
+            }
+
+            function escapeRegex(str) {
+                return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+
+            function escapeHtml(str) {
+                return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+            function toHalfWidth(str) {
+                return str.replace(/[\uff01-\uff5e]/g, function(ch) {
+                    return String.fromCharCode(ch.charCodeAt(0) - 0xfee0);
+                }).replace(/\u3000/g, ' ');
+            }
+
+            function prepareSearchText(text, fullWidthMode) {
+                if (!fullWidthMode) return text;
+                return toHalfWidth(text);
+            }
+
+            function pushHistory() {
+                if (isUndoing) return;
+                const current = editor.value;
+                if (history.length > 0 && history[historyIndex] === current) return;
+                history = history.slice(0, historyIndex + 1);
+                history.push(current);
+                if (history.length > MAX_HISTORY) history.shift();
+                historyIndex = history.length - 1;
+            }
+
+            function undo() {
+                if (historyIndex <= 0) {
+                    setStatus('已無動作可復原', true);
+                    return;
+                }
+                isUndoing = true;
+                historyIndex--;
+                editor.value = history[historyIndex];
+                updateAll();
+                setStatus('已復原');
+                setTimeout(() => setStatus(''), 2000);
+                isUndoing = false;
+            }
+
+            function redo() {
+                if (historyIndex >= history.length - 1) {
+                    setStatus('已無動作可重做', true);
+                    return;
+                }
+                isUndoing = true;
+                historyIndex++;
+                editor.value = history[historyIndex];
+                updateAll();
+                setStatus('已重做');
+                setTimeout(() => setStatus(''), 2000);
+                isUndoing = false;
+            }
+
+            function initHistory() {
+                history = [editor.value];
+                historyIndex = 0;
+            }
+
+            function updateLineNumbers() {
+                if (wrapMode === 'soft') {
+                    lineNumbers.classList.add('hidden');
+                    return;
+                }
+                lineNumbers.classList.remove('hidden');
+                const lines = editor.value.split('\n').length;
+                let nums = '';
+                for (let i = 1; i <= lines; i++) {
+                    nums += i + '\n';
+                }
+                lineNumbers.textContent = nums;
+                const width = Math.max(35, String(lines).length * 8 + 16);
+                lineNumbers.style.minWidth = width + 'px';
+                syncScroll();
+            }
+
+            function syncScroll() {
+                lineNumbers.scrollTop = editor.scrollTop;
+                backdrop.scrollTop = editor.scrollTop;
+                backdrop.scrollLeft = editor.scrollLeft;
+            }
+
+            function updateStats() {
+                const text = editor.value;
+                const lines = text.split('\n').length;
+                const chars = text.length;
+                const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+                statLines.textContent = '行 ' + lines;
+                statWords.textContent = '字 ' + words;
+                statChars.textContent = '字元 ' + chars;
+
+                const pos = editor.selectionStart;
+                const before = text.substring(0, pos);
+                const line = before.split('\n').length;
+                const col = before.split('\n').pop().length + 1;
+                statCursor.textContent = line + ':' + col;
+            }
+
+            function toggleWrap() {
+                if (wrapMode === 'hard') {
+                    editor.setAttribute('wrap', 'soft');
+                    editor.classList.add('wrap-soft');
+                    backdrop.classList.add('wrap-soft');
+                    wrapMode = 'soft';
+                    wrapIndicator.textContent = '換行';
+                } else {
+                    editor.setAttribute('wrap', 'off');
+                    editor.classList.remove('wrap-soft');
+                    backdrop.classList.remove('wrap-soft');
+                    wrapMode = 'hard';
+                    wrapIndicator.textContent = '整行';
+                }
+                updateLineNumbers();
+            }
+
+            function getFindStr() {
+                return findStrEl.innerText.trim();
+            }
+
+            function getReplaceStr() {
+                return replaceStrEl.innerText;
+            }
+
+            function buildRegex(query) {
+                const processedQuery = prepareSearchText(query, isFullWidthAware);
+                const flags = isCaseSensitive ? 'g' : 'gi';
+                if (isFullWidthAware) {
+                    const pattern = processedQuery.split('').map(ch => {
+                        const code = ch.charCodeAt(0);
+                        let altCh = ch;
+                        if (code >= 33 && code <= 126) {
+                            altCh = String.fromCharCode(code + 0xfee0);
+                        } else if (code >= 65281 && code <= 65374) {
+                            altCh = String.fromCharCode(code - 0xfee0);
+                        }
+                        if (ch === altCh) return escapeRegex(ch);
+                        return `[${escapeRegex(ch)}${escapeRegex(altCh)}]`;
+                    }).join('');
+                    return new RegExp(pattern, flags);
+                } else {
+                    return new RegExp(escapeRegex(query), flags);
+                }
+            }
+
+            function updateBackdrop(forceClear = false) {
+                const text = editor.value;
+                const query = getFindStr();
+                if (forceClear || !query) {
+                    backdrop.innerHTML = escapeHtml(text) + '\n';
+                    matchCountDisplay.textContent = '0';
+                    return;
+                }
+                const regex = buildRegex(query);
+                const escapedText = escapeHtml(text);
+                
+                let lastIdx = 0;
+                let highlightedHtml = '';
+                const searchTarget = prepareSearchText(text, isFullWidthAware);
+                const matches = [...searchTarget.matchAll(regex)];
+                const count = matches.length;
+                matchCountDisplay.textContent = count;
+
+                if (count === 0) {
+                    backdrop.innerHTML = escapedText + '\n';
+                    return;
+                }
+
+                matches.forEach(m => {
+                    const start = m.index;
+                    const end = start + m[0].length;
+                    highlightedHtml += escapeHtml(text.substring(lastIdx, start));
+                    highlightedHtml += `<mark>` + escapeHtml(text.substring(start, end)) + `</mark>`;
+                    lastIdx = end;
+                });
+                highlightedHtml += escapeHtml(text.substring(lastIdx)) + '\n';
+                backdrop.innerHTML = highlightedHtml;
+            }
+
+            function findNext() {
+                const query = getFindStr();
+                if (!query) {
+                    setStatus('請輸入搜尋內容', true);
+                    updateBackdrop(true);
+                    return;
+                }
+                const regex = buildRegex(query);
+                const text = editor.value;
+                const searchTarget = prepareSearchText(text, isFullWidthAware);
+                let match = regex.exec(searchTarget);
+                if (!match) {
+                    setStatus('找不到 "' + query + '"', true);
+                    updateBackdrop(true);
+                    return;
+                }
+                const startPos = editor.selectionEnd || 0;
+                regex.lastIndex = startPos;
+                match = regex.exec(searchTarget);
+                if (!match) {
+                    regex.lastIndex = 0;
+                    match = regex.exec(searchTarget);
+                    if (!match) {
+                        setStatus('找不到 "' + query + '"', true);
+                        updateBackdrop(true);
+                        return;
+                    }
+                }
+                const pos = match.index;
+                const len = match[0].length;
+                editor.focus();
+                editor.setSelectionRange(pos, pos + len);
+                updateStats();
+                updateBackdrop(); // 按下輸出鍵才顯示紅色
+                
+                const allMatches = [...searchTarget.matchAll(buildRegex(query))];
+                const currentIdx = allMatches.findIndex(m => m.index === pos);
+                setStatus((currentIdx + 1) + '/' + allMatches.length);
+                setTimeout(() => setStatus(''), 1500);
+            }
+
+            function findPrev() {
+                const query = getFindStr();
+                if (!query) {
+                    setStatus('請輸入搜尋內容', true);
+                    updateBackdrop(true);
+                    return;
+                }
+                const text = editor.value;
+                const searchTarget = prepareSearchText(text, isFullWidthAware);
+                const matches = [...searchTarget.matchAll(buildRegex(query))];
+                if (matches.length === 0) {
+                    setStatus('找不到 "' + query + '"', true);
+                    updateBackdrop(true);
+                    return;
+                }
+                const currentPos = editor.selectionStart || 0;
+                let idx = matches.length - 1;
+                for (let i = matches.length - 1; i >= 0; i--) {
+                    if (matches[i].index < currentPos) {
+                        idx = i;
+                        break;
+                    }
+                }
+                const m = matches[idx];
+                editor.focus();
+                editor.setSelectionRange(m.index, m.index + m[0].length);
+                updateStats();
+                updateBackdrop(); // 顯示紅字
+                setStatus((idx + 1) + '/' + matches.length);
+                setTimeout(() => setStatus(''), 1500);
+            }
+
+            function replaceText(all) {
+                const find = getFindStr();
+                const replace = getReplaceStr();
+                if (!find) {
+                    setStatus('請輸入搜尋內容', true);
+                    return;
+                }
+                const regex = buildRegex(find);
+                const text = editor.value;
+                const searchTarget = prepareSearchText(text, isFullWidthAware);
+
+                if (all) {
+                    const matches = [...searchTarget.matchAll(regex)];
+                    if (matches.length === 0) {
+                        setStatus('未找到', true);
+                        return;
+                    }
+                    let newText = text;
+                    for (let i = matches.length - 1; i >= 0; i--) {
+                        const m = matches[i];
+                        newText = newText.substring(0, m.index) + replace + newText.substring(m.index + m[0].length);
+                    }
+                    editor.value = newText;
+                    pushHistory();
+                    updateAll();
+                    setStatus('已取代 ' + matches.length + ' 處');
+                    setTimeout(() => setStatus(''), 2000);
+                } else {
+                    const startPos = editor.selectionStart || 0;
+                    const after = searchTarget.substring(startPos);
+                    let match = regex.exec(after);
+                    let pos;
+                    if (!match) {
+                        regex.lastIndex = 0;
+                        match = regex.exec(searchTarget);
+                        if (!match) {
+                            setStatus('未找到', true);
+                            return;
+                        }
+                        pos = match.index;
+                    } else {
+                        pos = startPos + match.index;
+                    }
+                    const len = match[0].length;
+                    editor.value = text.substring(0, pos) + replace + text.substring(pos + len);
+                    pushHistory();
+                    updateAll();
+                    setStatus('已取代 1 處');
+                    setTimeout(() => setStatus(''), 2000);
+                }
+                updateBackdrop();
+            }
+
+            function importFile() {
+                fileInput.click();
+            }
+
+            function handleFileUpload() {
+                const file = fileInput.files[0];
+                if (!file) return;
+                currentFileName = file.name;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    editor.value = e.target.result;
+                    pushHistory();
+                    updateAll();
+                    setStatus('已匯入');
+                    setTimeout(() => setStatus(''), 2000);
+                };
+                reader.onerror = () => {
+                    setStatus('讀取失敗', true);
+                };
+                reader.readAsText(file);
+                fileInput.value = '';
+            }
+
+            function exportFile() {
+                const name = prompt('請輸入檔名：', currentFileName);
+                if (name === null) return;
+                if (name.trim() === '') {
+                    setStatus('檔名不可空白', true);
+                    return;
+                }
+                currentFileName = name.trim();
+                const blob = new Blob([editor.value], { type: 'text/plain;charset=utf-8' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = currentFileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+                setStatus('已匯出');
+                setTimeout(() => setStatus(''), 2000);
+            }
+
+            function clearText() {
+                if (editor.value === '') {
+                    setStatus('已是空白');
+                    return;
+                }
+                if (!confirm('確定要清空嗎？')) return;
+                editor.value = '';
+                pushHistory();
+                updateAll();
+                setStatus('已清空');
+                setTimeout(() => setStatus(''), 2000);
+            }
+
+            function copyText() {
+                if (!editor.value) {
+                    setStatus('沒有內容', true);
+                    return;
+                }
+                navigator.clipboard.writeText(editor.value).then(() => {
+                    setStatus('已複製全部');
+                    setTimeout(() => setStatus(''), 2000);
+                }).catch(() => {
+                    setStatus('複製失敗', true);
+                });
+            }
+
+            function updateAll() {
+                updateLineNumbers();
+                updateStats();
+                updateBackdrop(true);
+            }
+
+            caseBtn.addEventListener('click', () => {
+                isCaseSensitive = !isCaseSensitive;
+                caseBtn.classList.toggle('active', isCaseSensitive);
+            });
+
+            fullWidthBtn.addEventListener('click', () => {
+                isFullWidthAware = !isFullWidthAware;
+                fullWidthBtn.classList.toggle('active', isFullWidthAware);
+            });
+
+            editor.addEventListener('input', () => {
+                pushHistory();
+                updateAll();
+            });
+            editor.addEventListener('scroll', syncScroll);
+            editor.addEventListener('click', updateStats);
+            editor.addEventListener('keyup', updateStats);
+            editor.addEventListener('select', updateStats);
+
+            // 搜尋框按 Enter 時直接觸發「下個」
+            findStrEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    findNext();
+                }
+            });
+
+            document.getElementById('findNextBtn').addEventListener('click', findNext);
+            document.getElementById('findPrevBtn').addEventListener('click', findPrev);
+            document.getElementById('replaceOneBtn').addEventListener('click', () => replaceText(false));
+            document.getElementById('replaceAllBtn').addEventListener('click', () => replaceText(true));
+            document.getElementById('importBtn').addEventListener('click', importFile);
+            document.getElementById('exportBtn').addEventListener('click', exportFile);
+            document.getElementById('wrapToggleBtn').addEventListener('click', toggleWrap);
+            document.getElementById('clearBtn').addEventListener('click', clearText);
+            document.getElementById('undoBtn').addEventListener('click', undo);
+            document.getElementById('redoBtn').addEventListener('click', redo);
+            document.getElementById('copyBtn').addEventListener('click', copyText);
+            fileInput.addEventListener('change', handleFileUpload);
+
+            initHistory();
+            updateAll();
+            setStatus('');
+        })();
+    </script>
+</body>
+</html>
