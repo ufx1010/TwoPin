@@ -563,14 +563,14 @@
         const sentenceObj = getCurrentSentenceObj();
         if (!sentenceObj) {
             translationDisplay.textContent = "(無)";
-            noteDisplay.textContent = "(無註解)";
-            phonicsDisplay.textContent = "(無自然拼讀)";
+            noteDisplay.textContent = "(無)";
+            phonicsDisplay.textContent = "(無)";
             return;
         }
         translationDisplay.textContent = (practiceMode === 'en') ? sentenceObj.zh : sentenceObj.en;
-        noteDisplay.textContent = sentenceObj.note || "(無註解)";
-        phonicsDisplay.textContent = sentenceObj.phonics || "(無自然拼讀)";
-        statusDisplay.textContent = currentTypedText || "👆 點擊開始打字";
+        noteDisplay.textContent = sentenceObj.note || "(無)";
+        phonicsDisplay.textContent = sentenceObj.phonics || "(無)";
+        statusDisplay.textContent = currentTypedText || "";
         hiddenInput.value = currentTypedText;
     }
 
