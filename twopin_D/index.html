@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中文輸入練習</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            color: #e0e0e0;
+        }
+        .container {
+            background: #1e1e1e;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 100%;
+            max-width: 750px;
+            margin-bottom: 20px;
+            border: 1px solid #2d2d2d;
+        }
+        h1 {
+            margin: 2px 0 14px 0;
+            color: #ffffff;
+            font-size: 22px;
+        }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+            background: #252525;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #333333;
+        }
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e1e;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            padding: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            min-height: 42px;
+        }
+        .grid-item select {
+            width: 95%;
+            padding: 5px 4px;
+            border-radius: 4px;
+            border: 1px solid #444444;
+            font-size: 14px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            cursor: pointer;
+            text-align: center;
+            text-align-last: center;
+            margin: 0 auto;
+        }
+
+        button {
+            padding: 6px 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 95%;
+            margin: 0 auto;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            transition: opacity 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+        button.secondary { background-color: #4b5563; }
+        button.danger { background-color: #dc3545; }
+        button.mute-btn { background-color: #4b5563; }
+        button.mute-btn.muted { background-color: #4b5563; opacity: 0.7; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        .modal-content {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 600px;
+            text-align: left;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #333333;
+            color: #ffffff;
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #ffffff;
+        }
+
+        .batch-textarea {
+            width: 100%;
+            height: 280px;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            border: 1px solid #444444;
+            border-radius: 6px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            resize: vertical;
+            outline: none;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        .batch-tip {
+            font-size: 12px;
+            color: #aaaaaa;
+            margin-top: 5px;
+            line-height: 1.5;
+            background: #252525;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-top: 1px solid #333333;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .modal-buttons-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        #importFile { display: none; }
+
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 8px 0;
+            text-align: left;
+        }
+        .compare-row {
+            background: #252525;
+            border: 1px solid #333333;
+            padding: 16px;
+            border-radius: 8px;
+            position: relative;
+            min-height: 120px;
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .compare-en {
+            font-size: 22px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            text-align: center;
+            width: 100%;
+            color: #ffffff;
+        }
+
+        .word-item {
+            display: inline-block;
+            margin: 2px 4px;
+        }
+        .word-item.active-word {
+            background-color: #1a2332;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 2px solid #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+        }
+
+        .line-block {
+            display: block;
+            width: 100%;
+        }
+
+        #info-panel {
+            margin: 10px 0;
+            font-size: 15px;
+            color: #e0e0e0;
+            background: #252525;
+            border: 1px solid #333333;
+            padding: 10px 12px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .info-group {
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .info-group:hover { background: #333333; }
+        
+        #translation-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        
+        .ipa-badge {
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            color: #f59e0b;
+            font-weight: bold;
+            background: #2c2416;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid #78350f;
+            display: inline-block;
+        }
+
+        .pinyin-badge {
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+            font-weight: bold;
+            background: #1f2937;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #374151;
+            display: inline-block;
+            letter-spacing: 0.5px;
+        }
+
+        .correct-char { color: #2ecc71 !important; }
+        .incorrect-char { color: #e74c3c !important; background-color: #4a2c2c; }
+
+        .fake-display-box {
+            position: relative;
+            width: 100%;
+            height: 60px;
+            border: 2px solid #4b5563;
+            border-radius: 6px;
+            background: #1e1e1e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 8px;
+            overflow: hidden;
+            cursor: text;
+        }
+        
+        #hiddenInput {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            border: none;
+            background: transparent;
+            font-size: 20px;
+            z-index: 2;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        .status-text-layer {
+            font-size: 20px;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            color: #ffffff;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        #stats {
+            margin-top: 10px;
+            color: #aaaaaa;
+            font-size: 15px;
+        }
+
+        .report-box {
+            background: #252525;
+            border: 1px solid #3b82f6;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            margin: 5px 0;
+        }
+        .report-title {
+            text-align: center;
+            color: #3b82f6;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .report-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-container">
+    <h1>中文輸入練習</h1>
+    
+    <div class="grid-menu">
+        <div class="grid-item">
+            <button class="secondary" onclick="openModal()">修改</button>
+        </div>
+        <div class="grid-item">
+            <button class="secondary" onclick="exportArticle()">匯出</button>
+        </div>
+        <div class="grid-item">
+            <button class="secondary" onclick="triggerImport()">匯入</button>
+            <input type="file" id="importFile" accept=".txt,.json" onchange="importArticle(event)">
+        </div>
+        <div class="grid-item">
+            <button class="secondary" onclick="restartPractice()">重來</button>
+        </div>
+        <div class="grid-item">
+            <button id="muteBtn" class="secondary mute-btn" onclick="toggleMute()">開啟 🔊</button>
+        </div>
+        <div class="grid-item" style="justify-content: center; align-items: center;">
+            <select id="speedSelect" onchange="updateSpeed()">
+                <option value="0.3">0.3x</option>
+                <option value="0.5">0.5x</option>
+                <option value="0.8">0.8x</option>
+                <option value="1.0" selected>1.0x</option>
+                <option value="1.3">1.3x</option>
+                <option value="1.6">1.6x</option>
+                <option value="2.0">2.0x</option>
+                <option value="2.5">2.5x</option>
+                <option value="3.0">3.0x</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="comparison-display" class="comparison-container"></div>
+
+    <div id="info-panel">
+        <div class="info-row">
+            <div class="info-group" onclick="speakCurrentSentence()" title="點擊發音">
+                英文: <span id="translation-display">(無)</span> 🔊
+            </div>
+            <div class="info-group" id="ipa-group" title="音標">
+                音標: <span id="phonetic-display" class="ipa-badge">/---/</span>
+            </div>
+        </div>
+        <div class="info-row" style="justify-content: center;">
+            <div class="info-group" id="pinyin-group" style="justify-content: center;" title="漢語拼音">
+                漢語拼音: <span id="pinyin-display" class="pinyin-badge">---</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="fake-display-box" onclick="focusHiddenInput()">
+        <input type="search" id="hiddenInput" name="typing_practice_field" autocomplete="one-time-code" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="status-text-layer" id="statusDisplay"></div>
+    </div>
+
+    <div id="stats">進度: <span id="progress">0 / 0</span> | 正確單字數: <span id="score">0</span> | 按錯次數: <span id="errorCount">0</span></div>
+</div>
+
+<div id="articleModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>編輯中文練習文章</h3>
+        <div style="font-size: 13px; color: #aaaaaa; margin-bottom: 8px;">請輸入內容（支援自訂格式）：</div>
+        <textarea id="batchTextarea" class="batch-textarea"></textarea>
+        <div class="batch-tip">
+            <b>操作提示：</b>
+            <br>畫面上方顯示框一次只顯示一行中文，請切換至中文輸入法打出對應中文。
+        </div>
+
+        <div class="modal-buttons">
+            <button class="danger" onclick="clearModalText()" style="width: auto;">刪除全部</button>
+            <div class="modal-buttons-right">
+                <button class="secondary" onclick="closeModal()" style="width: auto;">取消</button>
+                <button class="secondary" onclick="confirmCustomArticle()" style="width: auto;">確定套用</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let linesList = [];
+    let totalWordsCount = 0;
+    let currentLineIndex = 0;
+    let currentWordIndexInLine = 0;
+    let score = 0;
+    let errorCount = 0;
+    let startTime = null;
+    let timerInterval = null;
+    let isPracticeStarted = false;
+    let rawArticleText = 
+`At｜在｜[æt]｜[zài] School｜學校｜[skul]｜[xué_xiào]
+School｜學校｜[skul]｜[xué_xiào] is｜是｜[ɪz]｜[shì] a｜一個｜[ə]｜[yí_gè] place｜地方｜[ples]｜[dì_fāng] for｜用於｜[fɚ]｜[yòng_yú] learning｜學習｜[ˋlɝn_ɪŋ]｜[xué_xí]
+Teacher｜老師｜[ˋtitʃ_ɚ]｜[lǎo_shī] and｜和｜[ænd]｜[hé] students｜學生｜[ˋstud_ənts]｜[xué_shēng] work｜工作｜[wɝk]｜[gōng_zuò] together｜一起｜[təˋɡɛð_ɚ]｜[yì_qǐ]
+Teacher｜老師｜[ˋtitʃ_ɚ]｜[lǎo_shī] gives｜給予｜[ɡɪvz]｜[jǐ_yǔ] lessons｜課程｜[ˋlɛs_ənz]｜[kè_chéng]
+Students｜學生｜[ˋstud_ənts]｜[xué_shēng] read｜閱讀｜[rid]｜[yuè_dú] books｜書籍｜[bʊks]｜[shū_jí] and｜和｜[ænd]｜[hé] write｜寫｜[raɪt]｜[xiě] words｜單字｜[wɝdz]｜[dān_zì]
+Students｜學生｜[ˋstud_ənts]｜[xué_shēng] ask｜詢問｜[æsk]｜[xún_wèn] questions｜問題｜[ˋkwɛs_tʃənz]｜[wèn_tí]
+Teacher｜老師｜[ˋtitʃ_ɚ]｜[lǎo_shī] gives｜給予｜[ɡɪvz]｜[jǐ_yǔ] answers｜答案｜[ˋæn_sɚz]｜[dá_àn]
+Books｜書籍｜[bʊks]｜[shū_jí] have｜有｜[hæv]｜[yǒu] words｜單字｜[wɝdz]｜[dān_zì] and｜和｜[ænd]｜[hé] pictures｜圖片｜[ˋpɪk_tʃɚz]｜[tú_piàn]
+Paper｜紙張｜[ˋpe_pɚ]｜[zhǐ_zhāng] has｜有｜[hæz]｜[yǒu] writing｜書寫｜[ˋraɪt_ɪŋ]｜[shū_xiě]
+Students｜學生｜[ˋstud_ənts]｜[xué_shēng] use｜使用｜[juz]｜[shǐ_yòng] pen｜筆｜[pɛn]｜[bǐ] and｜和｜[ænd]｜[hé] pencil｜鉛筆｜[ˋpɛn_səl]｜[qiān_bǐ]
+Class｜班級｜[klæs]｜[bān_jí] learns｜學習｜[lɝnz]｜[xué_xí] English｜英語｜[ˋɪŋ_ɡlɪʃ]｜[yīng_yǔ] language｜語言｜[ˋlæŋ_ɡwɪdʒ]｜[yǔ_yán]
+Students｜學生｜[ˋstud_ənts]｜[xué_shēng] listen｜聽｜[ˋlɪs_ən]｜[tīng] and｜和｜[ænd]｜[hé] speak｜說｜[spik]｜[shuō]
+Students｜學生｜[ˋstud_ənts]｜[xué_shēng] look｜看｜[lʊk]｜[kàn] and｜和｜[ænd]｜[hé] think｜思考｜[θɪŋk]｜[sī_kǎo]
+School｜學校｜[skul]｜[xué_xiào] has｜有｜[hæz]｜[yǒu] room｜房間｜[rum]｜[fáng_jiān] table｜桌子｜[ˋte_bəl]｜[zhuō_zi] chair｜椅子｜[tʃɛr]｜[yǐ_zi] and｜和｜[ænd]｜[hé] board｜板子｜[bɔrd]｜[bǎn_zi]
+Students｜學生｜[ˋstud_ənts]｜[xué_shēng] sit｜坐｜[sɪt]｜[zuò] and｜和｜[ænd]｜[hé] stand｜站｜[stænd]｜[zhàn]
+Students｜學生｜[ˋstud_ənts]｜[xué_shēng] play｜玩｜[ple]｜[wán] after｜之後｜[ˋæf_tɚ]｜[zhī_hòu] learning｜學習｜[ˋlɝn_ɪŋ]｜[xué_xí]
+Good｜良好｜[ɡʊd]｜[liáng_hǎo] learning｜學習｜[ˋlɝn_ɪŋ]｜[xué_xí] gives｜給予｜[ɡɪvz]｜[jǐ_yǔ] knowledge｜知識｜[ˋnɑ_lɪdʒ]｜[zhī_shì]
+School｜學校｜[skul]｜[xué_xiào] helps｜幫助｜[hɛlps]｜[bāng_zhù] people｜人們｜[ˋpi_pəl]｜[rén_men] grow｜成長｜[ɡro]｜[chéng_zhǎng]`;
+    let currentTypedText = "";
+    let isMuted = false;
+    let currentSpeed = 1.0;
+    let audioCtx = null;
+    let isInputLocked = false;
+    let lastSpokenLength = 0;
+
+    function focusHiddenInput() {
+        const hiddenInput = document.getElementById('hiddenInput');
+        hiddenInput.focus();
+    }
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        const muteBtn = document.getElementById('muteBtn');
+        if (isMuted) {
+            muteBtn.textContent = "靜音 🔇";
+            muteBtn.className = "secondary mute-btn muted";
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        } else {
+            muteBtn.textContent = "開啟 🔊";
+            muteBtn.className = "secondary mute-btn";
+        }
+    }
+
+    function updateSpeed() {
+        currentSpeed = parseFloat(document.getElementById('speedSelect').value);
+    }
+
+    function openModal() {
+        document.getElementById('batchTextarea').value = rawArticleText;
+        document.getElementById('articleModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('articleModal').style.display = 'none';
+    }
+
+    function clearModalText() {
+        if (confirm('確定要清空所有內容嗎？')) {
+            document.getElementById('batchTextarea').value = '';
+        }
+    }
+
+    async function confirmCustomArticle() {
+        const text = document.getElementById('batchTextarea').value.trim();
+        if (!text) {
+            alert('請輸入有效的內容！');
+            return;
+        }
+        closeModal();
+        await loadCustomArticle(text);
+    }
+
+    function exportArticle() {
+        let fileName = prompt("請輸入儲存檔名：", "中打練習_01");
+        if (fileName === null) return;
+        
+        fileName = fileName.trim();
+        if (!fileName) {
+            fileName = "中打練習_01";
+        }
+        if (!fileName.toLowerCase().endsWith('.txt') && !fileName.toLowerCase().endsWith('.json')) {
+            fileName += '.txt';
+        }
+
+        const blob = new Blob([rawArticleText], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function triggerImport() {
+        document.getElementById('importFile').click();
+    }
+
+    function importArticle(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const content = e.target.result;
+            if (content.trim()) {
+                await loadCustomArticle(content.trim());
+                alert('文章匯入成功！');
+            } else {
+                alert('匯入的檔案內容為空！');
+            }
+            event.target.value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    function playErrorSound() {
+        if (isMuted) return;
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.15);
+    }
+
+    function speakText(text, lang = 'en-US', rate = currentSpeed) {
+        if (isMuted || !('speechSynthesis' in window) || !text) return;
+        let utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        utterance.rate = rate;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function speakTypedChars(textStr) {
+        if (isMuted || !('speechSynthesis' in window) || textStr.length === 0) return;
+        window.speechSynthesis.cancel();
+        let utterance = new SpeechSynthesisUtterance(textStr);
+        utterance.lang = 'zh-TW';
+        utterance.rate = currentSpeed;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function speakCurrentSentence() {
+        const wordObj = getCurrentWordObj();
+        if (!wordObj || isMuted) return;
+        speakText(wordObj.clean, 'en-US', currentSpeed);
+    }
+
+    function getCurrentWordObj() {
+        if (linesList[currentLineIndex] && linesList[currentLineIndex].words[currentWordIndexInLine]) {
+            return linesList[currentLineIndex].words[currentWordIndexInLine];
+        }
+        return null;
+    }
+
+    async function loadCustomArticle(text) {
+        rawArticleText = text;
+        const rawLines = text.split(/\r?\n/);
+        
+        linesList = [];
+        totalWordsCount = 0;
+        currentTypedText = "";
+        lastSpokenLength = 0;
+        const hiddenInput = document.getElementById('hiddenInput');
+        hiddenInput.value = "";
+        document.getElementById('statusDisplay').textContent = "";
+        isInputLocked = false;
+        isPracticeStarted = false;
+        startTime = null;
+        if (timerInterval) clearInterval(timerInterval);
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+        for (let i = 0; i < rawLines.length; i++) {
+            let lineRaw = rawLines[i].trim();
+            if (!lineRaw) continue;
+
+            let rawTokens = lineRaw.split(/\s+/);
+            let wordsArr = [];
+
+            for (let j = 0; j < rawTokens.length; j++) {
+                let token = rawTokens[j].trim();
+                if (!token) continue;
+
+                let parts = token.split('｜');
+                let clean = parts[0] ? parts[0].trim() : '';
+                let translation = parts[1] ? parts[1].trim() : '';
+                let ipa = parts[2] ? parts[2].trim() : '';
+                let pinyin = parts[3] ? parts[3].trim() : '';
+
+                if (ipa.startsWith('[') && ipa.endsWith(']')) ipa = ipa.slice(1, -1);
+                if (pinyin.startsWith('[') && pinyin.endsWith(']')) pinyin = pinyin.slice(1, -1);
+
+                if (clean || translation) {
+                    wordsArr.push({
+                        clean: clean,
+                        translation: translation,
+                        ipa: ipa,
+                        pinyin: pinyin
+                    });
+                    totalWordsCount++;
+                }
+            }
+
+            if (wordsArr.length > 0) {
+                linesList.push({ words: wordsArr });
+            }
+        }
+
+        if (linesList.length === 0) {
+            alert('格式錯誤！');
+            return;
+        }
+
+        currentLineIndex = 0;
+        currentWordIndexInLine = 0;
+        score = 0;
+        errorCount = 0;
+        document.getElementById('score').textContent = score;
+        document.getElementById('errorCount').textContent = errorCount;
+        document.getElementById('progress').textContent = `1 / ${totalWordsCount}`;
+        
+        renderComparisonView();
+        updateInfoPanel();
+    }
+
+    function renderComparisonView() {
+        const comparisonDisplay = document.getElementById('comparison-display');
+        if (currentLineIndex >= linesList.length) {
+            let totalSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+            let minutes = totalSeconds / 60;
+            let wpm = minutes > 0 ? Math.round(totalWordsCount / minutes) : 0;
+
+            comparisonDisplay.innerHTML = `
+                <div class="compare-row" style="max-height: none; display: block;">
+                    <div class="compare-en" style="color: #2ecc71; margin-bottom: 15px;">太棒了！練習已全部完成！</div>
+                    <div class="report-box">
+                        <div class="report-title">🎉 練習結算報告</div>
+                        <div class="report-row"><span>總花費時間：</span><span><b>${totalSeconds} 秒</b></span></div>
+                        <div class="report-row"><span>平均字速：</span><span><b>${wpm} 字/分鐘</b></span></div>
+                        <div class="report-row"><span>按錯總次數：</span><span style="color: #e74c3c;"><b>${errorCount} 次</b></span></div>
+                        <div class="report-row"><span>總正確單字數：</span><span style="color: #2ecc71;"><b>${score} 個</b></span></div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('translation-display').textContent = "(完成)";
+            document.getElementById('phonetic-display').textContent = "/---/";
+            document.getElementById('pinyin-display').textContent = "---";
+            return;
+        }
+
+        const lineObj = linesList[currentLineIndex];
+        let cnHtml = '';
+
+        lineObj.words.forEach((wordObj, wIdx) => {
+            const isCurrentWord = (wIdx === currentWordIndexInLine);
+            const activeWordClass = isCurrentWord ? 'active-word' : '';
+            
+            let displayStr = wordObj.translation;
+            let spaceChar = (wIdx < lineObj.words.length - 1) ? ' ' : '';
+
+            if (isCurrentWord) {
+                let charHtml = '';
+                let targetWord = wordObj.translation;
+                let targetIdx = 0;
+                let typedIdx = 0;
+
+                while (targetIdx < targetWord.length) {
+                    const char = targetWord[targetIdx];
+                    if (typedIdx < currentTypedText.length) {
+                        const typedChar = currentTypedText[typedIdx];
+                        if (typedChar === char) {
+                            charHtml += `<span class="correct-char">${char}</span>`;
+                        } else {
+                            charHtml += `<span class="incorrect-char">${typedChar}</span>`;
+                        }
+                        typedIdx++;
+                    } else {
+                        charHtml += `<span>${char}</span>`;
+                    }
+                    targetIdx++;
+                }
+                cnHtml += `<span class="word-item ${activeWordClass}"><b>${charHtml}</b></span>${spaceChar}`;
+            } else {
+                let style = wIdx < currentWordIndexInLine ? "color: #2ecc71;" : "color: #ffffff;";
+                cnHtml += `<span class="word-item" style="${style}"><b>${displayStr}</b></span>${spaceChar}`;
+            }
+        });
+
+        comparisonDisplay.innerHTML = `
+            <div class="compare-row">
+                <div class="compare-en"><div class="line-block">${cnHtml}</div></div>
+            </div>
+        `;
+    }
+
+    function updateInfoPanel() {
+        const wordObj = getCurrentWordObj();
+        if (!wordObj) return;
+
+        const translationDisplay = document.getElementById('translation-display');
+        if (wordObj.clean) {
+            translationDisplay.textContent = wordObj.clean;
+            translationDisplay.parentElement.style.display = 'flex';
+        } else {
+            translationDisplay.parentElement.style.display = 'none';
+        }
+
+        const ipaGroup = document.getElementById('ipa-group');
+        if (wordObj.ipa) {
+            document.getElementById('phonetic-display').textContent = wordObj.ipa;
+            ipaGroup.style.display = 'flex';
+        } else {
+            ipaGroup.style.display = 'none';
+        }
+
+        const pinyinGroup = document.getElementById('pinyin-group');
+        if (wordObj.pinyin) {
+            const fullPinyin = wordObj.pinyin;
+            const targetText = wordObj.translation;
+            let ratio = targetText.length > 0 ? (currentTypedText.length / targetText.length) : 0;
+            let litCount = Math.round(fullPinyin.length * ratio);
+            if (litCount > fullPinyin.length) litCount = fullPinyin.length;
+
+            let pinyinHtml = "";
+            for (let i = 0; i < fullPinyin.length; i++) {
+                const char = fullPinyin[i];
+                if (i < litCount) {
+                    pinyinHtml += `<span style="color: #3b82f6; font-weight: bold;">${char}</span>`;
+                } else {
+                    pinyinHtml += `<span style="color: #6b7280;">${char}</span>`;
+                }
+            }
+            document.getElementById('pinyin-display').innerHTML = pinyinHtml;
+            pinyinGroup.style.display = 'flex';
+        } else {
+            pinyinGroup.style.display = 'none';
+        }
+
+        document.getElementById('statusDisplay').textContent = currentTypedText;
+        document.getElementById('hiddenInput').value = currentTypedText;
+    }
+
+    document.getElementById('hiddenInput').addEventListener('input', () => {
+        if (currentLineIndex >= linesList.length || isInputLocked) return;
+
+        if (!isPracticeStarted) {
+            isPracticeStarted = true;
+            startTime = Date.now();
+        }
+        
+        const wordObj = getCurrentWordObj();
+        if (!wordObj) return;
+
+        const targetText = wordObj.translation;
+        let fullVal = document.getElementById('hiddenInput').value;
+
+        if (fullVal.length > 0) {
+            let lastCharIdx = fullVal.length - 1;
+            let typedChar = fullVal[lastCharIdx];
+
+            if (lastCharIdx < targetText.length) {
+                let expectedChar = targetText[lastCharIdx];
+                if (typedChar !== expectedChar) {
+                    errorCount++;
+                    document.getElementById('errorCount').textContent = errorCount;
+                    playErrorSound();
+                    document.getElementById('hiddenInput').value = currentTypedText;
+                    return;
+                }
+            } else {
+                document.getElementById('hiddenInput').value = currentTypedText;
+                return;
+            }
+
+            currentTypedText = fullVal;
+
+            if (currentTypedText.length > lastSpokenLength) {
+                speakTypedChars(currentTypedText);
+                lastSpokenLength = currentTypedText.length;
+            } else if (currentTypedText.length < lastSpokenLength) {
+                lastSpokenLength = currentTypedText.length;
+            }
+
+            if (currentTypedText === targetText) {
+                isInputLocked = true;
+                score++;
+                document.getElementById('score').textContent = score;
+
+                setTimeout(() => {
+                    if (wordObj.clean) {
+                        speakText(wordObj.clean, 'en-US', currentSpeed);
+                    }
+                }, 400);
+
+                let totalAudioTime = Math.max(800, (targetText.length * 300) / currentSpeed) + 400 + 1200;
+
+                setTimeout(() => {
+                    currentWordIndexInLine++;
+                    currentTypedText = "";
+                    lastSpokenLength = 0;
+                    document.getElementById('hiddenInput').value = "";
+                    isInputLocked = false;
+                    
+                    if (currentWordIndexInLine >= linesList[currentLineIndex].words.length) {
+                        currentLineIndex++;
+                        currentWordIndexInLine = 0;
+                    }
+
+                    let completedCount = 0;
+                    let totalCount = 0;
+                    for (let i = 0; i < linesList.length; i++) {
+                        totalCount += linesList[i].words.length;
+                        if (i < currentLineIndex) {
+                            completedCount += linesList[i].words.length;
+                        } else if (i === currentLineIndex) {
+                            completedCount += currentWordIndexInLine;
+                        }
+                    }
+
+                    if (currentLineIndex >= linesList.length) {
+                        document.getElementById('statusDisplay').textContent = "練習完成！";
+                        document.getElementById('progress').textContent = `${totalCount} / ${totalCount}`;
+                        renderComparisonView();
+                        return;
+                    }
+
+                    document.getElementById('progress').textContent = `${completedCount + 1} / ${totalCount}`;
+                    renderComparisonView();
+                    updateInfoPanel();
+                }, totalAudioTime);
+            }
+        } else if (fullVal.length < currentTypedText.length) {
+            currentTypedText = fullVal;
+            lastSpokenLength = currentTypedText.length;
+        }
+
+        renderComparisonView();
+        updateInfoPanel();
+    });
+
+    function restartPractice() {
+        loadCustomArticle(rawArticleText);
+    }
+
+    window.onload = async () => {
+        await loadCustomArticle(rawArticleText);
+    };
+</script>
+
+</body>
+</html>
