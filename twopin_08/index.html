@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>文字編輯器</title>
+    <title>黑色系精緻文字編輯器</title>
     <style>
         * {
             box-sizing: border-box;
@@ -12,12 +12,16 @@
         }
 
         :root {
-            --bg: #f5f7fa;
-            --surface: #ffffff;
-            --border: #d0d7de;
-            --text: #1f2937;
-            --text-secondary: #6b7280;
-            --radius: 8px;
+            --bg: #090b10;
+            --surface: #11141d;
+            --surface-secondary: #161b26;
+            --border: #1e2533;
+            --border-focus: #3b82f6;
+            --text: #e2e8f0;
+            --text-secondary: #64748b;
+            --accent: #3b82f6;
+            --accent-hover: #60a5fa;
+            --radius: 12px;
             --safe-bottom: env(safe-area-inset-bottom, 16px);
         }
 
@@ -27,10 +31,10 @@
             display: flex;
             flex-direction: column;
             background: var(--bg);
-            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: var(--text);
             overflow: hidden;
-            padding: 4px 4px calc(4px + var(--safe-bottom));
+            padding: 12px 12px calc(12px + var(--safe-bottom));
             touch-action: manipulation;
         }
 
@@ -40,12 +44,13 @@
             flex-direction: column;
             background: var(--surface);
             border-radius: var(--radius);
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
             overflow: hidden;
             min-height: 0;
         }
 
-        /* 編輯器區域疊加層設計（用於高亮紅字） */
+        /* 編輯器區域疊加層設計 */
         .editor-wrapper {
             flex: 1;
             display: flex;
@@ -55,24 +60,34 @@
         }
 
         .line-numbers {
-            background: #f8fafc;
+            background: #0d1017;
             color: var(--text-secondary);
-            padding: 10px 6px;
+            padding: 10px 0;
             text-align: right;
-            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
             font-size: 14px;
             line-height: 1.5;
             border-right: 1px solid var(--border);
             overflow: hidden;
             user-select: none;
-            min-width: 35px;
             flex-shrink: 0;
-            white-space: pre;
             z-index: 2;
         }
 
-        .line-numbers.hidden {
-            display: none;
+        .line-num-item {
+            padding-right: 10px;
+            text-align: right;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #4b5563;
+            box-sizing: border-box;
+            transition: color 0.15s ease;
+        }
+
+        .line-num-item.active-line {
+            color: var(--accent);
+            font-weight: bold;
         }
 
         .editor-container {
@@ -89,27 +104,37 @@
             width: 100%;
             height: 100%;
             padding: 10px 12px;
-            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
             font-size: 14px;
             line-height: 1.5;
-            white-space: pre;
-            word-wrap: normal;
             color: transparent;
             pointer-events: none;
             overflow: hidden;
             tab-size: 2;
+            -moz-tab-size: 2;
+            box-sizing: border-box;
         }
 
-        #backdrop.wrap-soft {
+        .backdrop-line {
+            white-space: pre;
+            word-wrap: normal;
+            min-height: 21px;
+            line-height: 1.5;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        #backdrop.wrap-soft .backdrop-line {
             white-space: pre-wrap;
             word-wrap: break-word;
+            word-break: break-all;
         }
 
         #backdrop mark {
-            background-color: transparent;
-            color: #ff3b30;
-            font-weight: bold;
-            text-decoration: underline;
+            background-color: rgba(59, 130, 246, 0.35);
+            color: transparent;
+            border-bottom: 2px solid var(--accent);
+            border-radius: 2px;
         }
 
         #editor {
@@ -120,7 +145,7 @@
             height: 100%;
             border: none;
             padding: 10px 12px;
-            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
             font-size: 14px;
             line-height: 1.5;
             resize: none;
@@ -129,14 +154,33 @@
             background: transparent;
             color: var(--text);
             tab-size: 2;
-            white-space: pre;
+            -moz-tab-size: 2;
+            box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
             z-index: 1;
+            caret-color: var(--accent);
         }
 
         #editor.wrap-soft {
             white-space: pre-wrap;
             word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        /* 滾動條美化 */
+        #editor::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        #editor::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #editor::-webkit-scrollbar-thumb {
+            background: #232a3d;
+            border-radius: 4px;
+        }
+        #editor::-webkit-scrollbar-thumb:hover {
+            background: #2d374f;
         }
 
         /* 狀態列 */
@@ -144,20 +188,20 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 2px 8px;
-            background: #f8fafc;
+            padding: 6px 12px;
+            background: #0d1017;
             border-top: 1px solid var(--border);
             font-size: 12px;
             color: var(--text-secondary);
             flex-shrink: 0;
-            min-height: 26px;
-            gap: 4px;
+            min-height: 32px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .status-left {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             align-items: center;
             flex-wrap: wrap;
             overflow: hidden;
@@ -165,50 +209,52 @@
 
         .status-right {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             align-items: center;
         }
 
         .stat-item {
-            background: #eef2f6;
-            padding: 1px 6px;
-            border-radius: 10px;
+            background: #161b26;
+            padding: 2px 8px;
+            border-radius: 6px;
             font-size: 11px;
             white-space: nowrap;
-            color: #333;
+            color: var(--text);
+            border: 1px solid var(--border);
         }
 
         .status-msg {
             font-size: 11px;
-            color: #888;
+            color: var(--accent-hover);
+            font-weight: 500;
         }
         .status-msg.error {
-            color: #d32f2f;
-            font-weight: 500;
+            color: #ef4444;
+            font-weight: bold;
         }
 
         /* 工具列 */
         .toolbar {
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            padding: 6px;
-            background: var(--surface);
+            gap: 8px;
+            padding: 10px;
+            background: var(--surface-secondary);
             border-top: 1px solid var(--border);
             flex-shrink: 0;
         }
 
         .toolbar .row {
             display: flex;
-            gap: 3px;
+            gap: 6px;
             align-items: center;
         }
 
         .toolbar .row-label {
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-secondary);
-            width: 28px;
+            width: 32px;
             flex-shrink: 0;
             text-align: center;
         }
@@ -216,7 +262,7 @@
         .editable-field {
             flex: 1 1 0;
             min-width: 60px;
-            padding: 4px 8px;
+            padding: 6px 10px;
             font-size: 13px;
             border: 1px solid var(--border);
             border-radius: 6px;
@@ -230,68 +276,81 @@
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
         .editable-field:focus {
-            border-color: #999;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
         }
 
         .editable-field:empty:before {
             content: attr(data-placeholder);
-            color: #aaa;
+            color: #4b5563;
         }
 
         .row-actions {
             display: flex;
-            gap: 3px;
+            gap: 4px;
             align-items: center;
             flex-shrink: 0;
         }
 
         .row-actions .btn {
-            min-width: 38px;
+            min-width: 42px;
             flex: 0 0 auto;
         }
 
         .btn {
-            padding: 2px 5px;
-            font-size: 11px;
+            padding: 4px 10px;
+            font-size: 12px;
             font-weight: 500;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background: #e8e8e8;
-            color: #444;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text);
             cursor: pointer;
             white-space: nowrap;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             height: 32px;
-            min-width: 38px;
+            min-width: 42px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-            transition: background 0.1s;
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover {
+            background: #1e2533;
+            border-color: #3b82f6;
+            color: #ffffff;
         }
 
         .btn:active {
-            background: #d0d0d0;
+            background: #12151e;
         }
 
         .btn-toggle {
-            background: #e8e8e8;
-            color: #777;
-            border: 1px solid #ccc;
+            background: var(--surface);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
         }
+
+        .btn-toggle:hover {
+            color: var(--text);
+        }
+
         .btn-toggle.active {
-            background: #d0d0d0;
-            color: #111;
-            border-color: #aaa;
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-hover);
+            border-color: var(--accent);
             font-weight: 600;
         }
 
         .bottom-actions {
             display: flex;
-            gap: 3px;
+            gap: 6px;
             overflow-x: auto;
             white-space: nowrap;
             padding-bottom: 2px;
@@ -303,6 +362,7 @@
         }
         .bottom-actions .btn {
             flex-shrink: 0;
+            background: var(--surface);
         }
 
         #fileInput {
@@ -315,10 +375,10 @@
     <div class="app">
         <!-- 編輯器 -->
         <div class="editor-wrapper">
-            <div id="lineNumbers" class="line-numbers">1</div>
+            <div id="lineNumbers" class="line-numbers"></div>
             <div class="editor-container">
                 <div id="backdrop"></div>
-                <textarea id="editor" wrap="off" spellcheck="false"></textarea>
+                <textarea id="editor" wrap="off" spellcheck="false" placeholder="在此輸入或匯入您的文字..."></textarea>
             </div>
         </div>
 
@@ -332,8 +392,8 @@
                 <span id="statusMsg" class="status-msg"></span>
             </div>
             <div class="status-right">
-                <span id="matchCountDisplay" class="stat-item" style="background:#e0e0e0;min-width:30px;">0</span>
-                <span id="wrapIndicator" class="stat-item" style="background:#e0e0e0;color:#333;">整行</span>
+                <span id="matchCountDisplay" class="stat-item">0</span>
+                <span id="wrapIndicator" class="stat-item">整行</span>
             </div>
         </div>
 
@@ -365,10 +425,10 @@
             <div class="bottom-actions">
                 <button class="btn" id="importBtn">📂 匯入</button>
                 <button class="btn" id="exportBtn">💾 匯出</button>
-                <button class="btn" id="wrapToggleBtn">↩️換行</button>
+                <button class="btn" id="wrapToggleBtn">↩️ 換行</button>
                 <button class="btn" id="clearBtn">🗑 清空</button>
-                <button class="btn" id="undoBtn">⤴️復原</button>
-                <button class="btn" id="redoBtn">⤵️重做</button>
+                <button class="btn" id="undoBtn">⤴️ 復原</button>
+                <button class="btn" id="redoBtn">⤵️ 重做</button>
                 <button class="btn" id="copyBtn">📋 複製</button>
             </div>
         </div>
@@ -479,20 +539,81 @@
                 historyIndex = 0;
             }
 
-            function updateLineNumbers() {
-                if (wrapMode === 'soft') {
-                    lineNumbers.classList.add('hidden');
-                    return;
-                }
+            let cachedValue = '';
+            let cachedWidth = -1;
+            let cachedQuery = '';
+            let cachedCase = false;
+            let cachedFullWidth = false;
+            let cachedActiveLine = -1;
+
+            function updateLineNumbers(forceFull = false) {
+                // Ensure lineNumbers is always visible
                 lineNumbers.classList.remove('hidden');
-                const lines = editor.value.split('\n').length;
-                let nums = '';
-                for (let i = 1; i <= lines; i++) {
-                    nums += i + '\n';
+
+                if (wrapMode === 'soft') {
+                    backdrop.style.width = editor.clientWidth + 'px';
+                } else {
+                    backdrop.style.width = Math.max(editor.clientWidth, editor.scrollWidth) + 'px';
                 }
-                lineNumbers.textContent = nums;
-                const width = Math.max(35, String(lines).length * 8 + 16);
-                lineNumbers.style.minWidth = width + 'px';
+
+                const text = editor.value;
+                const currentWidth = editor.clientWidth;
+                const query = getFindStr();
+
+                // Get active line
+                const pos = editor.selectionStart;
+                const before = text.substring(0, pos);
+                const activeLineIndex = before.split('\n').length - 1;
+
+                const needsFullUpdate = forceFull ||
+                                       (text !== cachedValue) ||
+                                       (currentWidth !== cachedWidth) ||
+                                       (query !== cachedQuery) ||
+                                       (isCaseSensitive !== cachedCase) ||
+                                       (isFullWidthAware !== cachedFullWidth);
+
+                if (needsFullUpdate) {
+                    cachedValue = text;
+                    cachedWidth = currentWidth;
+                    cachedQuery = query;
+                    cachedCase = isCaseSensitive;
+                    cachedFullWidth = isFullWidthAware;
+                    cachedActiveLine = activeLineIndex;
+
+                    // Re-render backdrop elements
+                    updateBackdrop(false);
+
+                    // Read line heights and populate line numbers with perfect alignment
+                    const backdropLines = backdrop.querySelectorAll('.backdrop-line');
+                    let numsHtml = '';
+
+                    backdropLines.forEach((div, i) => {
+                        const rect = div.getBoundingClientRect();
+                        const height = rect.height;
+                        const isActive = (i === activeLineIndex) ? ' active-line' : '';
+                        numsHtml += `<div class="line-num-item${isActive}" style="height: ${height}px;" data-line="${i}">${i + 1}</div>`;
+                    });
+
+                    lineNumbers.innerHTML = numsHtml;
+
+                    // Dynamically size line numbers panel
+                    const lines = text.split('\n');
+                    const maxLineDigits = String(lines.length).length;
+                    const width = Math.max(45, maxLineDigits * 8 + 16);
+                    lineNumbers.style.width = width + 'px';
+                } else if (activeLineIndex !== cachedActiveLine) {
+                    // Only update the active line highlight
+                    const prevActive = lineNumbers.querySelector('.active-line');
+                    if (prevActive) {
+                        prevActive.classList.remove('active-line');
+                    }
+                    const newActive = lineNumbers.querySelector(`[data-line="${activeLineIndex}"]`);
+                    if (newActive) {
+                        newActive.classList.add('active-line');
+                    }
+                    cachedActiveLine = activeLineIndex;
+                }
+
                 syncScroll();
             }
 
@@ -564,38 +685,49 @@
                 }
             }
 
-            function updateBackdrop(forceClear = false) {
-                const text = editor.value;
-                const query = getFindStr();
-                if (forceClear || !query) {
-                    backdrop.innerHTML = escapeHtml(text) + '\n';
-                    matchCountDisplay.textContent = '0';
-                    return;
-                }
-                const regex = buildRegex(query);
-                const escapedText = escapeHtml(text);
-                
+            function highlightLine(lineText, regex) {
+                if (!regex) return escapeHtml(lineText);
+                const searchTarget = prepareSearchText(lineText, isFullWidthAware);
                 let lastIdx = 0;
                 let highlightedHtml = '';
-                const searchTarget = prepareSearchText(text, isFullWidthAware);
                 const matches = [...searchTarget.matchAll(regex)];
-                const count = matches.length;
-                matchCountDisplay.textContent = count;
-
-                if (count === 0) {
-                    backdrop.innerHTML = escapedText + '\n';
-                    return;
+                if (matches.length === 0) {
+                    return escapeHtml(lineText);
                 }
-
                 matches.forEach(m => {
                     const start = m.index;
                     const end = start + m[0].length;
-                    highlightedHtml += escapeHtml(text.substring(lastIdx, start));
-                    highlightedHtml += `<mark>` + escapeHtml(text.substring(start, end)) + `</mark>`;
+                    highlightedHtml += escapeHtml(lineText.substring(lastIdx, start));
+                    highlightedHtml += `<mark>` + escapeHtml(lineText.substring(start, end)) + `</mark>`;
                     lastIdx = end;
                 });
-                highlightedHtml += escapeHtml(text.substring(lastIdx)) + '\n';
-                backdrop.innerHTML = highlightedHtml;
+                highlightedHtml += escapeHtml(lineText.substring(lastIdx));
+                return highlightedHtml;
+            }
+
+            function updateBackdrop(forceClear = false) {
+                const text = editor.value;
+                const lines = text.split('\n');
+                const query = getFindStr();
+                const regex = (forceClear || !query) ? null : buildRegex(query);
+
+                if (query && !forceClear) {
+                    const searchTargetAll = prepareSearchText(text, isFullWidthAware);
+                    const matchesAll = [...searchTargetAll.matchAll(regex)];
+                    matchCountDisplay.textContent = matchesAll.length;
+                } else {
+                    matchCountDisplay.textContent = '0';
+                }
+
+                let backdropHtml = '';
+                lines.forEach(line => {
+                    let highlighted = highlightLine(line, regex);
+                    if (highlighted === '') {
+                        highlighted = '<br>';
+                    }
+                    backdropHtml += `<div class="backdrop-line">${highlighted}</div>`;
+                });
+                backdrop.innerHTML = backdropHtml;
             }
 
             function findNext() {
@@ -631,7 +763,7 @@
                 editor.focus();
                 editor.setSelectionRange(pos, pos + len);
                 updateStats();
-                updateBackdrop(); // 按下輸出鍵才顯示紅色
+                updateLineNumbers();
                 
                 const allMatches = [...searchTarget.matchAll(buildRegex(query))];
                 const currentIdx = allMatches.findIndex(m => m.index === pos);
@@ -666,7 +798,7 @@
                 editor.focus();
                 editor.setSelectionRange(m.index, m.index + m[0].length);
                 updateStats();
-                updateBackdrop(); // 顯示紅字
+                updateLineNumbers();
                 setStatus((idx + 1) + '/' + matches.length);
                 setTimeout(() => setStatus(''), 1500);
             }
@@ -721,7 +853,7 @@
                     setStatus('已取代 1 處');
                     setTimeout(() => setStatus(''), 2000);
                 }
-                updateBackdrop();
+                updateLineNumbers();
             }
 
             function importFile() {
@@ -794,19 +926,20 @@
             }
 
             function updateAll() {
-                updateLineNumbers();
+                updateLineNumbers(true);
                 updateStats();
-                updateBackdrop(true);
             }
 
             caseBtn.addEventListener('click', () => {
                 isCaseSensitive = !isCaseSensitive;
                 caseBtn.classList.toggle('active', isCaseSensitive);
+                updateLineNumbers();
             });
 
             fullWidthBtn.addEventListener('click', () => {
                 isFullWidthAware = !isFullWidthAware;
                 fullWidthBtn.classList.toggle('active', isFullWidthAware);
+                updateLineNumbers();
             });
 
             editor.addEventListener('input', () => {
@@ -814,16 +947,28 @@
                 updateAll();
             });
             editor.addEventListener('scroll', syncScroll);
-            editor.addEventListener('click', updateStats);
-            editor.addEventListener('keyup', updateStats);
-            editor.addEventListener('select', updateStats);
 
-            // 搜尋框按 Enter 時直接觸發「下個」
+            const handleCursorMove = () => {
+                updateStats();
+                updateLineNumbers();
+            };
+            editor.addEventListener('click', handleCursorMove);
+            editor.addEventListener('keyup', handleCursorMove);
+            editor.addEventListener('select', handleCursorMove);
+
+            window.addEventListener('resize', () => {
+                updateLineNumbers();
+            });
+
             findStrEl.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     findNext();
                 }
+            });
+
+            findStrEl.addEventListener('input', () => {
+                updateLineNumbers();
             });
 
             document.getElementById('findNextBtn').addEventListener('click', findNext);
