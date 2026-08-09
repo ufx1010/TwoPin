@@ -562,11 +562,9 @@ function handleCardClick(e,cardDom,cardData){
     window.speechSynthesis.cancel(); 
     if(state.soundEnabled) {
       if(cardData.type === 'zh') {
-        const cleanZh = cardData.word.zh.replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
-        speak(cleanZh, 'zh-TW');
+        speak(cardData.word.zh);
       } else {
-        const cleanEn = cardData.word.en.replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
-        speak(cleanEn, 'en-IN');
+        speak(cardData.word.en);
       }
     }
   } 
@@ -625,14 +623,45 @@ function shiftAndRefill(firstDom, secondDom) {
   }); 
 }
 
+function detectLanguage(text) {
+  if (/[\u0B80-\u0BFF]/.test(text)) {
+    return 'ta-IN';
+  }
+  if (/[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(text)) {
+    return 'ko-KR';
+  }
+  if (/[\u3040-\u309F\u30A0-\u30FF\uFF66-\uFF9F]/.test(text)) {
+    return 'ja-JP';
+  }
+  if (/[\u4E00-\u9FFF]/.test(text)) {
+    return 'zh-TW';
+  }
+  if (/[a-zA-Z]/.test(text)) {
+    return 'en-US';
+  }
+  return 'en-US';
+}
+
+function cleanSymbolsForSpeech(text) {
+  let cleaned = text.replace(/\[.*?\]/g, '');
+  cleaned = cleaned.replace(/［.*?］/g, '');
+  cleaned = cleaned.replace(/\(.*?\)/g, '');
+  cleaned = cleaned.replace(/（.*?）/g, '');
+  cleaned = cleaned.replace(/['’]/g, '');
+  cleaned = cleaned.replace(/[-_]/g, ' ');
+  cleaned = cleaned.replace(/[^\p{L}\p{N}\s]/gu, ' ');
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  return cleaned;
+}
+
 // 修改為 (選擇您偏好的英文口音):
-function speak(text, lang='en-US'){ 
+function speak(text, lang){
   if('speechSynthesis' in window){ 
-    const cleanText = text.replace(/[\[\]]/g, '').trim(); 
+    const cleanText = cleanSymbolsForSpeech(text);
     if(!cleanText) return; 
+    const targetLang = lang || detectLanguage(cleanText);
     const u=new SpeechSynthesisUtterance(cleanText); 
-    // 這裡的 lang 參數將決定發音的口音
-    u.lang=lang; 
+    u.lang=targetLang;
     u.rate=0.9; 
     u.pitch=1; 
     window.speechSynthesis.speak(u); 
@@ -723,8 +752,7 @@ async function submitInput(){
     state.matched++; 
     document.getElementById('matched').textContent = state.matched; 
     if('speechSynthesis' in window && state.soundEnabled) {
-      const cleanEn = targetEn.replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
-      speak(cleanEn, 'en-IN'); 
+      speak(targetEn);
     }
     setTimeout(()=>{ shiftAndRefill(pair[0].dom, pair[1]?.dom || pair[0].dom); }, 400); 
   } else { 
@@ -735,8 +763,7 @@ async function submitInput(){
     if(existInVocabulary) {
       showPureToast(existInVocabulary.zh, existInVocabulary.en, 'success');
       if('speechSynthesis' in window && state.soundEnabled) {
-        const cleanEn = existInVocabulary.en.replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
-        speak(cleanEn, 'en-IN');
+        speak(existInVocabulary.en);
       }
     } else {
       const onlineResult = await fetchOnlineTranslation(text);
@@ -747,7 +774,7 @@ async function submitInput(){
         
         showPureToast(zhPart, enPart, 'web');
         if('speechSynthesis' in window && state.soundEnabled) {
-          speak(enPart, 'en-IN');
+          speak(enPart);
         }
       } else {
         playBeepSound(); 
