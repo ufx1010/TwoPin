@@ -1,61 +1,41 @@
-網頁功能分析
-📋 核心功能模組
-1. 翻譯引擎 (第 99-122 行)
-JavaScript
-async function translateText()
-使用 Google Translate API (translate.googleapis.com)
-支援 5 種語言互譯：中文、日文、韓文、英文、坦米爾文
-提取結果的第一層陣列並串接所有翻譯片段
-具有視覺反饋：綠色閃爍動畫表示翻譯中
-特點：
+高級翻譯與搜尋工具 (twopin_01)
+==============================
 
-非同步 fetch 請求，支援錯誤捕捉
-若翻譯失敗顯示「翻譯失敗」訊息
-2. 語音識別 (第 89-97 行)
-JavaScript
-function startDictation()
-使用 Web Speech API 進行語音輸入
-語言跟隨「來源語言」設定
-紅色閃爍動畫表示錄音中
-將辨識結果追加到輸入框
-特點：相容 webkit 和標準版本的 SpeechRecognition API
+這是一個將語音識別、自動翻譯、快速搜尋與語音播報功能完美結合的高效多國語言工具。適合需要快速翻譯口說內容、查閱單字及播放發音的語言學習者或商務人士。
 
-3. 網路搜尋 (第 77-87 行)
-JavaScript
-function searchWeb()
-將輸入文字作為搜尋關鍵詞
-開啟 Google 搜尋新視窗
-在結果框顯示搜尋狀態
-4. 文字轉語音 (第 134-138 行)
-JavaScript
-function speakText()
-朗讀結果框中的文字
-語言跟隨「目標語言」設定
-使用 Web Speech Synthesis API
-5. 本地儲存 (第 69-74 行)
-JavaScript
-window.onload / saveLang()
-儲存用戶選擇的「來源語言」和「目標語言」
-頁面刷新時自動恢復設定
-🎨 UI/UX 設計
-功能區	組成
-第一按鈕列 (6 格)	字體縮小、來源語言、翻譯、搜尋、目標語言、字體放大
-第二按鈕列 (4 格)	語音輸入、清空、複製、播放
-輸入區	textarea，支援自動換行
-結果區	div，綠色背景，可滾動
-動畫效果：
+📋 核心功能與特色說明
+---------------------
+1. 多語自動翻譯引擎：
+   - 整合 Google Translate API，支援中文、英文、日文、韓文、坦米爾文等 5 種主要語言互譯。
+   - 翻譯請求執行時，結果框會有綠色邊框閃爍動畫提示，代表正在翻譯中，提供良好的互動視覺回饋。
 
-.recording 類：紅色邊框閃爍 (表示正在錄音)
-.translating 類：綠色邊框閃爍 (表示翻譯中)
-⚙️ 技術棧
-技術	用途
-Web Speech API	語音輸入 / 文字轉語音
-Fetch API	翻譯請求
-localStorage	語言偏好儲存
-Clipboard API	複製結果
-CSS Flexbox/Grid	響應式排版
-⚠️ 潛在問題
-Google Translate API - 使用 googleapis.com 的非官方端點，可能不穩定
-無錯誤處理 - 語音識別失敗未有提示
-無輸入驗證 - 空白輸入時未完全防止
-無搜尋歷史 - 搜尋功能僅開新視窗，無本地記錄
+2. 語音輸入辨識：
+   - 使用 Web Speech API (SpeechRecognition)，支援對麥克風說話並自動辨識轉為文字。
+   - 語音識別語言會與「來源語言」的設定同步切換，辨識中會有紅色邊框閃爍提示，提示使用者正在錄音。
+
+3. 快速 Google 搜尋：
+   - 具備搜尋按鈕，一鍵自動抓取目前輸入文字作為關鍵字，在新分頁中調用 Google 搜尋，大幅縮短複製貼上的步驟。
+
+4. 翻譯結果語音播報 (TTS)：
+   - 使用 Web Speech Synthesis API 朗讀結果。
+   - 播報語言自動跟隨「目標語言」設定，可即時學習正確的外語發音。
+
+5. 使用者偏好記憶：
+   - 自動將使用者最後設定的「來源語言」和「目標語言」儲存至 localStorage 中。
+   - 下次重新開啟頁面時自動載入，免去重複設定的麻煩。
+
+6. 響應式 UI/UX 設計：
+   - 雙按鈕功能面板：
+     * 第一列（功能）：字體縮小、來源語言、翻譯、搜尋、目標語言、字體放大。
+     * 第二列（控制）：語音輸入、清空輸入框、一鍵複製、語音朗讀。
+   - 支援字體放大縮小，在行動裝置與桌面端均能舒適閱讀。
+
+🛠️ 使用技術棧
+--------------
+- 原生 JavaScript (Vanilla JS)
+- 網頁前端排版：CSS Flexbox & CSS Grid 響應式版面，適用手機與平板
+- 瀏覽器原生 APIs：
+  * Web Speech API (SpeechRecognition & SpeechSynthesis)
+  * localStorage (用戶設定持久化)
+  * Clipboard API (一鍵剪貼簿複製)
+  * Fetch API (異步獲取翻譯結果)
