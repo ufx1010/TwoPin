@@ -2,61 +2,549 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>我的歌詞本</title>
+<!-- Font Awesome 6 for modern sleek icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Google Fonts for superior typography -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#faf7f2; --card:#fff; --text:#2c2c2c; --accent:#d97757; }
-  body { margin:0; font-family:sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; user-select:none; }
-  header { position:sticky; top:0; z-index:40; padding:12px 16px; background:var(--card); display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,.06) }
-  .menu { position:fixed; inset:0; background:var(--bg); padding:60px 20px; display:none; z-index:50; flex-direction:column; overflow-y:auto }
-  .menu.active { display:flex }
-  .song-item { display:flex; justify-content:space-between; align-items:center; background:var(--card); padding:15px; margin-bottom:10px; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,.05) }
-  .btn-group { display:flex; gap:5px; }
-  main { flex:1; padding:20px; display:flex; justify-content:center }
-  .card { width:100%; max-width:680px; background:var(--card); border-radius:16px; padding:24px }
-  .line { padding:12px 0; border-bottom:1px dashed #eee; cursor:pointer }
-  .comment { color:#aaa; font-size:0.9em; font-style:italic; display:block; padding:10px 0; }
-  .pagination { display:flex; justify-content:center; gap:10px; margin:15px 0; align-items:center }
-  #editorModal { position:fixed; inset:0; background:var(--bg); z-index:100; display:none; flex-direction:column; padding:15px; }
-  #editorArea { flex:1; width:100%; font-size:18px; padding:15px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box; margin-bottom:10px; }
-  .btn-row { display:flex; gap:10px; }
-  .btn-row button { flex:1; padding:15px; border:none; border-radius:8px; font-weight:bold; color:white; }
-  .vowel-a { color: #FF0000; font-weight: bold; } /* 純紅 */
-  .vowel-e { color: #00B000; font-weight: bold; } /* 鮮綠 */
-  .vowel-i { color: #0000FF; font-weight: bold; } /* 純藍 */
-  .vowel-o { color: #FF7F00; font-weight: bold; } /* 鮮橙 */
-  .vowel-u { color: #9400D3; font-weight: bold; } /* 鮮紫 */
+  :root {
+    --bg-gradient: radial-gradient(circle at 50% 0%, #1e223b 0%, #0d0f17 100%);
+    --bg-color: #0d0f17;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --surface: #121520;
+    --surface-hover: #1c2030;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59, 130, 246, 0.35);
+    --accent-hover: #60a5fa;
+    --danger: #ef4444;
+    --danger-hover: #f87171;
+    --success: #10b981;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--bg-gradient);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Ambient glowing background orbs */
+  .bg-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.22;
+    z-index: 0;
+    pointer-events: none;
+    transition: all 1s ease;
+  }
+  .bg-orb-1 {
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+    top: -50px;
+    left: -50px;
+    animation: float-orb-1 15s ease-in-out infinite alternate;
+  }
+  .bg-orb-2 {
+    width: 380px;
+    height: 380px;
+    background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);
+    bottom: -100px;
+    right: -100px;
+    animation: float-orb-2 20s ease-in-out infinite alternate;
+  }
+
+  @keyframes float-orb-1 {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(40px, -30px) scale(1.15); }
+  }
+  @keyframes float-orb-2 {
+    0% { transform: translate(0, 0) scale(1.1); }
+    100% { transform: translate(-30px, 40px) scale(0.9); }
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    padding: 16px 20px;
+    background: rgba(18, 21, 32, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--card-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+  header h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 0;
+  }
+  header #pageInfo {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 3px;
+    letter-spacing: 1px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .home-btn, .menu-toggle-btn {
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-decoration: none;
+  }
+  .home-btn:hover, .menu-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--accent);
+    color: var(--accent-hover);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+  .home-btn:active, .menu-toggle-btn:active {
+    transform: scale(0.95);
+  }
+
+  /* Slide-over drawer menu */
+  .menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 420px;
+    background: rgba(18, 21, 32, 0.95);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    padding: 30px 24px;
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+    border-left: 1px solid var(--card-border);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+    box-sizing: border-box;
+    animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .menu.active {
+    display: flex;
+  }
+  @keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+
+  .close-btn {
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .close-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger-hover);
+    transform: rotate(90deg);
+  }
+
+  .song-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .song-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateY(-2px);
+  }
+  .song-item span {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    margin-right: 12px;
+    transition: color 0.2s ease;
+  }
+  .song-item span:hover {
+    color: var(--accent-hover);
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+  }
+  .btn-icon:hover {
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+  .btn-edit:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: var(--accent);
+    color: var(--accent-hover);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+  .btn-delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: var(--danger);
+    color: var(--danger-hover);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.35);
+  }
+
+  /* Pagination */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 20px 0;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+  .btn-paged {
+    padding: 8px 14px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-paged:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent);
+    color: var(--accent-hover);
+  }
+  .btn-paged:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .btn-add-song {
+    padding: 14px;
+    margin-top: 15px;
+    background: linear-gradient(135deg, var(--accent) 0%, #1d4ed8 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 12px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+  }
+  .btn-add-song:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+    filter: brightness(1.1);
+  }
+  .btn-add-song:active {
+    transform: translateY(0);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    box-sizing: border-box;
+  }
+  .btn-row button {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-row button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--text-secondary);
+    color: white;
+  }
+  .btn-row button:active {
+    transform: scale(0.98);
+  }
+
+  /* Lyric Notebook main area */
+  main {
+    flex: 1;
+    padding: 30px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    z-index: 1;
+    box-sizing: border-box;
+  }
+  .card {
+    width: 100%;
+    max-width: 720px;
+    background: rgba(18, 21, 32, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 32px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    box-sizing: border-box;
+    animation: cardEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes cardEntrance {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .line {
+    padding: 16px 20px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .line-text {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    letter-spacing: 0.5px;
+    word-break: break-word;
+    flex: 1;
+  }
+  .line:hover {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.25);
+    transform: translateX(4px);
+    color: white;
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .line::after {
+    content: '\f028'; /* Volume icon */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 0.9rem;
+    color: var(--accent);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.2s ease;
+    margin-left: 10px;
+    flex-shrink: 0;
+  }
+  .line:hover::after {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+
+  .comment {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    display: block;
+    padding: 14px 20px;
+    margin: 15px 0 8px 0;
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 4px solid var(--text-muted);
+    border-radius: 0 12px 12px 0;
+    text-transform: uppercase;
+  }
+
+  /* Editor Modal Centered Design */
+  #editorModal {
+    position: fixed;
+    inset: 0;
+    background: rgba(9, 11, 16, 0.75);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  .editor-card {
+    background: rgba(18, 21, 32, 0.95);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+    max-height: 550px;
+    box-sizing: border-box;
+    animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  #editorArea {
+    flex: 1;
+    width: 100%;
+    font-family: 'JetBrains Mono', 'Inter', monospace;
+    font-size: 1rem;
+    line-height: 1.5;
+    padding: 16px;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    background: rgba(9, 11, 16, 0.6);
+    color: var(--text-primary);
+    box-sizing: border-box;
+    margin-bottom: 16px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+  #editorArea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+  }
+
+  /* Gorgeous Neon glowing vowel highlights */
+  .vowel-a { color: #ff3366; font-weight: 700; text-shadow: 0 0 6px rgba(255, 51, 102, 0.4); } /* Neon Red */
+  .vowel-e { color: #2ecc71; font-weight: 700; text-shadow: 0 0 6px rgba(46, 204, 113, 0.4); } /* Neon Green */
+  .vowel-i { color: #00d2ff; font-weight: 700; text-shadow: 0 0 6px rgba(0, 210, 255, 0.4); } /* Neon Blue/Cyan */
+  .vowel-o { color: #ff9f1c; font-weight: 700; text-shadow: 0 0 6px rgba(255, 159, 28, 0.4); } /* Neon Orange */
+  .vowel-u { color: #e056fd; font-weight: 700; text-shadow: 0 0 6px rgba(224, 86, 253, 0.4); } /* Neon Purple */
 </style>
 </head>
 <body>
+
+<!-- Ambient background decorative orbs -->
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+
 <header>
-  <div style="width:30px"></div>
+  <a href="../index.html" class="home-btn" title="回首頁">
+    <i class="fa-solid fa-house"></i>
+  </a>
   <div style="flex:1; text-align:center">
-    <h1 id="title" style="font-size:18px;margin:0">歌詞本</h1>
-    <div id="pageInfo" style="font-size:12px;color:#888;"></div>
+    <h1 id="title">歌詞本</h1>
+    <div id="pageInfo"></div>
   </div>
-  <button onclick="document.getElementById('menu').classList.toggle('active')" style="border:none;background:none;font-size:22px;">☰</button>
+  <button class="menu-toggle-btn" onclick="document.getElementById('menu').classList.toggle('active')" title="開啟選單">
+    <i class="fa-solid fa-bars"></i>
+  </button>
 </header>
 
 <div class="menu" id="menu">
-  <div style="text-align:right"><button onclick="document.getElementById('menu').classList.remove('active')" style="font-size:24px;border:none;background:none;">✕</button></div>
-  <div id="songList"></div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 15px;">
+    <span style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);"><i class="fa-solid fa-list-ul" style="color: var(--accent); margin-right: 8px;"></i> 歌曲選單</span>
+    <button class="close-btn" onclick="document.getElementById('menu').classList.remove('active')" title="關閉選單">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+  <div id="songList" style="flex: 1; overflow-y: auto;"></div>
   <div class="pagination" id="pagination"></div>
-  <button onclick="addNewSong()" style="padding:15px;margin-top:10px;background:var(--accent);color:white;border:none;border-radius:8px;width:100%">＋ 新增歌詞</button>
-  <div class="btn-row" style="margin-top:10px">
-    <button onclick="exportData()" style="background:#666">匯出</button>
-    <button onclick="document.getElementById('fileInput').click()" style="background:#666">匯入</button>
+  <button class="btn-add-song" onclick="addNewSong()"><i class="fa-solid fa-plus"></i> 新增歌詞</button>
+  <div class="btn-row" style="margin-top: 15px;">
+    <button onclick="exportData()"><i class="fa-solid fa-file-export"></i> 匯出</button>
+    <button onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-file-import"></i> 匯入</button>
   </div>
   <input type="file" id="fileInput" style="display:none" accept=".json" onchange="importData(event)">
 </div>
 
-<main id="main"><div class="card" id="card"></div></main>
+<main id="main">
+  <div class="card" id="card"></div>
+</main>
 
 <div id="editorModal">
-  <textarea id="editorArea"></textarea>
-  <div class="btn-row">
-    <button onclick="saveEdit()" style="background:var(--accent)">儲存</button>
-    <button onclick="document.getElementById('editorModal').style.display='none'" style="background:#888">取消</button>
+  <div class="editor-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);"><i class="fa-solid fa-pen-to-square" style="color: var(--accent); margin-right: 8px;"></i> 編輯歌詞</h3>
+      <span style="font-size: 0.75rem; color: var(--text-muted);">第一行為標題，其餘為歌詞</span>
+    </div>
+    <textarea id="editorArea" placeholder="在此輸入歌詞..."></textarea>
+    <div class="btn-row">
+      <button onclick="saveEdit()" style="background: linear-gradient(135deg, var(--accent) 0%, #1d4ed8 100%); color: white; border: none; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);"><i class="fa-solid fa-check"></i> 儲存</button>
+      <button onclick="document.getElementById('editorModal').style.display='none'" style="background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid var(--card-border);"><i class="fa-solid fa-xmark"></i> 取消</button>
+    </div>
   </div>
 </div>
 
@@ -72,7 +560,39 @@ function migrateData(data) {
   });
 }
 
-let songs = migrateData(JSON.parse(localStorage.getItem('songs_v4')||'[]'));
+// Gorgeous default songs to make the page pop beautifully upon first load!
+const defaultSongs = [
+  {
+    title: "Yesterday - The Beatles",
+    lines: [
+      "[Verse 1]",
+      "Yesterday",
+      "All my troubles seemed so far away",
+      "Now it looks as though they're here to stay",
+      "Oh, I believe in yesterday",
+      "[Verse 2]",
+      "Suddenly",
+      "I'm not half the man I used to be",
+      "There's a shadow hanging over me",
+      "Oh, yesterday came suddenly"
+    ]
+  },
+  {
+    title: "Fly Me to the Moon",
+    lines: [
+      "[Verse 1]",
+      "Fly me to the moon",
+      "Let me play among the stars",
+      "Let me see what spring is like on",
+      "Jupiter and Mars",
+      "[Chorus]",
+      "In other words, hold my hand",
+      "In other words, baby, kiss me"
+    ]
+  }
+];
+
+let songs = migrateData(JSON.parse(localStorage.getItem('songs_v4') || JSON.stringify(defaultSongs)));
 let current = 0, page = 0, itemsPerPage = 8;
 
 function speak(text) {
@@ -110,7 +630,7 @@ function render() {
     } else {
       let highlighted = highlightVowels(l);
       let speakText = l.replace(/'/g, "");
-      html += `<div class="line" onclick="speak('${speakText}')">${highlighted}</div>`;
+      html += `<div class="line" onclick="speak('${speakText}')"><span class="line-text">${highlighted}</span></div>`;
     }
   });
   document.getElementById('card').innerHTML = html;
@@ -124,15 +644,15 @@ function renderMenu(){
     <div class="song-item">
       <span onclick="current=${start+i};render();document.getElementById('menu').classList.remove('active')">${s.title}</span>
       <div class="btn-group">
-        <button onclick="openEditor(${start+i})">✎</button>
-        <button onclick="confirmDelete(${start+i})">🗑️</button>
+        <button class="btn-icon btn-edit" onclick="openEditor(${start+i})" title="編輯"><i class="fa-solid fa-pen-to-square"></i></button>
+        <button class="btn-icon btn-delete" onclick="confirmDelete(${start+i})" title="刪除"><i class="fa-solid fa-trash-can"></i></button>
       </div>
     </div>`).join('');
   const maxPage = Math.ceil(songs.length/itemsPerPage) || 1;
   document.getElementById('pagination').innerHTML = `
-    <button ${page===0?'disabled':''} onclick="page--;renderMenu()">上一頁</button>
-    <span>${page+1}/${maxPage}</span>
-    <button ${page>=maxPage-1?'disabled':''} onclick="page++;renderMenu()">下一頁</button>`;
+    <button class="btn-paged" ${page===0?'disabled':''} onclick="page--;renderMenu()"><i class="fa-solid fa-chevron-left"></i> 上一頁</button>
+    <span style="font-weight: 600; color: var(--text-secondary);">${page+1} / ${maxPage}</span>
+    <button class="btn-paged" ${page>=maxPage-1?'disabled':''} onclick="page++;renderMenu()">下一頁 <i class="fa-solid fa-chevron-right"></i></button>`;
 }
 
 function confirmDelete(i) {
