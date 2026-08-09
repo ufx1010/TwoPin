@@ -1,1 +1,31 @@
 🎙️單曲編輯
+簡短總覽
+這是一個單頁客戶端應用（LinguaBook），介面為繁體中文，使用 Tailwind CSS。用途是編輯與播放雙語（原文 + 翻譯）歌詞，並能對每行設定精準時間（6位數格式）、播放或模擬播放、TTS 朗讀、錄音、載入/匯出 LRC 或文字檔，以及在畫面上拖曳/縮放字幕位置與大小。
+主要結構與 UI
+
+頂部：歌曲名稱輸入欄。
+左側（主要區域，含媒體顯示與控制）：
+媒體容器：支援圖片、影片、音訊層（可平移/縮放）。
+字幕疊層（可拖曳、縮放、長按編輯）。
+播放控制：進度條、時間顯示、播放/暫停、上一行/下一行、循環、播放速率切換。
+功能按鈕：載入圖/音/影、清除、錄音、原文/翻譯顏色挑選、匯入/匯出 LRC、TTS 開關、均分時間、加入行等。
+右側（編輯區）：
+兩種編輯模式：整篇模式（兩個 textarea）與分行模式（每行為一張卡，預設開啟）。
+快速編輯 Modal：可編輯單行時間、原文、翻譯，儲存時會自動重算後續行時間間隔。
+核心 JavaScript（LinguaBookApp）
+
+狀態管理：activeMedia（audio/video）、lyricsData（陣列，含 time/endTime/primary/translation）、currentIndex、播放速率清單、模式、顏色、縮放倍率等。
+媒體處理：loadImage/loadAudio/loadVideo、更新長度顯示、監聽 timeupdate/ended/loadedmetadata。
+兩種播放模式：
+真正媒體播放（有載入音/影片時）——同步顯示字幕。
+Synthetic（模擬）播放（無媒體檔時）——以計時器驅動，支援在模擬時間上播放並觸發 TTS。
+TTS：使用 Web Speech API（speechSynthesis），有語言偵測 heuristics（中文/日文/韓文/英語），依序讀原文再讀翻譯，並嘗試配對語音。
+錄音：使用 navigator.mediaDevices 與 MediaRecorder，錄製完成後提示下載 .webm 檔案。
+字幕互動：拖曳定位、雙指縮放控制文字大小、長按開啟快速編輯、右鍵開編輯。
+編輯同步：從整篇 textarea 同步到 lyricsData 的 syncFromInputsSilent；resetIntervals 可依媒體長度或預設規則平均分配時間；quick edit 儲存會重新分配後續行的時間。
+進度條：支援滑動/點擊尋址，對真實媒體或模擬時間皆有效。
+實作注意與缺失
+
+檔案幾乎為自包含（HTML + CSS + JS）。貼出的內容在中段被截斷（用 "[...]" 表示），一些輔助函式（例如 formatDetailedTime、updateMainDisplay 等）在後面應還有定義，但未完整顯示。核心架構與多數行為已可看出。
+UI 文字、提示、多數 alert 皆為繁體中文。
+可改進處（建議）：增加鍵盤無障礙支援、提高錯誤處理（檔案載入失敗、TTS 不支援情況）、加入儲存到 localStorage 的自動備份功能、並在匯出 LRC 時確保時間格式與編碼一致。
