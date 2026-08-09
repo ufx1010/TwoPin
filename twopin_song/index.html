@@ -5,47 +5,460 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>我的歌詞本</title>
 <style>
-  :root { --bg:#faf7f2; --card:#fff; --text:#2c2c2c; --accent:#d97757; }
-  body { margin:0; font-family:sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; user-select:none; }
-  header { position:sticky; top:0; z-index:40; padding:12px 16px; background:var(--card); display:flex; justify-content:space-between; align-items:center; box-shadow:0 1px 3px rgba(0,0,0,.06) }
-  .menu { position:fixed; inset:0; background:var(--bg); padding:60px 20px; display:none; z-index:50; flex-direction:column; overflow-y:auto }
-  .menu.active { display:flex }
-  .song-item { display:flex; justify-content:space-between; align-items:center; background:var(--card); padding:15px; margin-bottom:10px; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,.05) }
-  .btn-group { display:flex; gap:5px; }
-  main { flex:1; padding:20px; display:flex; justify-content:center }
-  .card { width:100%; max-width:680px; background:var(--card); border-radius:16px; padding:24px }
-  .line { padding:12px 0; border-bottom:1px dashed #eee; cursor:pointer }
-  .comment { color:#aaa; font-size:0.9em; font-style:italic; display:block; padding:10px 0; }
-  .pagination { display:flex; justify-content:center; gap:10px; margin:15px 0; align-items:center }
-  #editorModal { position:fixed; inset:0; background:var(--bg); z-index:100; display:none; flex-direction:column; padding:15px; }
-  #editorArea { flex:1; width:100%; font-size:18px; padding:15px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box; margin-bottom:10px; }
-  .btn-row { display:flex; gap:10px; }
-  .btn-row button { flex:1; padding:15px; border:none; border-radius:8px; font-weight:bold; color:white; }
-  .vowel-a { color: #FF0000; font-weight: bold; } /* 純紅 */
-  .vowel-e { color: #00B000; font-weight: bold; } /* 鮮綠 */
-  .vowel-i { color: #0000FF; font-weight: bold; } /* 純藍 */
-  .vowel-o { color: #FF7F00; font-weight: bold; } /* 鮮橙 */
-  .vowel-u { color: #9400D3; font-weight: bold; } /* 鮮紫 */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #080a10;
+    --surface: rgba(17, 20, 29, 0.75);
+    --surface-solid: #11141d;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(59, 130, 246, 0.4);
+    --text: #f1f5f9;
+    --text-muted: #64748b;
+    --accent: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    --accent-glow: rgba(59, 130, 246, 0.3);
+    --danger: #ef4444;
+    --radius: 16px;
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background-color: var(--bg);
+    background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #080a10 80%);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    overflow-x: hidden;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    padding: 16px 24px;
+    background: rgba(8, 10, 16, 0.8);
+    backdrop-filter: blur(16px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+  }
+
+  .btn-menu-toggle {
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    font-size: 18px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .btn-menu-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 45;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .menu-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 100%;
+    max-width: 400px;
+    height: 100vh;
+    background: rgba(13, 16, 23, 0.95);
+    backdrop-filter: blur(24px);
+    padding: 32px 24px 24px 24px;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-left: 1px solid var(--border);
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .menu.active {
+    right: 0;
+  }
+
+  .song-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .song-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--border-hover);
+    transform: translateY(-1px);
+  }
+
+  .song-item.active-song {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: #3b82f6;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
+  }
+
+  .song-title-span {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 12px;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .btn-icon {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-icon:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .btn-icon.delete:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px var(--accent-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  main {
+    flex: 1;
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 720px;
+    background: var(--surface);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 40px;
+    box-sizing: border-box;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .line {
+    padding: 14px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1.6;
+    text-align: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    word-break: break-word;
+  }
+
+  .line:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+    transform: scale(1.01);
+  }
+
+  .comment {
+    color: var(--text-muted);
+    font-size: 0.95em;
+    font-weight: 500;
+    font-style: italic;
+    display: block;
+    text-align: center;
+    padding: 18px 0 8px 0;
+    opacity: 0.7;
+    letter-spacing: 0.05em;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .pagination button {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .pagination button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .pagination span {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  #editorModal {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 10, 16, 0.85);
+    backdrop-filter: blur(20px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+  }
+
+  .editor-content {
+    background: #11141d;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 640px;
+    padding: 32px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  }
+
+  .editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .editor-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  #editorArea {
+    width: 100%;
+    height: 350px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 16px;
+    box-sizing: border-box;
+    resize: none;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  #editorArea:focus {
+    border-color: rgba(59, 130, 246, 0.5);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+  }
+
+  /* Neon Vowels Color Definition */
+  .vowel-a {
+    color: #ff5e62;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(255, 94, 98, 0.4);
+  }
+  .vowel-e {
+    color: #4ade80;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+  }
+  .vowel-i {
+    color: #38bdf8;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+  }
+  .vowel-o {
+    color: #fb923c;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(251, 146, 60, 0.4);
+  }
+  .vowel-u {
+    color: #c084fc;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(192, 132, 252, 0.4);
+  }
 </style>
 </head>
 <body>
 <header>
-  <div style="width:30px"></div>
+  <div style="width:40px"></div>
   <div style="flex:1; text-align:center">
-    <h1 id="title" style="font-size:18px;margin:0">歌詞本</h1>
-    <div id="pageInfo" style="font-size:12px;color:#888;"></div>
+    <h1 id="title">歌詞本</h1>
+    <div id="pageInfo" style="font-size:12px;color:var(--text-muted);margin-top:4px;"></div>
   </div>
-  <button onclick="document.getElementById('menu').classList.toggle('active')" style="border:none;background:none;font-size:22px;">☰</button>
+  <button onclick="toggleMenu()" class="btn-menu-toggle">☰</button>
 </header>
 
+<div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
 <div class="menu" id="menu">
-  <div style="text-align:right"><button onclick="document.getElementById('menu').classList.remove('active')" style="font-size:24px;border:none;background:none;">✕</button></div>
-  <div id="songList"></div>
+  <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h2 style="margin:0; font-size: 18px; font-weight: 600; color: var(--text);">歌曲清單</h2>
+    <button onclick="closeMenu()" style="font-size:18px;border:none;background:rgba(255,255,255,0.05);color:var(--text-muted);width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;">✕</button>
+  </div>
+  <div id="songList" style="flex:1;"></div>
   <div class="pagination" id="pagination"></div>
-  <button onclick="addNewSong()" style="padding:15px;margin-top:10px;background:var(--accent);color:white;border:none;border-radius:8px;width:100%">＋ 新增歌詞</button>
-  <div class="btn-row" style="margin-top:10px">
-    <button onclick="exportData()" style="background:#666">匯出</button>
-    <button onclick="document.getElementById('fileInput').click()" style="background:#666">匯入</button>
+  <div style="display:flex; flex-direction:column; gap:12px; margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border);">
+    <button class="btn-primary" onclick="addNewSong()">＋ 新增歌詞</button>
+    <div style="display:flex; gap:12px;">
+      <button class="btn-secondary" onclick="exportData()">📤 匯出</button>
+      <button class="btn-secondary" onclick="document.getElementById('fileInput').click()">📥 匯入</button>
+    </div>
   </div>
   <input type="file" id="fileInput" style="display:none" accept=".json" onchange="importData(event)">
 </div>
@@ -53,10 +466,17 @@
 <main id="main"><div class="card" id="card"></div></main>
 
 <div id="editorModal">
-  <textarea id="editorArea"></textarea>
-  <div class="btn-row">
-    <button onclick="saveEdit()" style="background:var(--accent)">儲存</button>
-    <button onclick="document.getElementById('editorModal').style.display='none'" style="background:#888">取消</button>
+  <div class="editor-content">
+    <div class="editor-header">
+      <h3 id="editorTitle">編輯歌詞</h3>
+      <button onclick="document.getElementById('editorModal').style.display='none'" style="font-size:18px;border:none;background:none;color:var(--text-muted);cursor:pointer;">✕</button>
+    </div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:-10px;">提示：第一行將作為歌曲標題，之後的每一行作為歌詞行。</div>
+    <textarea id="editorArea" placeholder="輸入歌曲標題&#10;第一行歌詞&#10;第二行歌詞..."></textarea>
+    <div style="display:flex; gap:12px;">
+      <button class="btn-primary" style="flex:1;" onclick="saveEdit()">儲存</button>
+      <button class="btn-secondary" style="flex:1;" onclick="document.getElementById('editorModal').style.display='none'">取消</button>
+    </div>
   </div>
 </div>
 
@@ -99,6 +519,16 @@ function highlightVowels(text) {
   });
 }
 
+function toggleMenu() {
+  document.getElementById('menu').classList.toggle('active');
+  document.getElementById('menuOverlay').classList.toggle('active');
+}
+
+function closeMenu() {
+  document.getElementById('menu').classList.remove('active');
+  document.getElementById('menuOverlay').classList.remove('active');
+}
+
 function render() {
   const s = songs[current] || {title:'尚未新增', lines:['無內容']};
   document.getElementById('title').textContent = s.title;
@@ -120,14 +550,18 @@ function render() {
 function renderMenu(){
   const list = document.getElementById('songList');
   const start = page * itemsPerPage;
-  list.innerHTML = songs.slice(start, start + itemsPerPage).map((s,i) => `
-    <div class="song-item">
-      <span onclick="current=${start+i};render();document.getElementById('menu').classList.remove('active')">${s.title}</span>
-      <div class="btn-group">
-        <button onclick="openEditor(${start+i})">✎</button>
-        <button onclick="confirmDelete(${start+i})">🗑️</button>
-      </div>
-    </div>`).join('');
+  list.innerHTML = songs.slice(start, start + itemsPerPage).map((s,i) => {
+    const idx = start + i;
+    const isActive = idx === current ? ' active-song' : '';
+    return `
+      <div class="song-item${isActive}" onclick="if(event.target.tagName !== 'BUTTON') { current=${idx}; render(); closeMenu(); }">
+        <span class="song-title-span">${s.title}</span>
+        <div class="btn-group">
+          <button class="btn-icon" onclick="event.stopPropagation(); openEditor(${idx})" title="編輯">✎</button>
+          <button class="btn-icon delete" onclick="event.stopPropagation(); confirmDelete(${idx})" title="刪除">🗑️</button>
+        </div>
+      </div>`;
+  }).join('');
   const maxPage = Math.ceil(songs.length/itemsPerPage) || 1;
   document.getElementById('pagination').innerHTML = `
     <button ${page===0?'disabled':''} onclick="page--;renderMenu()">上一頁</button>
