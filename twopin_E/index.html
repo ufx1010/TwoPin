@@ -101,10 +101,10 @@
             text-align-last: center;
         }
         .grid-item select option { background: #1e1e1e; }
-        button.primary-blue { background-color: #3b82f6; border-color: #3b82f6; }
+        button.primary-blue { background-color: #6c757d; border-color: #6c757d; }
         button.secondary-gray { background-color: #6c757d; border-color: #6c757d; }
-        button.danger { background-color: #dc3545; border-color: #dc3545; }
-        button.success-green { background-color: #2ecc71; border-color: #2ecc71; }
+        button.danger { background-color: #6c757d; border-color: #6c757d; }
+        button.success-green { background-color: #6c757d; border-color: #6c757d; }
         .comparison-container {
             display: flex;
             flex-direction: column;
@@ -397,8 +397,8 @@
         </div>
         <div class="grid-item"><button type="button" class="secondary-gray" onclick="restartPractice()">🔄 重來</button></div>
         <div class="grid-item"><button type="button" id="muteBtn" class="secondary-gray" onclick="toggleMute()">🔊 開啟</button></div>
-        <div class="grid-item"><button type="button" id="modeBtn" class="primary-blue" onclick="toggleMode()">🔤 英打</button></div>
-        <div class="grid-item"><button type="button" id="audioModeBtn" class="primary-blue" onclick="toggleAudioMode()">🔊 單字</button></div>
+        <div class="grid-item"><button type="button" id="modeBtn" class="secondary-gray" onclick="toggleMode()">🔤 英打</button></div>
+        <div class="grid-item"><button type="button" id="audioModeBtn" class="secondary-gray" onclick="toggleAudioMode()">🔊 單字</button></div>
         <div class="grid-item">
             <select id="speedSelect" onchange="updateSpeed()">
                 <option value="0.3">0.3x</option>
@@ -438,8 +438,8 @@
     </div>
 
     <div class="bottom-toolbar">
-        <div class="grid-item"><button type="button" class="success-green" onclick="shuffleLines()">🔀 隨機</button></div>
-        <div class="grid-item"><button type="button" class="primary-blue" onclick="jumpToLine()">🎯 跳轉</button></div>
+        <div class="grid-item"><button type="button" class="secondary-gray" onclick="shuffleLines()">🔀 隨機</button></div>
+        <div class="grid-item"><button type="button" class="secondary-gray" onclick="jumpToLine()">🎯 跳轉</button></div>
         <div class="grid-item"><button type="button" class="secondary-gray" onclick="toggleInfoPanel()">📋 資訊</button></div>
         <div class="grid-item"><button type="button" class="secondary-gray" onclick="toggleFullScreen()">⛶ 全螢幕</button></div>
     </div>
@@ -452,7 +452,7 @@
         <textarea id="batchTextarea" class="batch-textarea"></textarea>
         <div class="batch-tip"><b>📌 說明：</b>每行一組，以「｜」或「|」隔開，系統會自動辨識中英文。</div>
         <div class="modal-buttons">
-            <button type="button" class="danger" onclick="clearModalText()">🗑️ 刪除全部</button>
+            <button type="button" class="secondary-gray" onclick="clearModalText()">🗑️ 刪除全部</button>
             <div class="modal-buttons-right">
                 <button type="button" class="secondary-gray" onclick="closeModal()">取消</button>
                 <button type="button" class="secondary-gray" onclick="confirmCustomArticle()">✅ 套用</button>
@@ -846,7 +846,7 @@
             const modeBtn = document.getElementById('modeBtn');
             if (practiceMode === 'en') {
                 modeBtn.textContent = '🔤 英打';
-                modeBtn.className = 'primary-blue';
+                modeBtn.className = 'secondary-gray';
             } else {
                 modeBtn.textContent = '🀄 中打';
                 modeBtn.className = 'secondary-gray';
@@ -854,7 +854,7 @@
             const audioModeBtn = document.getElementById('audioModeBtn');
             if (audioMode === 'word') {
                 audioModeBtn.textContent = '🔊 單字';
-                audioModeBtn.className = 'primary-blue';
+                audioModeBtn.className = 'secondary-gray';
             } else {
                 audioModeBtn.textContent = '🔊 整句';
                 audioModeBtn.className = 'secondary-gray';
@@ -942,8 +942,58 @@
     }
 </script>
 <script>
+    function triggerNewLinePronunciation() {
+        if (isMuted) return;
+        const targetText = getTargetText();
+        if (!targetText) return;
+        const cleanTarget = getCleanChars(targetText);
+        const speakLang = detectLanguage(targetText);
+
+        if (audioMode === 'sentence') {
+            const sentenceKey = `sentence-${currentLineIndex}-${targetText}`;
+            startLoopSound(targetText, speakLang, sentenceKey, 3000);
+        } else {
+            // Word Mode
+            if (practiceMode === 'zh') {
+                stopLoopSound();
+                if (cleanTarget.length > 0) {
+                    const firstChar = cleanTarget[0];
+                    speakText(firstChar, 'zh-TW');
+                }
+            } else {
+                const words = getWordsList(targetText);
+                let activeWord = words.find(w => 0 >= w.start && 0 < w.end);
+                if (activeWord) {
+                    const wordKey = `word-${currentLineIndex}-${words.indexOf(activeWord)}-${activeWord.word}`;
+                    startLoopSound(activeWord.word, detectLanguage(activeWord.word), wordKey, 1500);
+                } else {
+                    stopLoopSound();
+                }
+            }
+        }
+    }
+
     window.addEventListener('keydown', function(e) {
         if (e.code === 'Space') {
+            const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+            if (activeTag === 'textarea' || (activeTag === 'input' && document.activeElement !== hiddenInput)) {
+                return;
+            }
+
+            const targetText = getTargetText();
+            const cleanTarget = getCleanChars(targetText);
+            const isComplete = (currentTypedText.length === cleanTarget.length && cleanTarget.length > 0);
+
+            if (isComplete) {
+                e.preventDefault();
+                score++;
+                scoreDisplay.textContent = score;
+                advanceToNextLine();
+                focusHiddenInput();
+                triggerNewLinePronunciation();
+                return;
+            }
+
             if (document.activeElement !== hiddenInput) {
                 e.preventDefault();
                 focusHiddenInput();
@@ -1006,32 +1056,21 @@
 
         let isComplete = (typedSoFar.length === cleanTarget.length);
         if (isComplete) {
-            score++;
-            scoreDisplay.textContent = score;
-            renderComparisonView();
-            updateInfoPanel();
-
+            // No auto-advancing anymore. Only play pronunciation when typing the last character or word boundary, or stop loop/pronounce completed state.
+            // Let's just handle audio feedback for the completed character, and not auto-advance.
             if (practiceMode === 'zh') {
-                isInputLocked = true;
                 stopLoopSound();
-                if (audioMode === 'word') {
+                if (!isDeletion && typedSoFar.length > 0) {
                     const lastChar = typedSoFar[typedSoFar.length - 1];
-                    speakText(lastChar, 'zh-TW', () => {
-                        speakText(targetText, 'zh-TW', () => {
-                            isInputLocked = false;
-                            advanceToNextLine();
-                        });
-                    });
-                } else {
-                    speakText(targetText, 'zh-TW', () => {
-                        isInputLocked = false;
-                        advanceToNextLine();
-                    });
+                    speakText(lastChar, 'zh-TW');
                 }
             } else {
-                stopLoopSound();
-                advanceToNextLine();
+                // For english, we do standard feedback
+                handleAudioFeedback(typedSoFar, targetText, cleanTarget, false);
             }
+            renderComparisonView();
+            updateInfoPanel();
+            saveProgress();
             return;
         }
 
@@ -1204,7 +1243,7 @@
         const btn = document.getElementById('modeBtn');
         if (practiceMode === 'en') {
             btn.textContent = '🔤 英打';
-            btn.className = 'primary-blue';
+            btn.className = 'secondary-gray';
         } else {
             btn.textContent = '🀄 中打';
             btn.className = 'secondary-gray';
@@ -1224,7 +1263,7 @@
         const btn = document.getElementById('audioModeBtn');
         if (audioMode === 'word') {
             btn.textContent = '🔊 單字';
-            btn.className = 'primary-blue';
+            btn.className = 'secondary-gray';
         } else {
             btn.textContent = '🔊 整句';
             btn.className = 'secondary-gray';
