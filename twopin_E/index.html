@@ -476,6 +476,7 @@
     let isTimerRunning = false;
     let errorCount = 0;
     let totalCorrectChars = 0;
+    let completedCorrectChars = 0;
     const STORAGE_KEY = 'typing_practice_data_v4';
 
     let rawArticleText = 
@@ -543,8 +544,68 @@
         return (practiceMode === 'en') ? obj.en : obj.zh;
     }
 
-    function getCleanChars(text) {
-        return text.replace(/[^a-zA-Z0-9\u4e00-\u9fff\s]/g, '');
+    function normalizeText(text) {
+        if (!text) return '';
+        return text.replace(/　/g, ' ');
+    }
+
+    function getCleanChars(text, mode = audioMode) {
+        let norm = normalizeText(text);
+        if (mode === 'word') {
+            return norm.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '');
+        } else {
+            return norm.replace(/[^a-zA-Z0-9\u4e00-\u9fff\s]/g, '');
+        }
+    }
+
+    function isMatchable(char, mode = audioMode) {
+        if (mode === 'word') {
+            return /[a-zA-Z0-9\u4e00-\u9fff]/.test(char);
+        } else {
+            return /[a-zA-Z0-9\u4e00-\u9fff\s]/.test(char);
+        }
+    }
+
+    function isIgnoredInMatch(char, mode = audioMode) {
+        let normalizedChar = normalizeText(char);
+        if (mode === 'word') {
+            return !/[a-zA-Z0-9\u4e00-\u9fff]/.test(normalizedChar);
+        } else {
+            return !/[a-zA-Z0-9\u4e00-\u9fff\s]/.test(normalizedChar);
+        }
+    }
+
+    function getWordsList(targetText) {
+        let norm = normalizeText(targetText);
+        let rawParts = norm.split(/\s+/);
+        let list = [];
+        let accumulatedLength = 0;
+        for (let part of rawParts) {
+            let cleanW = part.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '');
+            if (cleanW.length > 0) {
+                list.push({
+                    raw: part,
+                    word: cleanW,
+                    start: accumulatedLength,
+                    end: accumulatedLength + cleanW.length
+                });
+                accumulatedLength += cleanW.length;
+            }
+        }
+        return list;
+    }
+
+    function handleWordModeSpaceTrigger() {
+        if (isMuted) return;
+        const targetText = getTargetText();
+        const words = getWordsList(targetText);
+        const len = currentTypedText.length;
+
+        let nextWord = words.find(w => w.start === len);
+        if (nextWord) {
+            const wordKey = `word-${currentLineIndex}-${words.indexOf(nextWord)}-${nextWord.word}`;
+            startLoopSound(nextWord.word, detectLanguage(nextWord.word), wordKey, 1500);
+        }
     }
 
     // 自動判別語系：含有中文字元即視為中文，否則視為英文
@@ -561,12 +622,16 @@
             const minutes = timerSeconds > 0 ? (timerSeconds / 60) : (1 / 60);
             const wpm = Math.round(totalCorrectChars / minutes);
             
+            const minutesPart = Math.floor(timerSeconds / 60);
+            const secondsPart = timerSeconds % 60;
+            const timeStr = `${minutesPart} 分 ${secondsPart} 秒`;
+
             comparisonDisplay.innerHTML = `
                 <div class="compare-row" style="flex-direction: column; align-items: stretch;">
                     <div class="compare-en complete-message">🎉 太棒了！練習已全部完成！</div>
                     <div class="stats-card">
                         <h4>📊 練習結算報告</h4>
-                        <div class="stats-row"><span class="stats-label">總花費時間：</span><span class="stats-value">${timerSeconds} 秒</span></div>
+                        <div class="stats-row"><span class="stats-label">總花費時間：</span><span class="stats-value">${timeStr}</span></div>
                         <div class="stats-row"><span class="stats-label">平均字速：</span><span class="stats-value">${wpm} 字/分鐘</span></div>
                         <div class="stats-row"><span class="stats-label">按錯總次數：</span><span class="stats-value" style="color: #e74c3c;">${errorCount} 次</span></div>
                         <div class="stats-row"><span class="stats-label">總正確字數：</span><span class="stats-value" style="color: #2ecc71;">${totalCorrectChars} 字</span></div>
@@ -584,8 +649,7 @@
         let typedIdx = 0;
         for (let i = 0; i < targetText.length; i++) {
             const char = targetText[i];
-            const isPunct = !/[a-zA-Z0-9\u4e00-\u9fff\s]/.test(char);
-            if (isPunct) {
+            if (isIgnoredInMatch(char)) {
                 lineHtml += `<span style="color:#666666;">${char}</span>`;
                 continue;
             }
@@ -746,7 +810,8 @@
                 isTimerRunning: isTimerRunning,
                 rawArticleText: rawArticleText,
                 errorCount: errorCount,
-                totalCorrectChars: totalCorrectChars
+                totalCorrectChars: totalCorrectChars,
+                completedCorrectChars: completedCorrectChars
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         } catch(e) {}
@@ -768,6 +833,7 @@
             isTimerRunning = data.isTimerRunning || false;
             errorCount = data.errorCount || 0;
             totalCorrectChars = data.totalCorrectChars || 0;
+            completedCorrectChars = data.completedCorrectChars || 0;
             if (data.rawArticleText) {
                 rawArticleText = data.rawArticleText;
             }
@@ -843,6 +909,7 @@
         currentTypedText = "";
         errorCount = 0;
         totalCorrectChars = 0;
+        completedCorrectChars = 0;
         hiddenInput.value = "";
         statusDisplay.textContent = "👆 點擊開始打字";
         isInputLocked = false;
@@ -865,65 +932,9 @@
 <script>
     window.addEventListener('keydown', function(e) {
         if (e.code === 'Space') {
-            e.preventDefault();
-            const sentenceObj = getCurrentSentenceObj();
-            if (!sentenceObj) return;
-            const targetText = getTargetText();
-            const rawWords = targetText.split(/\s+/);
-            const words = rawWords.map(w => getCleanChars(w)).filter(w => w.length > 0);
-            if (words.length === 0) return;
-
-            let accumulatedLength = 0;
-            let currentWordIndex = 0;
-            
-            for (let i = 0; i < words.length; i++) {
-                const cleanW = words[i];
-                const wordStart = accumulatedLength;
-                const wordEnd = accumulatedLength + cleanW.length;
-                if (currentTypedText.length >= wordStart && currentTypedText.length <= wordEnd) {
-                    currentWordIndex = i;
-                    break;
-                }
-                accumulatedLength += cleanW.length + 1;
-            }
-
-            let nextIndex = currentWordIndex + 1;
-            if (nextIndex >= words.length) {
-                nextIndex = 0;
-            }
-
-            let newTypedLength = 0;
-            for (let i = 0; i < nextIndex; i++) {
-                newTypedLength += words[i].length + 1;
-            }
-            
-            const fullClean = getCleanChars(targetText);
-            if (newTypedLength > fullClean.length) {
-                newTypedLength = fullClean.length;
-            }
-
-            let matchedCount = 0;
-            let actualStrIndex = 0;
-            for (let i = 0; i < targetText.length; i++) {
-                if (/[a-zA-Z0-9\u4e00-\u9fff]/.test(targetText[i])) {
-                    matchedCount++;
-                    if (matchedCount > newTypedLength) {
-                        break;
-                    }
-                }
-                actualStrIndex = i + 1;
-            }
-
-            currentTypedText = targetText.slice(0, actualStrIndex);
-            hiddenInput.value = currentTypedText;
-
-            renderComparisonView();
-            updateInfoPanel();
-            saveProgress();
-
-            if (words[nextIndex]) {
-                const speakLang = detectLanguage(words[nextIndex]);
-                speakText(words[nextIndex], speakLang);
+            if (document.activeElement !== hiddenInput) {
+                e.preventDefault();
+                focusHiddenInput();
             }
         }
     });
@@ -932,7 +943,26 @@
         if (currentLineIndex >= linesList.length || isInputLocked) return;
         const targetText = getTargetText();
         const cleanTarget = getCleanChars(targetText);
-        let fullVal = hiddenInput.value;
+        let fullVal = normalizeText(hiddenInput.value);
+
+        if (fullVal.length > currentTypedText.length) {
+            let addedText = fullVal.slice(currentTypedText.length);
+            if (audioMode === 'word' && addedText === ' ') {
+                handleWordModeSpaceTrigger();
+                hiddenInput.value = currentTypedText;
+                return;
+            }
+        }
+
+        if (fullVal.length < currentTypedText.length) {
+            currentTypedText = fullVal;
+            totalCorrectChars = completedCorrectChars + getCleanChars(currentTypedText).length;
+            handleAudioFeedback(currentTypedText, targetText, cleanTarget);
+            renderComparisonView();
+            updateInfoPanel();
+            saveProgress();
+            return;
+        }
 
         if (fullVal.length > cleanTarget.length) {
             fullVal = fullVal.slice(0, cleanTarget.length);
@@ -967,15 +997,13 @@
             return;
         }
 
-        if (typedSoFar.length > currentTypedText.length) {
-            totalCorrectChars += (typedSoFar.length - currentTypedText.length);
-        }
+        currentTypedText = typedSoFar;
+        totalCorrectChars = completedCorrectChars + getCleanChars(currentTypedText).length;
 
         let isComplete = (typedSoFar.length === cleanTarget.length);
         if (isComplete) {
             score++;
             scoreDisplay.textContent = score;
-            currentTypedText = typedSoFar;
             renderComparisonView();
             updateInfoPanel();
 
@@ -993,7 +1021,6 @@
             return;
         }
 
-        currentTypedText = typedSoFar;
         handleAudioFeedback(typedSoFar, targetText, cleanTarget);
         renderComparisonView();
         updateInfoPanel();
@@ -1004,8 +1031,10 @@
     });
 
     function advanceToNextLine() {
+        completedCorrectChars += getCleanChars(getTargetText()).length;
         currentLineIndex++;
         currentTypedText = "";
+        totalCorrectChars = completedCorrectChars;
         hiddenInput.value = "";
         isInputLocked = false;
         lastSpokenKey = "";
@@ -1026,55 +1055,53 @@
     function handleAudioFeedback(typedSoFar, targetText, cleanTarget) {
         if (isMuted) return;
         const speakLang = detectLanguage(targetText);
-        
+        const len = typedSoFar.length;
+
         if (audioMode === 'sentence') {
-            if (typedSoFar.length === 1) {
+            if (len === 0) {
+                stopLoopSound();
+            } else if (len === cleanTarget.length) {
+                stopLoopSound();
+            } else {
                 const sentenceKey = `sentence-${currentLineIndex}-${targetText}`;
                 startLoopSound(targetText, speakLang, sentenceKey, 1500);
-            } else if (typedSoFar.length === cleanTarget.length) {
-                stopLoopSound();
             }
         } else {
+            // Word Mode
             if (practiceMode === 'zh') {
                 stopLoopSound();
-                if (typedSoFar.length > 0) {
+                if (len > 0) {
                     speakText(typedSoFar, detectLanguage(typedSoFar));
                 }
             } else {
-                const words = targetText.split(/\s+/);
-                let accumulatedLength = 0;
-                let activeWord = null;
-                let wordIndex = 0;
-                for (let w of words) {
-                    const cleanW = getCleanChars(w);
-                    const wordStart = accumulatedLength;
-                    const wordEnd = accumulatedLength + cleanW.length;
-                    
-                    if (cleanW.length === 1) {
-                        if (typedSoFar.length >= wordStart && typedSoFar.length <= wordEnd) {
-                            if (cleanW) {
-                                activeWord = { word: cleanW, start: wordStart, end: wordEnd, index: wordIndex };
-                            }
-                            break;
-                        }
-                    } else {
-                        if (typedSoFar.length > wordStart && typedSoFar.length <= wordEnd) {
-                            if (cleanW) {
-                                activeWord = { word: cleanW, start: wordStart, end: wordEnd, index: wordIndex };
-                            }
-                            break;
-                        }
-                    }
-                    accumulatedLength += cleanW.length + 1;
-                    wordIndex++;
+                const words = getWordsList(targetText);
+                if (words.length === 0) {
+                    stopLoopSound();
+                    return;
                 }
+
+                // Check if we just typed the first letter of the first word
+                if (len === 1) {
+                    const firstWord = words[0];
+                    if (firstWord) {
+                        const wordKey = `word-${currentLineIndex}-0-${firstWord.word}`;
+                        startLoopSound(firstWord.word, detectLanguage(firstWord.word), wordKey, 1500);
+                        return;
+                    }
+                }
+
+                // Check if any word was just completed
+                let completedWord = words.find(w => w.end === len);
+                if (completedWord) {
+                    stopLoopSound();
+                    return;
+                }
+
+                // If we are in the middle of typing a word, keep looping if it was already started
+                let activeWord = words.find(w => len > w.start && len < w.end);
                 if (activeWord) {
-                    const typedInWord = typedSoFar.slice(activeWord.start);
-                    const isWordComplete = (typedInWord.toLowerCase() === activeWord.word.toLowerCase());
-                    if (isWordComplete) {
-                        stopLoopSound();
-                    } else {
-                        const wordKey = `word-${currentLineIndex}-${activeWord.index}-${activeWord.word}`;
+                    const wordKey = `word-${currentLineIndex}-${words.indexOf(activeWord)}-${activeWord.word}`;
+                    if (lastSpokenKey === wordKey) {
                         startLoopSound(activeWord.word, detectLanguage(activeWord.word), wordKey, 1500);
                     }
                 } else {
@@ -1232,6 +1259,7 @@
         currentTypedText = "";
         errorCount = 0;
         totalCorrectChars = 0;
+        completedCorrectChars = 0;
         hiddenInput.value = "";
         isInputLocked = false;
         lastSpokenKey = "";
@@ -1256,6 +1284,12 @@
         stopLoopSound();
         currentLineIndex = num - 1;
         currentTypedText = "";
+        completedCorrectChars = 0;
+        for (let i = 0; i < currentLineIndex; i++) {
+            let t = (practiceMode === 'en') ? linesList[i].en : linesList[i].zh;
+            completedCorrectChars += getCleanChars(t).length;
+        }
+        totalCorrectChars = completedCorrectChars;
         hiddenInput.value = "";
         isInputLocked = false;
         lastSpokenKey = "";
