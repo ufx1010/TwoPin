@@ -375,6 +375,7 @@
         .stats-label { color: #aaaaaa; }
         .stats-value { font-weight: bold; color: #ffffff; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.18.2/dist/index.js"></script>
 </head>
 <body>
 <div class="container" id="main-container">
@@ -875,7 +876,7 @@
             if (parts.length >= 2) {
                 const part1 = parts[0].trim();
                 const part2 = parts[1].trim();
-                const note = parts[2] ? parts[2].trim() : "";
+                let note = parts[2] ? parts[2].trim() : "";
                 const phonics = parts[3] ? parts[3].trim() : "";
                 
                 if (part1 && part2) {
@@ -895,6 +896,12 @@
                         // 若兩欄都有或都沒有中文，預設第一欄英文、第二欄中文
                         en = part1;
                         zh = part2;
+                    }
+                    if (zh) {
+                        const cleanZh = zh.replace(/[^\u4e00-\u9fff]/g, '');
+                        if (cleanZh && typeof pinyinPro !== 'undefined' && pinyinPro.pinyin) {
+                            note = pinyinPro.pinyin(cleanZh, { toneType: 'none', separator: '_' });
+                        }
                     }
                     parsed.push({ en, zh, note, phonics });
                 }
@@ -957,7 +964,7 @@
         if (fullVal.length < currentTypedText.length) {
             currentTypedText = fullVal;
             totalCorrectChars = completedCorrectChars + getCleanChars(currentTypedText).length;
-            handleAudioFeedback(currentTypedText, targetText, cleanTarget);
+            handleAudioFeedback(currentTypedText, targetText, cleanTarget, true);
             renderComparisonView();
             updateInfoPanel();
             saveProgress();
@@ -1010,10 +1017,20 @@
             if (practiceMode === 'zh') {
                 isInputLocked = true;
                 stopLoopSound();
-                speakText(targetText, 'zh-TW', () => {
-                    isInputLocked = false;
-                    advanceToNextLine();
-                });
+                if (audioMode === 'word') {
+                    const lastChar = typedSoFar[typedSoFar.length - 1];
+                    speakText(lastChar, 'zh-TW', () => {
+                        speakText(targetText, 'zh-TW', () => {
+                            isInputLocked = false;
+                            advanceToNextLine();
+                        });
+                    });
+                } else {
+                    speakText(targetText, 'zh-TW', () => {
+                        isInputLocked = false;
+                        advanceToNextLine();
+                    });
+                }
             } else {
                 stopLoopSound();
                 advanceToNextLine();
@@ -1021,7 +1038,7 @@
             return;
         }
 
-        handleAudioFeedback(typedSoFar, targetText, cleanTarget);
+        handleAudioFeedback(typedSoFar, targetText, cleanTarget, false);
         renderComparisonView();
         updateInfoPanel();
         saveProgress();
@@ -1052,7 +1069,7 @@
         saveProgress();
     }
 
-    function handleAudioFeedback(typedSoFar, targetText, cleanTarget) {
+    function handleAudioFeedback(typedSoFar, targetText, cleanTarget, isDeletion) {
         if (isMuted) return;
         const speakLang = detectLanguage(targetText);
         const len = typedSoFar.length;
@@ -1064,14 +1081,15 @@
                 stopLoopSound();
             } else {
                 const sentenceKey = `sentence-${currentLineIndex}-${targetText}`;
-                startLoopSound(targetText, speakLang, sentenceKey, 1500);
+                startLoopSound(targetText, speakLang, sentenceKey, 3000);
             }
         } else {
             // Word Mode
             if (practiceMode === 'zh') {
                 stopLoopSound();
-                if (len > 0) {
-                    speakText(typedSoFar, detectLanguage(typedSoFar));
+                if (!isDeletion && len > 0) {
+                    const lastChar = typedSoFar[len - 1];
+                    speakText(lastChar, 'zh-TW');
                 }
             } else {
                 const words = getWordsList(targetText);
