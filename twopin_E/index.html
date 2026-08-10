@@ -190,6 +190,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            white-space: pre-wrap;
         }
         #info-panel {
             margin: 4px 0 6px 0;
@@ -552,61 +553,36 @@
 
     function getCleanChars(text, mode = audioMode) {
         let norm = normalizeText(text);
-        if (mode === 'word') {
-            return norm.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '');
-        } else {
-            return norm.replace(/[^a-zA-Z0-9\u4e00-\u9fff\s]/g, '');
-        }
+        return norm.replace(/[^a-zA-Z0-9\u4e00-\u9fff\s]/g, '');
     }
 
     function isMatchable(char, mode = audioMode) {
-        if (mode === 'word') {
-            return /[a-zA-Z0-9\u4e00-\u9fff]/.test(char);
-        } else {
-            return /[a-zA-Z0-9\u4e00-\u9fff\s]/.test(char);
-        }
+        return /[a-zA-Z0-9\u4e00-\u9fff\s]/.test(char);
     }
 
     function isIgnoredInMatch(char, mode = audioMode) {
         let normalizedChar = normalizeText(char);
-        if (mode === 'word') {
-            return !/[a-zA-Z0-9\u4e00-\u9fff]/.test(normalizedChar);
-        } else {
-            return !/[a-zA-Z0-9\u4e00-\u9fff\s]/.test(normalizedChar);
-        }
+        return !/[a-zA-Z0-9\u4e00-\u9fff\s]/.test(normalizedChar);
     }
 
     function getWordsList(targetText) {
-        let norm = normalizeText(targetText);
-        let rawParts = norm.split(/\s+/);
+        // We need to map words directly from the targetText using exact original character indices
+        // but ignoring non-matchable characters if any. Actually, targetText contains normal alphabetic words and spaces.
+        // Let's parse exact word segments and their index ranges in the targetText (or cleanTarget text).
+        // Since getCleanChars(targetText) has spaces, we should find words on it!
+        let cleanText = getCleanChars(targetText);
+        // Let's find matches of [a-zA-Z0-9]+
+        let regex = /[a-zA-Z0-9']+/g;
         let list = [];
-        let accumulatedLength = 0;
-        for (let part of rawParts) {
-            let cleanW = part.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '');
-            if (cleanW.length > 0) {
-                list.push({
-                    raw: part,
-                    word: cleanW,
-                    start: accumulatedLength,
-                    end: accumulatedLength + cleanW.length
-                });
-                accumulatedLength += cleanW.length;
-            }
+        let match;
+        while ((match = regex.exec(cleanText)) !== null) {
+            list.push({
+                word: match[0],
+                start: match.index,
+                end: match.index + match[0].length
+            });
         }
         return list;
-    }
-
-    function handleWordModeSpaceTrigger() {
-        if (isMuted) return;
-        const targetText = getTargetText();
-        const words = getWordsList(targetText);
-        const len = currentTypedText.length;
-
-        let nextWord = words.find(w => w.start === len);
-        if (nextWord) {
-            const wordKey = `word-${currentLineIndex}-${words.indexOf(nextWord)}-${nextWord.word}`;
-            startLoopSound(nextWord.word, detectLanguage(nextWord.word), wordKey, 1500);
-        }
     }
 
     // 自動判別語系：含有中文字元即視為中文，否則視為英文
@@ -670,6 +646,35 @@
         comparisonDisplay.innerHTML = `<div class="compare-row"><div class="compare-en"><div class="line-block">${lineHtml}</div></div></div>`;
     }
 
+    function renderPinyinDisplay(sentenceObj) {
+        if (!sentenceObj || !sentenceObj.note) {
+            noteDisplay.innerHTML = "";
+            return;
+        }
+        if (practiceMode !== 'zh') {
+            noteDisplay.textContent = sentenceObj.note;
+            return;
+        }
+        const pinyinWords = sentenceObj.note.split('_');
+        const cleanTarget = getCleanChars(getTargetText());
+        const len = currentTypedText.length;
+        const prefix = cleanTarget.slice(0, len);
+        const chineseCharIndex = (prefix.match(/[\u4e00-\u9fff]/g) || []).length;
+
+        let html = "";
+        for (let i = 0; i < pinyinWords.length; i++) {
+            if (i === chineseCharIndex) {
+                html += `<span style="color: #2ecc71; font-weight: bold; text-decoration: underline; background-color: rgba(46, 204, 113, 0.2); padding: 2px 4px; border-radius: 4px;">${pinyinWords[i]}</span>`;
+            } else {
+                html += `<span style="color: #888888;">${pinyinWords[i]}</span>`;
+            }
+            if (i < pinyinWords.length - 1) {
+                html += `<span style="color: #444444;">_</span>`;
+            }
+        }
+        noteDisplay.innerHTML = html;
+    }
+
     function updateInfoPanel() {
         const sentenceObj = getCurrentSentenceObj();
         if (!sentenceObj) {
@@ -679,7 +684,7 @@
             return;
         }
         translationDisplay.textContent = (practiceMode === 'en') ? sentenceObj.zh : sentenceObj.en;
-        noteDisplay.textContent = sentenceObj.note || "";
+        renderPinyinDisplay(sentenceObj);
         phonicsDisplay.textContent = sentenceObj.phonics || "";
         statusDisplay.textContent = currentTypedText || "";
         hiddenInput.value = currentTypedText;
@@ -952,14 +957,6 @@
         const cleanTarget = getCleanChars(targetText);
         let fullVal = normalizeText(hiddenInput.value);
 
-        if (fullVal.length > currentTypedText.length) {
-            let addedText = fullVal.slice(currentTypedText.length);
-            if (audioMode === 'word' && addedText === ' ') {
-                handleWordModeSpaceTrigger();
-                hiddenInput.value = currentTypedText;
-                return;
-            }
-        }
 
         if (fullVal.length < currentTypedText.length) {
             currentTypedText = fullVal;
@@ -1093,35 +1090,10 @@
                 }
             } else {
                 const words = getWordsList(targetText);
-                if (words.length === 0) {
-                    stopLoopSound();
-                    return;
-                }
-
-                // Check if we just typed the first letter of the first word
-                if (len === 1) {
-                    const firstWord = words[0];
-                    if (firstWord) {
-                        const wordKey = `word-${currentLineIndex}-0-${firstWord.word}`;
-                        startLoopSound(firstWord.word, detectLanguage(firstWord.word), wordKey, 1500);
-                        return;
-                    }
-                }
-
-                // Check if any word was just completed
-                let completedWord = words.find(w => w.end === len);
-                if (completedWord) {
-                    stopLoopSound();
-                    return;
-                }
-
-                // If we are in the middle of typing a word, keep looping if it was already started
-                let activeWord = words.find(w => len > w.start && len < w.end);
+                let activeWord = words.find(w => len >= w.start && len < w.end);
                 if (activeWord) {
                     const wordKey = `word-${currentLineIndex}-${words.indexOf(activeWord)}-${activeWord.word}`;
-                    if (lastSpokenKey === wordKey) {
-                        startLoopSound(activeWord.word, detectLanguage(activeWord.word), wordKey, 1500);
-                    }
+                    startLoopSound(activeWord.word, detectLanguage(activeWord.word), wordKey, 1500);
                 } else {
                     stopLoopSound();
                 }
