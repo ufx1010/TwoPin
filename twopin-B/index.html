@@ -1239,21 +1239,27 @@ alert("目前沒有任何歌詞可供匯出！");
 return;
 }
 const title = this.getSongTitle();
+const safeName = title.replace(/[\\/:*?"<>|]/g, '_');
 let lrcContent = `[ti:${title}]\n[by:LinguaBook]\n`;
 for (let item of this.lyricsData) {
 const totalSecs = Math.max(0, item.time || 0);
-const mins = String(Math.floor(totalSecs / 60)).padStart(2, '0');
-const secs = String(Math.floor(totalSecs % 60)).padStart(2, '0');
-const millis = String(Math.floor((totalSecs % 1) * 100)).padStart(2, '0');
+const totalCentis = Math.round(totalSecs * 100);
+const minsVal = Math.floor(totalCentis / 6000);
+const secsVal = Math.floor((totalCentis % 6000) / 100);
+const centisVal = totalCentis % 100;
+
+const mins = String(minsVal).padStart(2, '0');
+const secs = String(secsVal).padStart(2, '0');
+const centis = String(centisVal).padStart(2, '0');
 let lineText = item.primary;
 if (item.translation) lineText += ` / ${item.translation}`;
-lrcContent += `[${mins}:${secs}:${millis}]${lineText}\n`;
+lrcContent += `[${mins}:${secs}.${centis}]${lineText}\n`;
 }
 const blob = new Blob([lrcContent], { type: 'text/plain;charset=utf-8' });
 const url = URL.createObjectURL(blob);
 const a = document.createElement('a');
 a.href = url;
-a.download = `${title}.lrc`;
+a.download = `${safeName}.lrc`;
 a.click();
 URL.revokeObjectURL(url);
 }
@@ -1272,7 +1278,7 @@ const lines = text.split(/\r?\n/);
 const primaryList = [];
 const transList = [];
 const timeList = [];
-const timeReg = /\[(\d{2}):(\d{2})[:\.](\d{2,3})\]/g;
+const timeReg = /\[(\d{1,4}):(\d{2})(?:[:\.](\d{1,3}))?\]/g;
 
 for (let line of lines) {
 const matches = [...line.matchAll(timeReg)];
@@ -1281,7 +1287,7 @@ const lastMatch = matches[matches.length - 1];
 const textContent = line.substring(lastMatch.index + lastMatch[0].length).trim();
 const mins = parseInt(lastMatch[1], 10) || 0;
 const secs = parseInt(lastMatch[2], 10) || 0;
-const millisStr = lastMatch[3] ? (lastMatch[3].length === 2 ? lastMatch[3] + '0' : lastMatch[3]) : '0';
+const millisStr = lastMatch[3] ? lastMatch[3].padEnd(3, '0') : '000';
 const timeInSec = mins * 60 + secs + parseInt(millisStr, 10) / 1000;
 
 let primary = textContent;
@@ -1291,7 +1297,7 @@ const parts = textContent.split(' / ');
 primary = parts[0].trim();
 translation = parts.slice(1).join(' / ').trim();
 }
-primaryList.path ? primaryList.push(primary) : primaryList.push(primary);
+primaryList.push(primary);
 transList.push(translation);
 timeList.push(timeInSec);
 }
