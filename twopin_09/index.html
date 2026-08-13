@@ -4,52 +4,355 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>畫中有詩篇</title>
-    <!-- 引入 Google Fonts 藝術英文字型 -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Dancing+Script:wght@500;700&family=Great+Vibes&family=Pacifico&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Sacramento&display=swap" rel="stylesheet">
+    <!-- 引入 Google Fonts 藝術英文字型與中文字型 -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Dancing+Script:wght@500;700&family=Great+Vibes&family=Pacifico&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Sacramento&family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
-        body { margin: 0; padding: 0; background-color: #121212; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; outline: none; }
         
-        header { background-color: #1e1e1e; padding: 4px; text-align: center; font-size: 16px; font-weight: bold; border-bottom: 1px solid #333; color: #fff; flex-shrink: 0; }
-        
-        .main-layout { display: flex; flex-direction: column; flex: 1; overflow: hidden; height: calc(100vh - 28px); }
-        @media (min-width: 900px) { .main-layout { flex-direction: row; } }
-        
-        .stage { flex: 1.4; background-color: #0a0a0a; display: flex; align-items: center; justify-content: center; padding: 2px; overflow: hidden; position: relative; touch-action: none; min-height: 0; }
-        .canvas-box { box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; position: relative; }
-        canvas { display: block; max-width: 100%; max-height: 100%; object-fit: contain; background-color: #222; cursor: move; touch-action: none; }
+        /* 頂級夜空黑與科技流光感 */
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at 50% 50%, #111424 0%, #080a11 100%);
+            color: #e5e9f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Noto Serif TC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-        .toolbar { flex: 1.6; background-color: #1e1e1e; border-top: 1px solid #333; padding: 6px 10px; display: flex; flex-direction: column; gap: 4px; overflow: hidden; max-width: 100vw; flex-shrink: 0; }
-        @media (min-width: 900px) { .toolbar { border-top: none; border-left: 1px solid #333; flex: 1; } }
+        /* 磨砂玻璃 Header */
+        header {
+            background: rgba(18, 22, 38, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: #39cccc;
+            text-shadow: 0 0 10px rgba(57, 204, 204, 0.4);
+            flex-shrink: 0;
+        }
         
-        .toolbar-scroll-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; -webkit-overflow-scrolling: touch; padding-bottom: 20px; }
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+            height: calc(100vh - 40px);
+        }
+        @media (min-width: 900px) {
+            .main-layout { flex-direction: row; }
+        }
         
-        .row { display: flex; gap: 6px; align-items: center; width: 100%; }
-        .col { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-        
-        input[type="text"], select { width: 100%; background: #2b2b2b; border: 1px solid #444; color: #fff; padding: 0 6px; border-radius: 4px; font-size: 13px; box-sizing: border-box; -webkit-user-select: text; user-select: text; height: 30px; line-height: 30px; transition: all 0.20s ease-in-out; }
-        
-        textarea { width: 100%; background: #2b2b2b; border: 1px solid #444; color: #fff; padding: 4px 6px; border-radius: 4px; font-size: 12px; box-sizing: border-box; -webkit-user-select: text; user-select: text; height: 30px; min-height: 30px; transition: all 0.20s ease-in-out; }
-        textarea:focus { height: 12vh; font-size: 12px; border-color: #39cccc; box-shadow: 0 0 8px rgba(57,204,204,0.5); }
+        /* 舞台 */
+        .stage {
+            flex: 1.4;
+            background-color: #05060b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            overflow: hidden;
+            position: relative;
+            touch-action: none;
+            min-height: 0;
+        }
+        .canvas-box {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7), 0 0 1px rgba(255,255,255,0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            background: #000;
+        }
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            background-color: #12131a;
+            cursor: move;
+            touch-action: none;
+            border-radius: 4px;
+        }
 
-        .size-ctrl { display: flex; align-items: center; background: #2b2b2b; border: 1px solid #444; border-radius: 4px; overflow: hidden; width: 100%; height: 30px; }
-        .size-btn { background: #3a3a3a; color: #fff; border: none; width: 30px; height: 100%; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .size-btn:active { background: #39cccc; color: #111; }
-        .size-val { flex: 1; text-align: center; font-size: 12px; font-family: monospace; color: #fff; white-space: nowrap; line-height: 30px; }
-
-        .file-label { font-size: 11px; color: #bbb; margin-bottom: 1px; display: block; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* 磨砂玻璃質感控制面板 */
+        .toolbar {
+            flex: 1.6;
+            background: rgba(13, 16, 28, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow: hidden;
+            max-width: 100vw;
+            flex-shrink: 0;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.4);
+        }
+        @media (min-width: 900px) {
+            .toolbar {
+                border-top: none;
+                border-left: 1px solid rgba(255, 255, 255, 0.08);
+                flex: 1;
+                max-width: 460px;
+            }
+        }
         
-        .btn-dl { background: #39cccc; color: #111; border: none; padding: 0; border-radius: 4px; width: 100%; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; height: 30px; line-height: 30px; }
+        .toolbar-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 24px;
+        }
+        
+        .row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
+        }
+        .col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+        
+        /* 表單元素美化 */
+        input[type="text"], select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            padding: 0 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            box-sizing: border-box;
+            -webkit-user-select: text;
+            user-select: text;
+            height: 34px;
+            line-height: 34px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        input[type="text"]:focus, select:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #39cccc;
+            box-shadow: 0 0 8px rgba(57, 204, 204, 0.3);
+        }
+        
+        textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            box-sizing: border-box;
+            -webkit-user-select: text;
+            user-select: text;
+            height: 34px;
+            min-height: 34px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            resize: none;
+        }
+        textarea:focus {
+            height: 10vh;
+            border-color: #39cccc;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 12px rgba(57,204,204,0.4);
+        }
 
-        .top-triple-row { background: rgba(255,255,255,0.03); border: 1px solid #383838; padding: 5px; border-radius: 5px; display: flex; gap: 6px; width: 100%; align-items: stretch; }
-        .custom-file-upload { display: inline-flex; align-items: center; justify-content: center; width: 100%; background: #2b2b2b; border: 1px solid #555; border-radius: 4px; padding: 0 4px; text-align: center; color: #fff; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; overflow: hidden; height: 30px; line-height: 30px; }
-        .custom-file-upload:active { background: #444; }
+        /* 數值微調控制項 */
+        .size-ctrl {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            overflow: hidden;
+            width: 100%;
+            height: 34px;
+            transition: border-color 0.25s;
+        }
+        .size-ctrl:hover {
+            border-color: rgba(255,255,255,0.25);
+        }
+        .size-btn {
+            background: rgba(255, 255, 255, 0.06);
+            color: #e5e9f0;
+            border: none;
+            width: 32px;
+            height: 100%;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .size-btn:hover {
+            background: rgba(57, 204, 204, 0.2);
+            color: #39cccc;
+        }
+        .size-btn:active {
+            background: #39cccc;
+            color: #111;
+        }
+        .size-val {
+            flex: 1;
+            text-align: center;
+            font-size: 12px;
+            font-family: monospace;
+            color: #fff;
+            white-space: nowrap;
+            line-height: 34px;
+        }
 
-        .collapse-container { border: 1px solid #444; border-radius: 5px; background: #252525; overflow: hidden; margin-top: 2px; flex-shrink: 0; }
-        .collapse-header { background: #333; color: #39cccc; padding: 6px 10px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
-        .collapse-header:active { background: #3d3d3d; }
-        .collapse-content { padding: 6px; display: none; flex-direction: column; gap: 6px; background: #1e1e1e; border-top: 1px solid #444; }
-        .collapse-content.show { display: flex; }
+        .file-label {
+            font-size: 11px;
+            color: rgba(229, 233, 240, 0.7);
+            margin-bottom: 2px;
+            display: block;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-dl {
+            background: linear-gradient(135deg, #39cccc 0%, #2bc0c0 100%);
+            color: #0b0d16;
+            border: none;
+            padding: 0;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 36px;
+            line-height: 36px;
+            transition: all 0.25s;
+            box-shadow: 0 4px 15px rgba(57, 204, 204, 0.2);
+        }
+        .btn-dl:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(57, 204, 204, 0.35);
+        }
+        .btn-dl:active {
+            transform: translateY(1px);
+        }
+
+        /* 質感雙分組底層 */
+        .top-triple-row {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 8px;
+            border-radius: 8px;
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            align-items: stretch;
+        }
+        .custom-file-upload {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            padding: 0 6px;
+            text-align: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            height: 34px;
+            line-height: 34px;
+            transition: all 0.25s;
+        }
+        .custom-file-upload:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255,255,255,0.25);
+        }
+
+        /* 收合組件設計 */
+        .collapse-container {
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            overflow: hidden;
+            margin-top: 2px;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+        .collapse-header {
+            background: rgba(255, 255, 255, 0.04);
+            color: #39cccc;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background 0.25s;
+        }
+        .collapse-header:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .collapse-content {
+            padding: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(13, 16, 28, 0.6);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .collapse-content.show {
+            display: flex;
+        }
+
+        /* 自訂顏色控制點的流暢外觀 */
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            cursor: pointer;
+            background: transparent !important;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+        }
 
         /* 調整透明度滑桿範圍條的外觀 */
         input[type="range"] {
@@ -65,37 +368,43 @@
         /* 軌道樣式 */
         input[type="range"]::-webkit-slider-runnable-track {
             width: 100%;
-            height: 10px;
-            background: #444;
-            border-radius: 5px;
-            border: 1px solid #555;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
         }
         input[type="range"]::-moz-range-track {
             width: 100%;
-            height: 10px;
-            background: #444;
-            border-radius: 5px;
-            border: 1px solid #555;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
         }
-        /* 滑塊樣式 (已縮小一半至 13px) */
+        /* 滑塊樣式 */
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            height: 13px;
-            width: 13px;
+            height: 14px;
+            width: 14px;
             border-radius: 50%;
             background: #39cccc;
             border: 2px solid #fff;
-            margin-top: -1.5px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            margin-top: -4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
         }
         input[type="range"]::-moz-range-thumb {
-            height: 13px;
-            width: 13px;
+            height: 14px;
+            width: 14px;
             border-radius: 50%;
             background: #39cccc;
             border: 2px solid #fff;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
+        }
+        input[type="range"]::-moz-range-thumb:hover {
+            transform: scale(1.2);
         }
     </style>
 </head>
@@ -123,7 +432,8 @@
                             <div class="col" style="flex: 1.1;">
                                 <span class="file-label">🀄字型</span>
                                 <select id="font-family-select" onchange="shrinkInputs()">
-                                    <option value="'Noto Serif TC', 'PMingLiU', 'MingLiU', serif" selected>細明體 / 宋體</option>
+                                    <option value="'Noto Serif TC', 'PMingLiU', 'MingLiU', serif" selected>思源宋體 (Noto Serif TC)</option>
+                                    <option value="'Noto Sans TC', 'Microsoft JhengHei', sans-serif">思源黑體 (Noto Sans TC)</option>
                                     <option value="KaiTi, '標楷體', 'DFKai-SB', serif">標準標楷體</option>
                                     <option value="'Microsoft JhengHei', '微軟正黑體', sans-serif">微軟正黑體</option>
                                     <option value="'PingFang TC', '蘋方體', 'Heiti TC', sans-serif">蘋果蘋方 / 黑體</option>
@@ -144,7 +454,7 @@
                             </div>
                             <div class="col" style="flex: 0.4;">
                                 <span class="file-label">🎨 字色</span>
-                                <input type="color" id="text-color" value="#ffffff" style="width:100%; height:30px; background:#2b2b2b; border:1px solid #444; border-radius:4px; padding:1px; cursor:pointer;">
+                                <input type="color" id="text-color" value="#ffffff" style="width:100%; height:34px; padding:0; cursor:pointer;">
                             </div>
                         </div>
 
@@ -152,14 +462,14 @@
                         <div class="row">
                             <div class="col" style="flex: 1.2;">
                                 <span class="file-label">⬜ 標題框底色</span>
-                                <input type="color" id="title-box-bg-color" value="#000000" style="width:100%; height:30px; background:#2b2b2b; border:1px solid #444; border-radius:4px; padding:1px; cursor:pointer;">
+                                <input type="color" id="title-box-bg-color" value="#000000" style="width:100%; height:34px; padding:0; cursor:pointer;">
                             </div>
                             <div class="col" style="flex: 1.8;">
                                 <span class="file-label">💧 標題框透明度 (<span id="val-title-opacity-text">0</span>%)</span>
-                                <div style="display: flex; align-items: center; gap: 4px; height: 30px;">
+                                <div style="display: flex; align-items: center; gap: 4px; height: 34px;">
                                     <input type="range" id="title-box-bg-opacity" min="0" max="100" value="0" step="5" style="flex: 1; height: 20px; cursor: pointer; accent-color: #39cccc;">
-                                    <button class="size-btn" style="width: 26px; height: 26px; font-size: 11px; border-radius: 3px;" onclick="adjustOpacity('title-box-bg-opacity', -5)">-</button>
-                                    <button class="size-btn" style="width: 26px; height: 26px; font-size: 11px; border-radius: 3px;" onclick="adjustOpacity('title-box-bg-opacity', 5)">+</button>
+                                    <button class="size-btn" style="width: 28px; height: 28px; font-size: 11px; border-radius: 4px;" onclick="adjustOpacity('title-box-bg-opacity', -5)">-</button>
+                                    <button class="size-btn" style="width: 28px; height: 28px; font-size: 11px; border-radius: 4px;" onclick="adjustOpacity('title-box-bg-opacity', 5)">+</button>
                                 </div>
                             </div>
                         </div>
@@ -167,14 +477,14 @@
                         <div class="row">
                             <div class="col" style="flex: 1.2;">
                                 <span class="file-label">⬜ 內文框底色</span>
-                                <input type="color" id="content-box-bg-color" value="#000000" style="width:100%; height:30px; background:#2b2b2b; border:1px solid #444; border-radius:4px; padding:1px; cursor:pointer;">
+                                <input type="color" id="content-box-bg-color" value="#000000" style="width:100%; height:34px; padding:0; cursor:pointer;">
                             </div>
                             <div class="col" style="flex: 1.8;">
                                 <span class="file-label">💧 內文框透明度 (<span id="val-content-opacity-text">0</span>%)</span>
-                                <div style="display: flex; align-items: center; gap: 4px; height: 30px;">
+                                <div style="display: flex; align-items: center; gap: 4px; height: 34px;">
                                     <input type="range" id="content-box-bg-opacity" min="0" max="100" value="0" step="5" style="flex: 1; height: 20px; cursor: pointer; accent-color: #39cccc;">
-                                    <button class="size-btn" style="width: 26px; height: 26px; font-size: 11px; border-radius: 3px;" onclick="adjustOpacity('content-box-bg-opacity', -5)">-</button>
-                                    <button class="size-btn" style="width: 26px; height: 26px; font-size: 11px; border-radius: 3px;" onclick="adjustOpacity('content-box-bg-opacity', 5)">+</button>
+                                    <button class="size-btn" style="width: 28px; height: 28px; font-size: 11px; border-radius: 4px;" onclick="adjustOpacity('content-box-bg-opacity', -5)">-</button>
+                                    <button class="size-btn" style="width: 28px; height: 28px; font-size: 11px; border-radius: 4px;" onclick="adjustOpacity('content-box-bg-opacity', 5)">+</button>
                                 </div>
                             </div>
                         </div>
@@ -204,12 +514,12 @@
                     <!-- 底圖與匯出圖框群組 -->
                     <div class="col" style="flex: 1.1;">
                         <span class="file-label" style="color:#39cccc;">🖼️ 底圖與圖框</span>
-                        <div style="display: flex; gap: 4px; margin-bottom: 2px;">
-                            <label class="custom-file-upload" style="border-color: #39cccc; color: #39cccc; flex: 1;">
+                        <div style="display: flex; gap: 4px; margin-bottom: 4px;">
+                            <label class="custom-file-upload" style="border-color: #39cccc; color: #39cccc; flex: 1; height: 34px; line-height: 34px;">
                                 選擇照片
                                 <input type="file" id="choose-img" accept="image/*" style="display: none;">
                             </label>
-                            <select id="aspect-ratio-select" onchange="handleAspectRatioChange()" style="border-color: #39cccc; color: #39cccc; flex: 1; height: 30px; font-size: 11px;">
+                            <select id="aspect-ratio-select" onchange="handleAspectRatioChange()" style="border-color: #39cccc; color: #39cccc; flex: 1; height: 34px; font-size: 11px;">
                                 <option value="original">原始比例 (不裁切)</option>
                                 <option value="1:1" selected>1 : 1 正方形</option>
                                 <option value="9:16">9 : 16 直式</option>
@@ -219,9 +529,9 @@
                             </select>
                         </div>
                         <div style="display: flex; gap: 4px;">
-                            <button onclick="clearCanvasData()" style="background: #e74c3c; border: 1px solid #e74c3c; color: #fff; border-radius: 4px; padding: 0 4px; font-size: 10px; font-weight: bold; cursor: pointer; height: 30px; flex: 1;">🗑️ 清除重設</button>
-                            <label style="background: #2b2b2b; border: 1px solid #444; border-radius: 4px; padding: 0 4px; display: flex; align-items: center; justify-content: center; gap: 2px; font-size: 10px; cursor: pointer; height: 30px; white-space: nowrap; color: #ddd; flex: 1;">
-                                <input type="checkbox" id="lock-bg" style="cursor: pointer;"> 🔒 鎖定
+                            <button onclick="clearCanvasData()" style="background: rgba(231, 76, 60, 0.15); border: 1px solid #e74c3c; color: #ff6b6b; border-radius: 6px; padding: 0 4px; font-size: 11px; font-weight: bold; cursor: pointer; height: 34px; flex: 1; transition: all 0.2s;">🗑️ 清除重設</button>
+                            <label style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; padding: 0 4px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; cursor: pointer; height: 34px; white-space: nowrap; color: #e5e9f0; flex: 1; transition: all 0.2s;">
+                                <input type="checkbox" id="lock-bg" style="cursor: pointer; accent-color: #39cccc;"> 🔒 鎖定
                             </label>
                         </div>
                     </div>
@@ -229,24 +539,24 @@
                     <!-- 印章群組 -->
                     <div class="col" style="flex: 1.3;">
                         <span class="file-label" style="color:#e67e22;">🎨 印章與圖層</span>
-                        <div style="display: flex; gap: 2px; margin-bottom: 2px;">
-                            <label class="custom-file-upload" style="border-color: #e67e22; color: #e67e22; flex: 1.2;">
+                        <div style="display: flex; gap: 4px; margin-bottom: 4px;">
+                            <label class="custom-file-upload" style="border-color: #e67e22; color: #e67e22; flex: 1.2; height: 34px; line-height: 34px;">
                                 選擇印章
                                 <input type="file" id="choose-img2" accept="image/*" style="display: none;">
                             </label>
-                            <button id="btn-img2-text-layer" onclick="toggleImg2TextLayer()" style="background: #2b2b2b; border: 1px solid #e67e22; color: #e67e22; border-radius: 4px; padding: 0 4px; font-size: 10px; font-weight: bold; cursor: pointer; height: 30px; white-space: nowrap; flex: 0.8;">中層</button>
-                            <button id="btn-img2-bg-layer" onclick="toggleImg2BgLayer()" style="background: #2b2b2b; border: 1px solid #e67e22; color: #e67e22; border-radius: 4px; padding: 0 4px; font-size: 10px; font-weight: bold; cursor: pointer; height: 30px; white-space: nowrap; flex: 0.8;">上層</button>
+                            <button id="btn-img2-text-layer" onclick="toggleImg2TextLayer()" style="background: rgba(255,255,255,0.04); border: 1px solid #e67e22; color: #e67e22; border-radius: 6px; padding: 0 4px; font-size: 11px; font-weight: bold; cursor: pointer; height: 34px; white-space: nowrap; flex: 0.8; transition: all 0.2s;">中層</button>
+                            <button id="btn-img2-bg-layer" onclick="toggleImg2BgLayer()" style="background: rgba(255,255,255,0.04); border: 1px solid #e67e22; color: #e67e22; border-radius: 6px; padding: 0 4px; font-size: 11px; font-weight: bold; cursor: pointer; height: 34px; white-space: nowrap; flex: 0.8; transition: all 0.2s;">上層</button>
                         </div>
-                        <div style="display: flex; gap: 2px;">
-                            <div class="size-ctrl" style="border-color:#e67e22; height:30px; flex: 1;">
-                                <button class="size-btn" style="background:#222; color:#e67e22; width:24px; height:30px;" onclick="changeImg2Scale(-0.05)">-</button>
-                                <span class="size-val" id="val-img2-scale" style="color:#e67e22; font-size:10px; font-weight:bold; line-height:30px;">100%</span>
-                                <button class="size-btn" style="background:#222; color:#e67e22; width:24px; height:30px;" onclick="changeImg2Scale(0.05)">+</button>
+                        <div style="display: flex; gap: 4px;">
+                            <div class="size-ctrl" style="border-color:#e67e22; height:34px; flex: 1;">
+                                <button class="size-btn" style="background:rgba(255,255,255,0.02); color:#e67e22; width:24px; height:100%;" onclick="changeImg2Scale(-0.05)">-</button>
+                                <span class="size-val" id="val-img2-scale" style="color:#e67e22; font-size:10px; font-weight:bold; line-height:34px;">100%</span>
+                                <button class="size-btn" style="background:rgba(255,255,255,0.02); color:#e67e22; width:24px; height:100%;" onclick="changeImg2Scale(0.05)">+</button>
                             </div>
-                            <div class="size-ctrl" style="border-color:#e67e22; height:30px; flex: 1;">
-                                <button class="size-btn" style="background:#222; color:#e67e22; width:24px; height:30px;" onclick="changeImg2Angle(-5)">-</button>
-                                <span class="size-val" id="val-img2-angle" style="color:#e67e22; font-size:10px; font-weight:bold; line-height:30px;">0°</span>
-                                <button class="size-btn" style="background:#222; color:#e67e22; width:24px; height:30px;" onclick="changeImg2Angle(5)">+</button>
+                            <div class="size-ctrl" style="border-color:#e67e22; height:34px; flex: 1;">
+                                <button class="size-btn" style="background:rgba(255,255,255,0.02); color:#e67e22; width:24px; height:100%;" onclick="changeImg2Angle(-5)">-</button>
+                                <span class="size-val" id="val-img2-angle" style="color:#e67e22; font-size:10px; font-weight:bold; line-height:34px;">0°</span>
+                                <button class="size-btn" style="background:rgba(255,255,255,0.02); color:#e67e22; width:24px; height:100%;" onclick="changeImg2Angle(5)">+</button>
                             </div>
                         </div>
                     </div>
@@ -259,13 +569,13 @@
                     </div>
                     <div class="col" style="flex: 0.8;">
                         <span class="file-label">📐 標題大小 / 角度</span>
-                        <div style="display: flex; gap: 2px;">
-                            <div class="size-ctrl" style="flex: 1;">
+                        <div style="display: flex; gap: 4px;">
+                            <div class="size-ctrl" style="flex: 1; height: 34px;">
                                 <button class="size-btn" onclick="changeTitleScale(-2)">-</button>
                                 <span class="size-val" id="val-title-scale">60</span>     
                                 <button class="size-btn" onclick="changeTitleScale(2)">+</button>
                             </div>
-                            <div class="size-ctrl" style="flex: 1;">
+                            <div class="size-ctrl" style="flex: 1; height: 34px;">
                                 <button class="size-btn" onclick="changeTitleAngle(-5)">-</button>
                                 <span class="size-val" id="val-title-angle">0°</span>     
                                 <button class="size-btn" onclick="changeTitleAngle(5)">+</button>
@@ -281,13 +591,13 @@
                     </div>
                     <div class="col" style="flex: 0.8;">
                         <span class="file-label">📐 內文大小 / 角度</span>
-                        <div style="display: flex; gap: 2px;">
-                            <div class="size-ctrl" style="flex: 1;">
+                        <div style="display: flex; gap: 4px;">
+                            <div class="size-ctrl" style="flex: 1; height: 34px;">
                                 <button class="size-btn" onclick="changeContentScale(-2)">-</button>
                                 <span class="size-val" id="val-content-scale">60</span>     
                                 <button class="size-btn" onclick="changeContentScale(2)">+</button>
                             </div>
-                            <div class="size-ctrl" style="flex: 1;">
+                            <div class="size-ctrl" style="flex: 1; height: 34px;">
                                 <button class="size-btn" onclick="changeContentAngle(-5)">-</button>
                                 <span class="size-val" id="val-content-angle">0°</span>     
                                 <button class="size-btn" onclick="changeContentAngle(5)">+</button>
@@ -297,10 +607,10 @@
                 </div>
 
                 <!-- 功能鍵列 -->
-                <div class="row" style="padding-top: 4px; gap: 6px;">
-                    <button class="btn-dl" id="save-step" onclick="saveAndContinue()" style="background: #f39c12; flex: 1; color: #fff;">💾 儲存進度</button>
-                    <button class="btn-dl" id="undo-step" onclick="undoAction()" style="background: #7f8c8d; flex: 1; color: #fff;">↩️ 退回</button>
-                    <button class="btn-dl" id="export-pic" onclick="customDownload()" style="background: #39cccc; flex: 1;">📷 匯出存檔</button>
+                <div class="row" style="padding-top: 8px; gap: 8px;">
+                    <button class="btn-dl" id="save-step" onclick="saveAndContinue()" style="background: linear-gradient(135deg, #f39c12 0%, #d35400 100%); flex: 1; color: #fff; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.25);">💾 儲存進度</button>
+                    <button class="btn-dl" id="undo-step" onclick="undoAction()" style="background: linear-gradient(135deg, #7f8c8d 0%, #555 100%); flex: 1; color: #fff; box-shadow: 0 4px 15px rgba(127, 140, 141, 0.2);">↩️ 退回</button>
+                    <button class="btn-dl" id="export-pic" onclick="customDownload()" style="background: linear-gradient(135deg, #39cccc 0%, #2bc0c0 100%); flex: 1; box-shadow: 0 4px 15px rgba(57, 204, 204, 0.25);">📷 匯出存檔</button>
                 </div>
             </div>
         </div>
@@ -438,40 +748,40 @@
             shrinkInputs();
             titleObj.scale = Math.max(4, Math.min(300, titleObj.scale + amt));
             document.getElementById('val-title-scale').innerText = Math.round(titleObj.scale);
-            render();
+            requestRender();
         };
 
         window.changeTitleAngle = function(amt) {
             shrinkInputs();
             titleObj.angle = (titleObj.angle + amt) % 360;
             document.getElementById('val-title-angle').innerText = titleObj.angle + '°';
-            render();
+            requestRender();
         };
 
         window.changeContentScale = function(amt) {
             shrinkInputs();
             contentObj.scale = Math.max(4, Math.min(300, contentObj.scale + amt));
             document.getElementById('val-content-scale').innerText = Math.round(contentObj.scale);
-            render();
+            requestRender();
         };
 
         window.changeContentAngle = function(amt) {
             shrinkInputs();
             contentObj.angle = (contentObj.angle + amt) % 360;
             document.getElementById('val-content-angle').innerText = contentObj.angle + '°';
-            render();
+            requestRender();
         };
 
         window.changeImg2Scale = function(amt) {
             img2Conf.scale = Math.max(0.01, Math.min(15.0, img2Conf.scale + amt));
             document.getElementById('val-img2-scale').innerText = Math.round(img2Conf.scale * 100) + "%";
-            if (isImg2Loaded) render();
+            if (isImg2Loaded) requestRender();
         };
 
         window.changeImg2Angle = function(amt) {
             img2Conf.angle = (img2Conf.angle + amt) % 360;
             document.getElementById('val-img2-angle').innerText = img2Conf.angle + '°';
-            if (isImg2Loaded) render();
+            if (isImg2Loaded) requestRender();
         };
 
         function updateCanvasDimensionsByRatio() {
@@ -716,7 +1026,7 @@
                         titleObj.scale = Math.max(4, Math.min(300, initialPinchScale * scaleFactor));
                         document.getElementById('val-title-scale').innerText = Math.round(titleObj.scale);
                     }
-                    render();
+                    requestRender();
                 }
                 if (e.cancelable) e.preventDefault();
                 return;
@@ -738,7 +1048,7 @@
                 bgConf.y = pos.y - dragOffset.y;
             }
             if (e.cancelable) e.preventDefault();
-            render();
+            requestRender();
         }
 
         function dragEnd(e) { 
@@ -755,24 +1065,27 @@
 
         document.getElementById('title-box-bg-opacity').addEventListener('input', function() {
             document.getElementById('val-title-opacity-text').innerText = this.value;
-            render();
+            requestRender();
         });
         document.getElementById('content-box-bg-opacity').addEventListener('input', function() {
             document.getElementById('val-content-opacity-text').innerText = this.value;
-            render();
+            requestRender();
         });
 
         const elIds = ['input-title', 'text-content', 'font-family-select', 'english-font-select', 'text-color', 'title-box-bg-color', 'content-box-bg-color', 'text-align', 'aspect-ratio-select'];
         elIds.forEach(id => {
-            document.getElementById(id).addEventListener('input', render);
-            document.getElementById(id).addEventListener('change', render);
+            document.getElementById(id).addEventListener('input', requestRender);
+            document.getElementById(id).addEventListener('change', requestRender);
         });
 
         function saveStateToHistory() {
+            // 避免在頻繁觸發的點上呼叫 canvas.toDataURL 造成卡頓。
+            // 這裡改為直接記錄當前 bgImg.src (可能為 DataURL 或外部路徑)，
+            // 由於不需要即時導出整個 canvas，大大提升了流暢度。
             const state = {
                 title: document.getElementById('input-title').value,
                 content: document.getElementById('text-content').value,
-                bgSrc: canvas.toDataURL("image/jpeg", 0.95),
+                bgSrc: isBgLoaded ? bgImg.src : null,
                 canvasW: canvas.width,
                 canvasH: canvas.height,
                 bgConf: { ...bgConf },
@@ -841,17 +1154,17 @@
             
             if (!isDirVertical) { ctx.fillText(char, x, y); return; }
 
-            if ('，，。。、、；； :：』』」」'.indexOf(char) !== -1) {
+            if ('，。、；：:！？'.indexOf(char) !== -1) {
                 ctx.save(); ctx.translate(x + size * 0.25, y - size * 0.08); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(char, 0, 0); ctx.restore(); return;
             }
             if (char === '《' || char === '<' || char === '『' || char === '‘' || char === '“' || char === '「') { 
-                ctx.save(); ctx.translate(x, y + size*0.4); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.save(); ctx.translate(x, y + size * 0.4); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.font = isAuthor ? `italic bold ${size}px ${font}` : `bold ${size}px ${font}`; 
                 ctx.fillText('︽', 0, 0); ctx.restore(); return; 
             }
             if (char === '》' || char === '>' || char === '』' || char === '’' || char === '”' || char === '」') { 
-                ctx.save(); ctx.translate(x, y + size*0.4); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.save(); ctx.translate(x, y + size * 0.4); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.font = isAuthor ? `italic bold ${size}px ${font}` : `bold ${size}px ${font}`; 
                 ctx.fillText('︾', 0, 0); ctx.restore(); return; 
             }
@@ -1145,6 +1458,17 @@
             const h = img2.naturalHeight * img2Conf.scale;
             ctx.drawImage(img2, -w/2, -h/2, w, h);
             ctx.restore();
+        }
+
+        let renderRequested = false;
+        function requestRender() {
+            if (!renderRequested) {
+                renderRequested = true;
+                requestAnimationFrame(() => {
+                    renderRequested = false;
+                    render();
+                });
+            }
         }
 
         function render() {
