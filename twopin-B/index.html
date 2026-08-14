@@ -22,6 +22,10 @@
     -webkit-user-select: none;
     user-select: none;
   }
+  .hw-accelerated {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+  }
   section {
     touch-action: pan-y;
   }
@@ -57,7 +61,7 @@
 <!-- 左側：影音播放與設定 (佔 2 欄) -->
 <section class="lg:col-span-2 flex flex-col gap-4">
 <!-- 媒體播放器容器 -->
-<div id="mediaContainer" class="bg-black rounded-2xl overflow-hidden aspect-[9/20] max-h-[800px] mx-auto w-full max-w-[420px] relative flex items-center justify-center border border-slate-800 shadow-2xl select-none">
+<div id="mediaContainer" class="bg-black rounded-2xl overflow-hidden aspect-[9/20] max-h-[800px] mx-auto w-full max-w-[420px] relative flex items-center justify-center border border-slate-800 shadow-2xl select-none hw-accelerated">
 <audio id="audioPlayer" class="hidden" playsinline></audio>
 <div id="imageLayer" class="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing hidden z-0">
 <img id="imageElement" class="max-w-full max-h-full object-contain pointer-events-none select-none" alt="背景圖片">
@@ -68,14 +72,22 @@
 
 <!-- 字幕層 (無邊框乾淨顯示) -->
 <div id="draggableSubtitle" 
-class="absolute bottom-2 left-2 right-2 bg-transparent px-3 py-3 rounded-xl text-center z-50 flex flex-col group no-select hidden cursor-pointer pointer-events-auto overflow-hidden"
+class="absolute bottom-2 left-2 right-2 bg-transparent px-3 py-3 rounded-xl text-center z-50 flex flex-col group no-select hidden cursor-pointer pointer-events-auto overflow-hidden hw-accelerated"
 style="height: 210px;">
 <!-- 滾動歌詞內部容器 (確保內部對齊與固定區塊) -->
 <div id="scrollLyricsContainer" class="w-full h-full flex flex-col items-center justify-center gap-3 overflow-y-auto transition-all duration-300 py-6" style="scroll-behavior: smooth;">
   <div id="mainPrimaryLyric" class="font-bold text-emerald-300 tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] pointer-events-none transition-all duration-75" style="font-size: 18px;"></div>
   <div id="mainTranslationLyric" class="text-slate-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] pointer-events-none transition-all duration-75" style="font-size: 15px;"></div>
 </div>
+<!-- 字幕移動鎖定按鈕 -->
+<button id="subtitleLockBtn" onclick="app.toggleSubtitleLock(event)" class="absolute bottom-1 right-1 z-50 bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700/80 p-1 rounded-lg text-[11px] flex items-center justify-center transition shadow-md pointer-events-auto" title="鎖定/解鎖字幕移動">
+<span id="subtitleLockIcon">🔓</span>
+</button>
 </div>
+<!-- 媒體預覽螢幕移動鎖定按鈕 -->
+<button id="mediaLockBtn" onclick="app.toggleMediaLock(event)" class="absolute bottom-2 right-2 z-40 bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700/80 p-1.5 rounded-lg text-xs flex items-center justify-center transition shadow-md" title="鎖定/解鎖畫面移動縮放">
+<span id="mediaLockIcon">🔓</span>
+</button>
 </div>
 
 <!-- 音樂與媒體控制面板 -->
@@ -315,6 +327,9 @@ this.translationColor = '#cbd5e1';
 this.isSyncing = false; 
 this.hasUserEdited = false;
 
+this.isMediaLocked = false;
+this.isSubtitleLocked = false;
+
 this.updateInputsFromData();
 this.initHighSpeedSubtitleControl();
 this.initInteractiveLayer(this.imageLayer);
@@ -370,6 +385,20 @@ window.addEventListener('scroll', function () {
     window.scrollTo(0, window.scrollY);
   }
 });
+}
+
+toggleMediaLock(e) {
+  if (e) e.stopPropagation();
+  this.isMediaLocked = !this.isMediaLocked;
+  const icon = document.getElementById('mediaLockIcon');
+  if (icon) icon.textContent = this.isMediaLocked ? '🔒' : '🔓';
+}
+
+toggleSubtitleLock(e) {
+  if (e) e.stopPropagation();
+  this.isSubtitleLocked = !this.isSubtitleLocked;
+  const icon = document.getElementById('subtitleLockIcon');
+  if (icon) icon.textContent = this.isSubtitleLocked ? '🔒' : '🔓';
 }
 
 adjustFontSize(delta) {
@@ -730,7 +759,7 @@ return 'zh-TW';
 }
 
 initInteractiveLayer(layerElement) {
-let scale = 1, posX = 0, posY = 0, isDragging = false, startX, startY;
+let scale = 1, posX = 0, posY = 0, isDragging = false, startX = 0, startY = 0;
 let initialDistance = 0;
 let initialScale = 1;
 
@@ -741,6 +770,7 @@ const getDistance = (touches) => {
 };
 
 layerElement.addEventListener('touchstart', (e) => {
+  if (this.isMediaLocked) return;
   if (e.touches.length === 2) {
     isDragging = false;
     initialDistance = getDistance(e.touches);
@@ -754,7 +784,12 @@ layerElement.addEventListener('touchstart', (e) => {
 }, { passive: true });
 
 layerElement.addEventListener('touchmove', (e) => {
+  if (this.isMediaLocked) return;
   if (e.touches.length === 2) {
+    if (initialDistance === 0) {
+      initialDistance = getDistance(e.touches);
+      initialScale = scale;
+    }
     const currentDistance = getDistance(e.touches);
     const zoomFactor = currentDistance / initialDistance;
     scale = Math.max(0.5, Math.min(3.0, initialScale * zoomFactor));
@@ -762,7 +797,7 @@ layerElement.addEventListener('touchmove', (e) => {
     e.stopPropagation();
   } else if (e.touches.length === 1 && isDragging) {
     posX = e.touches[0].clientX - startX;
-    posY = e.touches[1] ? e.touches[0].clientY - startY : e.touches[0].clientY - startY;
+    posY = e.touches[0].clientY - startY;
     layerElement.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
   }
 }, { passive: true });
@@ -771,25 +806,32 @@ layerElement.addEventListener('touchend', (e) => {
   if (e.touches.length < 2) {
     initialDistance = 0;
   }
+  if (e.touches.length === 1 && !isDragging) {
+    isDragging = true;
+    startX = e.touches[0].clientX - posX;
+    startY = e.touches[0].clientY - posY;
+  }
   if (e.touches.length === 0) {
     isDragging = false;
   }
 });
 
 layerElement.addEventListener('mousedown', (e) => {
+if (this.isMediaLocked) return;
 isDragging = true;
 startX = e.clientX - posX;
 startY = e.clientY - posY;
 e.preventDefault();
 });
 window.addEventListener('mousemove', (e) => {
-if (!isDragging) return;
+if (!isDragging || this.isMediaLocked) return;
 posX = e.clientX - startX;
 posY = e.clientY - startY;
 layerElement.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
 });
 window.addEventListener('mouseup', () => { isDragging = false; });
 layerElement.addEventListener('wheel', (e) => {
+if (this.isMediaLocked) return;
 e.preventDefault();
 scale = e.deltaY < 0 ? Math.min(3.0, scale + 0.1) : Math.max(0.5, scale - 0.1);
 layerElement.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
@@ -808,12 +850,15 @@ let longPressTimer = null;
 let hasMoved = false;
 
 const onPointerDown = (e) => {
+if (e.target.closest('#subtitleLockBtn')) {
+return;
+}
 if (e.touches && e.touches.length >= 2) {
 return;
 }
 
 hasMoved = false;
-isDragging = true;
+isDragging = !this.isSubtitleLocked;
 
 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -827,7 +872,7 @@ initialTop = rect.top - parentRect.top;
 
 longPressTimer = setTimeout(() => {
 if (!hasMoved) this.openQuickEdit();
-}, 50);
+}, 600);
 };
 
 const onPointerMove = (e) => {
@@ -835,7 +880,6 @@ if (e.touches && e.touches.length >= 2) {
 return;
 }
 
-if (!isDragging) return;
 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
@@ -846,6 +890,8 @@ if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
 hasMoved = true;
 if (longPressTimer) clearTimeout(longPressTimer);
 }
+
+if (!isDragging || this.isSubtitleLocked) return;
 
 let newLeft = initialLeft + dx;
 let newTop = initialTop + dy;

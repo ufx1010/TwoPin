@@ -27,6 +27,38 @@
             position: relative;
         }
 
+        body.scroll-unlocked {
+            overflow-y: auto !important;
+            touch-action: auto !important;
+        }
+
+        /* 提示鎖定狀態的彈出提示框 */
+        #unlockToast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(15, 23, 42, 0.9);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        #unlockToast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         /* 裝飾發光球體樣式 */
         .bg-orb {
             position: fixed;
@@ -333,5 +365,103 @@
             <i class="fas fa-circle" style="font-size: 0.25rem;"></i>
         </div>
     </div>
+
+    <!-- 提示訊息框 -->
+    <div id="unlockToast">
+        <i class="fas fa-lock" id="toastIcon"></i>
+        <span id="toastMsg">長按畫面 1 秒解鎖上下捲動</span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let isUnlocked = false;
+            let longPressTimer = null;
+            let startX = 0, startY = 0;
+            let toastTimer = null;
+
+            const unlockToast = document.getElementById('unlockToast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastMsg = document.getElementById('toastMsg');
+
+            function showToast(msg, isUnlockedState = false, duration = 2500) {
+                if (toastTimer) clearTimeout(toastTimer);
+                toastMsg.textContent = msg;
+                if (isUnlockedState) {
+                    toastIcon.className = 'fas fa-unlock text-emerald-400';
+                    unlockToast.style.color = '#34d399';
+                    unlockToast.style.borderColor = 'rgba(52, 211, 153, 0.4)';
+                } else {
+                    toastIcon.className = 'fas fa-lock text-sky-400';
+                    unlockToast.style.color = '#38bdf8';
+                    unlockToast.style.borderColor = 'rgba(56, 189, 248, 0.3)';
+                }
+                unlockToast.classList.add('show');
+                toastTimer = setTimeout(() => {
+                    unlockToast.classList.remove('show');
+                }, duration);
+            }
+
+            function triggerUnlock() {
+                if (isUnlocked) return;
+                isUnlocked = true;
+                document.body.classList.add('scroll-unlocked');
+                showToast('已成功解鎖上下捲動功能！', true, 3000);
+                if (navigator.vibrate) {
+                    navigator.vibrate(80);
+                }
+            }
+
+            // 初次觸摸提示
+            let initialTipShown = false;
+
+            const handlePointerDown = (e) => {
+                if (isUnlocked) return;
+                // 若點擊的是連結或按鈕，不阻擋
+                if (e.target.closest('a') || e.target.closest('button')) return;
+
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                startX = clientX;
+                startY = clientY;
+
+                if (!initialTipShown) {
+                    initialTipShown = true;
+                    showToast('長按畫面 1 秒解鎖上下捲動', false, 2000);
+                }
+
+                longPressTimer = setTimeout(() => {
+                    triggerUnlock();
+                }, 1000);
+            };
+
+            const handlePointerMove = (e) => {
+                if (isUnlocked || !longPressTimer) return;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const dx = Math.abs(clientX - startX);
+                const dy = Math.abs(clientY - startY);
+
+                if (dx > 10 || dy > 10) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            };
+
+            const handlePointerUp = () => {
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            };
+
+            document.addEventListener('touchstart', handlePointerDown, { passive: true });
+            document.addEventListener('touchmove', handlePointerMove, { passive: true });
+            document.addEventListener('touchend', handlePointerUp);
+
+            document.addEventListener('mousedown', handlePointerDown);
+            document.addEventListener('mousemove', handlePointerMove);
+            document.addEventListener('mouseup', handlePointerUp);
+        });
+    </script>
 </body>
 </html>
