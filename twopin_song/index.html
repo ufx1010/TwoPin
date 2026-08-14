@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>歌詞筆記本</title>
+<!-- Font Awesome 6 for modern sleek icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Google Fonts for superior typography -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-gradient: radial-gradient(circle at 50% 0%, #1e223b 0%, #0d0f17 100%);
+    --bg-color: #0d0f17;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --surface: #121520;
+    --surface-hover: #1c2030;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59, 130, 246, 0.35);
+    --accent-hover: #60a5fa;
+    --danger: #ef4444;
+    --danger-hover: #f87171;
+    --success: #10b981;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--bg-gradient);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Ambient glowing background orbs */
+  .bg-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.22;
+    z-index: 0;
+    pointer-events: none;
+    transition: all 1s ease;
+  }
+  .bg-orb-1 {
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+    top: -50px;
+    left: -50px;
+    animation: float-orb-1 15s ease-in-out infinite alternate;
+  }
+  .bg-orb-2 {
+    width: 380px;
+    height: 380px;
+    background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);
+    bottom: -100px;
+    right: -100px;
+    animation: float-orb-2 20s ease-in-out infinite alternate;
+  }
+
+  @keyframes float-orb-1 {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(40px, -30px) scale(1.15); }
+  }
+  @keyframes float-orb-2 {
+    0% { transform: translate(0, 0) scale(1.1); }
+    100% { transform: translate(-30px, 40px) scale(0.9); }
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    padding: 16px 20px;
+    background: rgba(18, 21, 32, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--card-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+  
+  /* Container for title + Font size controls */
+  .title-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  header h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 0;
+  }
+
+  .font-size-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .font-size-btn:hover { background: var(--accent); }
+
+  header #pageInfo {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 3px;
+    letter-spacing: 1px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .home-btn, .menu-toggle-btn {
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-decoration: none;
+  }
+  .home-btn:hover, .menu-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--accent);
+    color: var(--accent-hover);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+  .home-btn:active, .menu-toggle-btn:active {
+    transform: scale(0.95);
+  }
+
+  .menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 420px;
+    background: rgba(18, 21, 32, 0.95);
+    backdrop-filter: blur(25px);
+    padding: 30px 24px;
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+    border-left: 1px solid var(--card-border);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+    box-sizing: border-box;
+  }
+  .menu.active { display: flex; }
+
+  .close-btn {
+    border: none; background: rgba(255, 255, 255, 0.05); color: var(--text-secondary);
+    width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .song-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(255, 255, 255, 0.03); padding: 14px 18px; margin-bottom: 12px;
+    border-radius: 12px; border: 1px solid var(--card-border);
+  }
+  .song-item span { color: var(--text-primary); font-size: 0.95rem; font-weight: 500; cursor: pointer; flex: 1; }
+
+  .btn-group { display: flex; gap: 8px; align-items: center; }
+  .btn-icon {
+    width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+
+  .pagination { display: flex; justify-content: center; gap: 12px; margin: 20px 0; align-items: center; }
+  .btn-paged { padding: 8px 14px; border: 1px solid var(--card-border); border-radius: 8px; background: rgba(255, 255, 255, 0.04); color: var(--text-primary); cursor: pointer; }
+
+  .btn-add-song {
+    padding: 14px; background: linear-gradient(135deg, var(--accent) 0%, #1d4ed8 100%);
+    color: white; border: none; border-radius: 12px; width: 100%; cursor: pointer; margin-bottom: 10px;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    box-sizing: border-box;
+  }
+  .btn-row button {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-row button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--text-secondary);
+    color: white;
+  }
+
+  main { 
+    flex: 1; 
+    padding: 0; 
+    display: flex; 
+    justify-content: stretch; 
+    align-items: stretch; 
+    z-index: 1; 
+    box-sizing: border-box; 
+    width: 100%;
+  }
+  .card {
+    width: 100%; 
+    max-width: none; 
+    background: rgba(18, 21, 32, 0.6);
+    backdrop-filter: blur(20px); 
+    border-radius: 0; 
+    padding: 12px 0px; 
+    border: none;
+    border-top: 1px solid var(--card-border);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+
+  .line {
+    padding: 8px 12px; margin-bottom: 4px; border-radius: 0px;
+    background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.02);
+    cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+  }
+  .line-text { font-size: var(--lyric-font-size, 1.15rem); line-height: 1.35; transition: font-size 0.2s ease; width: 100%; }
+
+  .comment { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; padding: 8px 12px; margin: 10px 0 4px 0; background: rgba(255, 255, 255, 0.02); border-left: 4px solid var(--text-muted); border-radius: 0; }
+
+  #editorModal { position: fixed; inset: 0; background: rgba(9, 11, 16, 0.75); z-index: 200; display: none; align-items: center; justify-content: center; padding: 0; }
+  .editor-card { background: rgba(18, 21, 32, 0.95); border: none; border-radius: 0; padding: 12px 0px; width: 100%; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; }
+  #editorArea { flex: 1; width: 100%; font-size: 1rem; padding: 12px; border: 1px solid var(--card-border); border-radius: 0; background: rgba(9, 11, 16, 0.6); color: var(--text-primary); margin-bottom: 12px; resize: none; outline: none; box-sizing: border-box; }
+
+  /* Gorgeous Neon glowing vowel highlights (Controlled by .highlight-enabled class) */
+  .highlight-enabled .vowel-a { color: #ff3366; font-weight: 700; text-shadow: 0 0 6px rgba(255, 51, 102, 0.4); } 
+  .highlight-enabled .vowel-e { color: #2ecc71; font-weight: 700; text-shadow: 0 0 6px rgba(46, 204, 113, 0.4); } 
+  .highlight-enabled .vowel-i { color: #00d2ff; font-weight: 700; text-shadow: 0 0 6px rgba(0, 210, 255, 0.4); } 
+  .highlight-enabled .vowel-o { color: #ff9f1c; font-weight: 700; text-shadow: 0 0 6px rgba(255, 159, 28, 0.4); } 
+  .highlight-enabled .vowel-u { color: #e056fd; font-weight: 700; text-shadow: 0 0 6px rgba(224, 86, 253, 0.4); } 
+</style>
+</head>
+<body class="highlight-enabled">
+
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+
+<header>
+  <button class="home-btn" onclick="toggleHighlight()" title="切換母音顏色開關"><i class="fa-solid fa-palette"></i></button>
+  
+  <div class="title-container">
+    <button class="font-size-btn" onclick="adjustFontSize(-0.1)">-</button>
+    <h1 id="title">歌詞本</h1>
+    <button class="font-size-btn" onclick="adjustFontSize(0.1)">+</button>
+  </div>
+
+  <button class="menu-toggle-btn" onclick="document.getElementById('menu').classList.toggle('active')">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+</header>
+
+<div class="menu" id="menu">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <span style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">歌曲選單</span>
+    <button class="close-btn" onclick="document.getElementById('menu').classList.remove('active')"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div id="songList" style="flex: 1; overflow-y: auto;"></div>
+  <div class="pagination" id="pagination"></div>
+  <button class="btn-add-song" onclick="addNewSong()"><i class="fa-solid fa-plus"></i> 新增歌詞</button>
+  <div class="btn-row">
+    <button onclick="exportData()"><i class="fa-solid fa-file-export"></i> 匯出</button>
+    <button onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-file-import"></i> 匯入</button>
+  </div>
+  <input type="file" id="fileInput" style="display:none" accept=".json" onchange="importData(event)">
+</div>
+
+<main id="main">
+  <div class="card" id="card"></div>
+</main>
+
+<div id="editorModal">
+  <div class="editor-card">
+    <textarea id="editorArea"></textarea>
+    <button onclick="saveEdit()" class="btn-add-song">儲存</button>
+    <button onclick="document.getElementById('editorModal').style.display='none'" style="margin-top:0; padding:12px; background:transparent; border:1px solid #444; color:#fff; border-radius:0; cursor:pointer;">取消</button>
+  </div>
+</div>
+
+<script>
+let currentFontSize = 1.15;
+function adjustFontSize(delta) {
+  currentFontSize = Math.max(0.5, Math.min(2.5, currentFontSize + delta));
+  document.documentElement.style.setProperty('--lyric-font-size', currentFontSize + 'rem');
+}
+
+let isHighlightEnabled = true;
+function toggleHighlight() {
+  isHighlightEnabled = !isHighlightEnabled;
+  document.body.classList.toggle('highlight-enabled', isHighlightEnabled);
+}
+
+function migrateData(data) { return data.map(s => s.sections ? { title: s.title, lines: s.sections.flatMap(sec => sec.lines.map(l => l.en || l)) } : s); }
+
+let songs = migrateData(JSON.parse(localStorage.getItem('songs_v4') || '[]'));
+let current = 0, page = 0, itemsPerPage = 8;
+
+function speak(text) {
+  window.speechSynthesis.cancel();
+  let cleanText = text.replace(/<[^>]*>/g, '').replace(/\[.*?\]/g, '').trim();
+  if (!cleanText) return;
+
+  // 支援用豎線 '|' 分隔不同語言並依序朗讀
+  let parts = cleanText.split('|');
+  parts.forEach(part => {
+    // 只保留文字和數字，其餘符號與表情符號/Emoji皆過濾掉不發音
+    let subText = part.replace(/[^\w\s\u4e00-\u9fa50-9]/g, '').trim();
+    if (!subText) return;
+    const u = new SpeechSynthesisUtterance(subText);
+    u.lang = /[\u4E00-\u9FA5]/.test(subText) ? 'zh-TW' : 'en-US';
+    window.speechSynthesis.speak(u);
+  });
+}
+
+function highlightVowels(text) {
+  return text.split('|').map((part, index) => {
+    let processed = part.replace(/[aeiouAEIOU]/g, match => {
+      let lower = match.toLowerCase();
+      let className = 'vowel-' + lower;
+      return `<span class="${className}">${match}</span>`;
+    });
+    return index > 0 ? '|' + processed : processed;
+  }).join('');
+}
+
+function render() {
+  const s = songs[current] || {title:'尚未新增', lines:['無內容']};
+  document.getElementById('title').textContent = s.title;
+  let html = '';
+  s.lines.forEach(l => {
+    if(l.startsWith('[') && l.endsWith(']')) html += `<span class="comment">${l}</span>`;
+    else html += `<div class="line" onclick="speak('${l.replace(/'/g, "")}')"><span class="line-text">${highlightVowels(l)}</span></div>`;
+  });
+  document.getElementById('card').innerHTML = html;
+  renderMenu();
+}
+
+function renderMenu(){
+  const list = document.getElementById('songList');
+  const start = page * itemsPerPage;
+  list.innerHTML = songs.slice(start, start + itemsPerPage).map((s,i) => `
+    <div class="song-item">
+      <span onclick="current=${start+i};render();document.getElementById('menu').classList.remove('active')">${s.title}</span>
+      <div class="btn-group">
+        <button class="btn-icon" onclick="openEditor(${start+i})"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn-icon" onclick="if(confirm('確定要刪除「${s.title}」這首歌嗎？')){songs.splice(${start+i},1);save();renderMenu();render()}"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    </div>`).join('');
+  const maxPage = Math.ceil(songs.length/itemsPerPage) || 1;
+  document.getElementById('pagination').innerHTML = `
+    <button class="btn-paged" ${page===0?'disabled':''} onclick="page--;renderMenu()">上一頁</button>
+    <span>${page+1}/${maxPage}</span>
+    <button class="btn-paged" ${page>=maxPage-1?'disabled':''} onclick="page++;renderMenu()">下一頁</button>`;
+}
+
+function openEditor(i) {
+  document.getElementById('editorArea').value = songs[i].title + '\n' + songs[i].lines.join('\n');
+  document.getElementById('editorModal').style.display = 'flex';
+  window.editingIdx = i;
+}
+
+function saveEdit() {
+  let lines = document.getElementById('editorArea').value.split('\n');
+  songs[window.editingIdx] = {title: lines[0], lines: lines.slice(1)};
+  save(); document.getElementById('editorModal').style.display = 'none'; render();
+}
+
+function addNewSong() { songs.push({title:'新歌曲', lines:[]}); save(); renderMenu(); openEditor(songs.length-1); }
+function save() { localStorage.setItem('songs_v4', JSON.stringify(songs)); }
+
+async function exportData() {
+  const content = JSON.stringify(songs);
+  if ('showSaveFilePicker' in window) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: 'songs',
+        types: [{ description: 'JSON 檔案', accept: { 'application/json': ['.json'] } }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(content);
+      await writable.close();
+    } catch (err) { if (err.name !== 'AbortError') console.error(err); }
+  } else {
+    const a = document.createElement("a");
+    a.href = "data:text/json;charset=utf-8," + encodeURIComponent(content);
+    a.download = "songs"; a.click();
+  }
+}
+
+function importData(e){
+  const reader = new FileReader();
+  reader.onload = (e) => { 
+    songs = migrateData(JSON.parse(e.target.result)); 
+    save(); renderMenu(); render(); 
+  };
+  reader.readAsText(e.target.files[0]);
+}
+
+render();
+</script>
+</body>
+</html>
