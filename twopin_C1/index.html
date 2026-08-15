@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英文打字練習</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            color: #e0e0e0;
+            overflow-y: auto;
+        }
+        .container {
+            background: #1e1e1e;
+            padding: 12px 10px;
+            border-radius: 0;
+            box-shadow: none;
+            text-align: center;
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 10px;
+            border-left: none;
+            border-right: none;
+            border-top: none;
+            border-bottom: 1px solid #2d2d2d;
+        }
+        h1 {
+            margin: 2px 0 6px 0;
+            color: #ffffff;
+            font-size: 20px;
+        }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 8px;
+            background: #252525;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #333333;
+        }
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e1e;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            padding: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            min-height: 38px;
+        }
+        .grid-item select {
+            width: 95%;
+            padding: 4px;
+            border-radius: 4px;
+            border: 1px solid #444444;
+            font-size: 13px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            cursor: pointer;
+            text-align: center;
+            text-align-last: center;
+            margin: 0 auto;
+        }
+
+        button {
+            padding: 5px 8px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #aaaaaa;
+            background-color: transparent;
+            border: 1px solid #6c757d;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 95%;
+            margin: 0 auto;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        button:hover {
+            color: #ffffff;
+            border-color: #ffffff;
+            background-color: transparent;
+            box-shadow: none;
+        }
+        button.secondary-gray {
+            color: #aaaaaa;
+            border-color: #6c757d;
+            background-color: transparent;
+        }
+        button.danger {
+            color: #e74c3c;
+            border-color: #e74c3c;
+            background-color: transparent;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        .modal-content {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 600px;
+            text-align: left;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #333333;
+            color: #ffffff;
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #ffffff;
+        }
+
+        .batch-textarea {
+            width: 100%;
+            height: 280px;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            border: 1px solid #444444;
+            border-radius: 6px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            resize: vertical;
+            outline: none;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        .batch-tip {
+            font-size: 12px;
+            color: #aaaaaa;
+            margin-top: 5px;
+            line-height: 1.5;
+            background: #252525;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #6c757d;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-top: 1px solid #333333;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .modal-buttons-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        #importFile {
+            display: none;
+        }
+
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin: 4px 0;
+            text-align: left;
+            width: 100%;
+        }
+        .compare-row {
+            background: #252525;
+            border-left: none;
+            border-right: none;
+            border-top: 1px solid #333333;
+            border-bottom: 1px solid #333333;
+            padding: 10px 8px;
+            border-radius: 0;
+            box-shadow: none;
+            position: relative;
+            min-height: 70px;
+            overflow: hidden; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+        }
+        .compare-en {
+            font-size: 20px;
+            font-family: Arial, sans-serif;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            text-align: center;
+            width: 100%;
+            color: #ffffff;
+        }
+
+        .word-item {
+            display: inline;
+            margin-right: 5px;
+        }
+        
+        .word-item.active-word {
+            background-color: #222222;
+            padding: 2px 6px;
+            border-radius: 5px;
+            border: 2px solid #6c757d;
+            box-shadow: 0 0 6px rgba(108, 117, 125, 0.3);
+        }
+
+        .line-block {
+            display: block;
+            width: 100%;
+        }
+
+        #info-panel {
+            margin: 6px 0;
+            font-size: 16px;
+            color: #e0e0e0;
+            background: #252525;
+            border-left: none;
+            border-right: none;
+            border-top: 1px solid #333333;
+            border-bottom: 1px solid #333333;
+            padding: 8px 10px;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+            width: 100%;
+        }
+        .info-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .info-group {
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            text-align: center;
+            color: #aaaaaa;
+            border: none;
+        }
+        .info-group:hover {
+            background: #333333;
+        }
+        #translation-display {
+            font-weight: bold;
+            color: #aaaaaa;
+            font-size: 18px;
+        }
+        #phonetic-display {
+            font-family: monospace;
+            font-size: 20px;
+            letter-spacing: 0px;
+            color: #888888;
+        }
+        #ipa-display {
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            color: #aaaaaa;
+            font-weight: bold;
+            background: transparent;
+            padding: 2px 4px;
+            border-radius: 0;
+            border: none;
+            display: inline-block;
+        }
+
+        /* 母音色彩樣式 */
+        .vowel-a { color: #ff2a2a !important; text-shadow: 0 0 5px rgba(255, 42, 42, 0.5); font-weight: bold; }
+        .vowel-e { color: #00ff66 !important; text-shadow: 0 0 5px rgba(0, 255, 102, 0.5); font-weight: bold; }
+        .vowel-i { color: #00bfff !important; text-shadow: 0 0 5px rgba(0, 191, 255, 0.5); font-weight: bold; }
+        .vowel-o { color: #ff8800 !important; text-shadow: 0 0 5px rgba(255, 136, 0, 0.5); font-weight: bold; }
+        .vowel-u { color: #d136ff !important; text-shadow: 0 0 5px rgba(209, 54, 255, 0.5); font-weight: bold; }
+        .normal-char { color: #ffffff !important; }
+        .symbol-char { color: #888888 !important; }
+
+        /* 打對後變灰色，未打（預覽）維持彩色 */
+        .correct-char {
+            color: #888888 !important;
+            text-shadow: none !important;
+        }
+        .incorrect-char {
+            color: #e74c3c !important;
+            background-color: #4a2c2c;
+        }
+        .completed-word {
+            color: #888888 !important;
+            text-shadow: none !important;
+        }
+
+        .fake-display-box {
+            position: relative;
+            width: 100%;
+            height: 50px;
+            border-left: none;
+            border-right: none;
+            border-top: 2px solid #6c757d;
+            border-bottom: 2px solid #6c757d;
+            border-radius: 0;
+            background: #1e1e1e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 6px;
+            overflow: hidden;
+            cursor: text;
+        }
+
+        #hiddenInput {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            border: none;
+            background: transparent;
+            font-size: 20px;
+            z-index: 2;
+        }
+
+        .status-text-layer {
+            font-size: 22px;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            color: #ffffff;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        #stats {
+            margin-top: 6px;
+            color: #aaaaaa;
+            font-size: 14px;
+            padding: 0 10px;
+        }
+
+        .stats-panel {
+            background: #1a2332;
+            border-left: none;
+            border-right: none;
+            border-top: 2px solid #6c757d;
+            border-bottom: 2px solid #6c757d;
+            border-radius: 0;
+            padding: 16px 10px;
+            margin: 6px 0;
+            text-align: center;
+            width: 100%;
+        }
+        .stats-panel h2 {
+            color: #ffffff;
+            margin: 0 0 12px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .stats-panel .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .stats-panel .stats-item {
+            background: #1e1e1e;
+            padding: 10px 6px;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+        .stats-panel .stats-item .label {
+            font-size: 12px;
+            color: #888;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .stats-panel .stats-item .value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .stats-panel .stats-item .value.green { color: #2ecc71; }
+        .stats-panel .stats-item .value.red { color: #e74c3c; }
+        .stats-panel .stats-item .value.blue { color: #6c757d; }
+        .stats-panel .stats-item .value.gold { color: #f39c12; }
+        .stats-panel .restart-btn {
+            margin-top: 12px;
+            padding: 8px 24px;
+            color: #2ecc71;
+            background: transparent;
+            border: 1px solid #2ecc71;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .stats-panel .restart-btn:hover {
+            color: #fff;
+            border-color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-container">
+    <h1>英文打字練習</h1>
+    
+    <div class="grid-menu" style="margin-left: 5px; margin-right: 5px;">
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="openModal()">📝 修改</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="exportArticle()">📤 匯出</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="triggerImport()">📥 匯入</button>
+            <input type="file" id="importFile" accept=".txt,.json" onchange="importArticle(event)">
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="openCalcModal()">📊 計算</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="restartPractice()">🔄 重來</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" id="muteBtn" class="secondary-gray" onclick="toggleMute()">🔊 開啟</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" id="colorModeBtn" class="secondary-gray" onclick="toggleColorMode()">🎨 彩色</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="toggleFullScreen()">💻 全幕</button>
+        </div>
+        <div class="grid-item">
+            <select id="speedSelect" onchange="updateSpeed()">
+                <option value="0.3">0.3x</option>
+                <option value="0.5">0.5x</option>
+                <option value="0.8">0.8x</option>
+                <option value="1.0" selected>1.0x</option>
+                <option value="1.3">1.3x</option>
+                <option value="1.6">1.6x</option>
+                <option value="2.0">2.0x</option>
+                <option value="2.5">2.5x</option>
+                <option value="3.0">3.0x</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="comparison-display" class="comparison-container"></div>
+
+    <div id="info-panel">
+        <div class="info-row" id="row-trans-ipa">
+            <div class="info-group" id="group-trans" style="display:none;" title="翻譯">
+                翻譯: <span id="translation-display">(無)</span>
+            </div>
+            <div class="info-group" id="group-ipa" style="display:none;" title="音標">
+                音標: <span id="ipa-display">---</span>
+            </div>
+        </div>
+        <div class="info-row" id="row-phonics">
+            <div class="info-group" id="group-phonics" style="display:none;" title="音節">
+                音節: <span id="phonetic-display">---</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="fake-display-box" onclick="focusHiddenInput()">
+        <input type="search" id="hiddenInput" name="typing_practice_field" autocomplete="one-time-code" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="status-text-layer" id="statusDisplay">請點擊此處開始打字</div>
+    </div>
+
+    <div id="stats">
+        ⏱️ <span id="timerDisplay">00:00</span> &nbsp;|&nbsp; 
+        進度: <span id="progress">0 / 0</span> &nbsp;|&nbsp; 
+        ✅ <span id="score">0</span> &nbsp;|&nbsp; 
+        ❌ <span id="errorCountDisplay">0</span>
+    </div>
+</div>
+
+<div id="articleModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>編輯格式化內容</h3>
+        <div style="font-size: 13px; color: #aaaaaa; margin-bottom: 8px;">請依格式輸入（單字｜翻譯｜音標｜切分）：</div>
+        <textarea id="batchTextarea" class="batch-textarea"></textarea>
+        <div class="batch-tip">
+            <b>格式說明：</b><br>每行或每組以「｜」隔開（單字｜翻譯｜音標｜切分）。音節中的底線「_」會自動轉換為點「.」，且字母間不留空白。
+        </div>
+
+        <div class="modal-buttons">
+            <button type="button" class="danger" onclick="clearModalText()" style="width: auto;">刪除全部</button>
+            <div class="modal-buttons-right">
+                <button type="button" class="secondary-gray" onclick="closeModal()" style="width: auto;">取消</button>
+                <button type="button" class="secondary-gray" onclick="confirmCustomArticle()" style="width: auto;">確定套用</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="calcModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>📊 文章數據統計</h3>
+        <div class="stats-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0;">
+            <div class="stats-item" style="background: #1e1e1e; padding: 12px; border-radius: 8px; border: 1px solid #333;">
+                <span class="label" style="font-size: 13px; color: #888; display: block; margin-bottom: 4px;">📝 總行數</span>
+                <span class="value blue" id="calcLines" style="font-size: 22px; font-weight: bold; color: #6c757d;">0</span>
+            </div>
+            <div class="stats-item" style="background: #1e1e1e; padding: 12px; border-radius: 8px; border: 1px solid #333;">
+                <span class="label" style="font-size: 13px; color: #888; display: block; margin-bottom: 4px;">🔤 總單字數</span>
+                <span class="value green" id="calcWords" style="font-size: 22px; font-weight: bold; color: #2ecc71;">0</span>
+            </div>
+            <div class="stats-item" style="background: #1e1e1e; padding: 12px; border-radius: 8px; border: 1px solid #333;">
+                <span class="label" style="font-size: 13px; color: #888; display: block; margin-bottom: 4px;">🔍 不重複單字數</span>
+                <span class="value gold" id="calcUnique" style="font-size: 22px; font-weight: bold; color: #f39c12;">0</span>
+            </div>
+            <div class="stats-item" style="background: #1e1e1e; padding: 12px; border-radius: 8px; border: 1px solid #333;">
+                <span class="label" style="font-size: 13px; color: #888; display: block; margin-bottom: 4px;">📏 總字元數 (含空白)</span>
+                <span class="value red" id="calcChars" style="font-size: 22px; font-weight: bold; color: #e74c3c;">0</span>
+            </div>
+        </div>
+        <div class="modal-buttons" style="justify-content: flex-end;">
+            <button type="button" class="secondary-gray" onclick="closeCalcModal()" style="width: auto;">關閉</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let linesList = [];
+    let totalWordsCount = 0;
+    let currentLineIndex = 0;
+    let currentWordIndexInLine = 0;
+    let score = 0;
+    let errorCount = 0;
+    let isColorMode = true;
+    
+    let rawArticleText = 
+    "At｜在｜æt｜at\tSchool｜學校｜skul｜school\n" +
+    "School｜學校｜skul｜school\tis｜是｜ɪz｜is\ta｜一個｜ə｜a\tplace｜地方｜ples｜place\tfor｜用於｜fɚ｜for\tlearning｜學習｜ˋlɝn.ɪŋ｜learn.ing\n" +
+    "Teacher｜老師｜ˋtitʃ.ɚ｜teach.er\tand｜和｜ænd｜and\tstudents｜學生｜ˋstud.ənts｜stu.dents\twork｜工作｜wɝk｜work\ttogether｜一起｜təˋɡɛð.ɚ｜to.geth.er\n" +
+    "Teacher｜老師｜ˋtitʃ.ɚ｜teach.er\tgives｜給予｜ɡɪvz｜gives\tlessons｜課程｜ˋlɛs.ənz｜les.sons\n" +
+    "Students｜學生｜ˋstud.ənts｜stu.dents\tread｜閱讀｜rid｜read\tbooks｜書籍｜bʊks｜books\tand｜和｜ænd｜and\twrite｜寫｜raɪt｜write\twords｜單字｜wɝdz｜words\n" +
+    "Students｜學生｜ˋstud.ənts｜stu.dents\task｜詢問｜æsk｜ask\tquestions｜問題｜ˋkwɛstʃənz｜ques.tions\n" +
+    "Teacher｜老師｜ˋtitʃ.ɚ｜teach.er\tgives｜給予｜ɡɪvz｜gives\tanswers｜答案｜ˋæn.sɚz｜an.swers\n" +
+    "Books｜書籍｜bʊks｜books\thave｜有｜hæv｜have\twords｜單字｜wɝdz｜words\tand｜和｜ænd｜and\tpictures｜圖片｜ˋpɪk.tʃɚz｜pic.tures\n" +
+    "Paper｜紙張｜ˋpe.pɚ｜pa.per\thas｜有｜hæz｜has\twriting｜書寫｜ˋraɪt.ɪŋ｜writ.ing\n" +
+    "Students｜學生｜ˋstud.ənts｜stu.dents\tuse｜使用｜juz｜use\tpen｜筆｜pɛn｜pen\tand｜和｜ænd｜and\tpencil｜鉛筆｜ˋpɛn.səl｜pen.cil\n" +
+    "Class｜班級｜klæs｜class\tlearns｜學習｜lɝnz｜learns\tEnglish｜英語｜ˋɪŋ.ɡlɪʃ｜eng.lish\tlanguage｜語言｜ˋlæŋ.ɡwɪdʒ｜lan.guage\n" +
+    "Students｜學生｜ˋstud.ənts｜stu.dents\tlisten｜聽｜ˋlɪs.ən｜lis.ten\tand｜和｜ænd｜and\tspeak｜說｜spik｜speak\n" +
+    "Students｜學生｜ˋstud.ənts｜stu.dents\tlook｜看｜lʊk｜look\tand｜和｜ænd｜and\tthink｜思考｜θɪŋk｜think\n" +
+    "School｜學校｜skul｜school\thas｜有｜hæz｜has\troom｜房間｜rum｜room\ttable｜桌子｜ˋte.bəl｜ta.ble\tchair｜椅子｜tʃɛr｜chair\tand｜和｜ænd｜and\tboard｜板子｜bɔrd｜board\n" +
+    "Students｜學生｜ˋstud.ənts｜stu.dents\tsit｜坐｜sɪt｜sit\tand｜和｜ænd｜and\tstand｜站｜stænd｜stand\n" +
+    "Students｜學生｜ˋstud.ənts｜stu.dents\tplay｜玩｜ple｜play\tafter｜之後｜ˋæf.tɚ｜af.ter\tlearning｜學習｜ˋlɝn.ɪŋ｜learn.ing\n" +
+    "Good｜良好｜ɡʊd｜good\tlearning｜學習｜ˋlɝn.ɪŋ｜learn.ing\tgives｜給予｜ɡɪvz｜gives\tknowledge｜知識｜ˋnɑ.lɪdʒ｜know.ledge\n" +
+    "School｜學校｜skul｜school\thelps｜幫助｜hɛlps｜helps\tpeople｜人們｜ˋpi.pəl｜peo.ple\tgrow｜成長｜ɡro｜grow";
+    
+    let currentTypedText = "";
+    let isMuted = false;
+    let currentSpeed = 1.0;
+    let audioCtx = null;
+    let isInputLocked = false;
+    let repeatAudioTimer = null;
+    let currentSpeakWord = "";
+
+    let timerSeconds = 0;
+    let timerInterval = null;
+    let isTimerRunning = false;
+
+    function startTimer() {
+        if (isTimerRunning) return;
+        isTimerRunning = true;
+        timerInterval = setInterval(() => {
+            timerSeconds++;
+            updateTimerDisplay();
+        }, 1000);
+    }
+
+    function stopTimer() {
+        isTimerRunning = false;
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    function resetTimer() {
+        stopTimer();
+        timerSeconds = 0;
+        updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+        const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+        const secs = String(timerSeconds % 60).padStart(2, '0');
+        document.getElementById('timerDisplay').textContent = `${mins}:${secs}`;
+    }
+
+    function focusHiddenInput() {
+        const hiddenInput = document.getElementById('hiddenInput');
+        hiddenInput.focus();
+    }
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        const muteBtn = document.getElementById('muteBtn');
+        if (isMuted) {
+            muteBtn.textContent = "🔇 靜音";
+            stopRepeatingAudio();
+        } else {
+            muteBtn.textContent = "🔊 開啟";
+        }
+    }
+
+    function toggleColorMode() {
+        isColorMode = !isColorMode;
+        const btn = document.getElementById('colorModeBtn');
+        if (isColorMode) {
+            btn.textContent = "🎨 彩色";
+        } else {
+            btn.textContent = "⬛ 黑白";
+        }
+        renderComparisonView();
+        updateInfoPanel();
+    }
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                alert(`無法切換全螢幕: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    function updateSpeed() {
+        const select = document.getElementById('speedSelect');
+        currentSpeed = parseFloat(select.value);
+    }
+
+    function openModal() {
+        document.getElementById('batchTextarea').value = rawArticleText;
+        document.getElementById('articleModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('articleModal').style.display = 'none';
+    }
+
+    function openCalcModal() {
+        let lineCount = linesList.length;
+        let totalWords = 0;
+        let uniqueWordsSet = new Set();
+        let totalChars = 0;
+
+        linesList.forEach(line => {
+            line.words.forEach(w => {
+                totalWords++;
+                if (w.clean) {
+                    uniqueWordsSet.add(w.clean.toLowerCase());
+                }
+                if (w.original) {
+                    totalChars += w.original.length;
+                }
+            });
+            totalChars += 1;
+        });
+
+        document.getElementById('calcLines').textContent = lineCount;
+        document.getElementById('calcWords').textContent = totalWords;
+        document.getElementById('calcUnique').textContent = uniqueWordsSet.size;
+        document.getElementById('calcChars').textContent = totalChars;
+
+        document.getElementById('calcModal').style.display = 'flex';
+    }
+
+    function closeCalcModal() {
+        document.getElementById('calcModal').style.display = 'none';
+    }
+
+    function clearModalText() {
+        if (confirm('確定要清空所有內容嗎？')) {
+            document.getElementById('batchTextarea').value = '';
+        }
+    }
+
+    async function confirmCustomArticle() {
+        const text = document.getElementById('batchTextarea').value;
+        if (!text.trim()) {
+            alert('請輸入有效的內容！');
+            return;
+        }
+        closeModal();
+        try {
+            loadDataFromCustomFormat(text);
+        } catch(err) {
+            alert('格式解析失敗，請確保格式正確！');
+        }
+    }
+
+    function exportArticle() {
+        let userFileName = prompt("請輸入要儲存的檔案名稱：", "⌨️英打練習-01");
+        if (userFileName === null) return;
+        
+        let trimmedName = userFileName.trim();
+        if (!trimmedName) {
+            trimmedName = "⌨️英打練習-01";
+        }
+        if (!trimmedName.toLowerCase().endsWith('.txt') && !trimmedName.toLowerCase().endsWith('.json')) {
+            trimmedName += '.txt';
+        }
+
+        let exportParts = [];
+        linesList.forEach(line => {
+            let lineTokens = [];
+            line.words.forEach((w) => {
+                let orig = w.original;
+                let trans = w.translation || "";
+                let ipa = w.ipa ? w.ipa.replace(/\./g, '_') : "";
+                let phonics = w.phonics ? w.phonics.replace(/\./g, '_') : "";
+                lineTokens.push(`${orig}｜${trans}｜${ipa}｜${phonics}`);
+            });
+            exportParts.push(lineTokens.join('\t'));
+        });
+
+        const fileContent = exportParts.join('\n');
+        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = trimmedName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function triggerImport() {
+        document.getElementById('importFile').click();
+    }
+
+    function importArticle(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const content = e.target.result;
+            if (!content.trim()) {
+                alert('匯入的檔案內容為空！');
+                event.target.value = '';
+                return;
+            }
+
+            try {
+                loadDataFromCustomFormat(content);
+                alert('檔案匯入成功！');
+            } catch (err) {
+                alert('檔案格式錯誤，請確認是否符合指定格式！');
+            }
+            event.target.value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    function loadDataFromCustomFormat(text) {
+        rawArticleText = text;
+        let itemTexts = text.split(/\r?\n/);
+        let parsedLines = [];
+        let allWordsCount = 0;
+
+        itemTexts.forEach((lineStr) => {
+            if (!lineStr.trim()) return;
+            let tokens = lineStr.split(/\t+/);
+            let currentLineWords = [];
+
+            tokens.forEach((tokenStr) => {
+                let trimmed = tokenStr.trim();
+                if (!trimmed) return;
+                let subTokens = trimmed.split(/\s+/);
+                subTokens.forEach(sub => {
+                    let subTrim = sub.trim();
+                    if (!subTrim) return;
+                    let parts = subTrim.split('｜');
+                    if (parts.length >= 1) {
+                        let original = parts[0];
+                        // 移除結尾多餘的句點錯誤
+                        original = original.replace(/\.$/, '');
+                        let cleanWord = original.replace(/[^a-zA-Z0-9]/g, '');
+                        if (!cleanWord) return;
+
+                        let translation = parts[1] ? parts[1] : "";
+                        let ipa = parts[2] ? parts[2].replace(/_/g, '.').replace(/\s+/g, '').replace(/[\[\]]/g, '') : "";
+                        let phonics = parts[3] ? parts[3].replace(/_/g, '.').replace(/\s+/g, '').replace(/[\[\]]/g, '') : "";
+
+                        currentLineWords.push({
+                            original: original,
+                            clean: cleanWord,
+                            translation: translation,
+                            ipa: ipa,
+                            phonics: phonics
+                        });
+                        allWordsCount++;
+                    }
+                });
+            });
+
+            if (currentLineWords.length > 0) {
+                parsedLines.push({ words: currentLineWords });
+            }
+        });
+
+        if (parsedLines.length === 0) {
+            throw new Error("無效的格式");
+        }
+
+        linesList = parsedLines;
+        totalWordsCount = allWordsCount;
+        currentLineIndex = 0;
+        currentWordIndexInLine = 0;
+        score = 0;
+        errorCount = 0;
+        document.getElementById('errorCountDisplay').textContent = errorCount;
+        scoreDisplay.textContent = score;
+        currentTypedText = "";
+        hiddenInput.value = "";
+        statusDisplay.textContent = "";
+        isInputLocked = false;
+        stopRepeatingAudio();
+        resetTimer();
+
+        updateProgress();
+        renderComparisonView();
+        updateInfoPanel();
+        const existingStats = document.querySelector('.stats-panel');
+        if (existingStats) existingStats.remove();
+        document.getElementById('stats').style.display = 'block';
+    }
+
+    function playErrorSound() {
+        if (isMuted) return;
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.15);
+        
+        errorCount++;
+        document.getElementById('errorCountDisplay').textContent = errorCount;
+    }
+
+    function speakOnce(text) {
+        if (isMuted || !('speechSynthesis' in window)) return;
+        let utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = currentSpeed;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function startLoopForCurrentWord() {
+        stopRepeatingAudio();
+        const wordObj = getCurrentWordObj();
+        if (!wordObj) return;
+        if (currentTypedText.length >= wordObj.clean.length) return;
+        if (isMuted) return;
+
+        currentSpeakWord = wordObj.clean;
+        speakOnce(currentSpeakWord);
+        repeatAudioTimer = setInterval(() => {
+            if (isMuted) return;
+            if (currentTypedText.length >= wordObj.clean.length) {
+                stopRepeatingAudio();
+                return;
+            }
+            speakOnce(currentSpeakWord);
+        }, 1500);
+    }
+
+    function stopRepeatingAudio() {
+        if (repeatAudioTimer) {
+            clearInterval(repeatAudioTimer);
+            repeatAudioTimer = null;
+        }
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+        currentSpeakWord = "";
+    }
+
+    function goToNextWord(shouldSpeak = true) {
+        if (currentLineIndex >= linesList.length) return;
+
+        const lineObj = linesList[currentLineIndex];
+        const totalWordsInLine = lineObj.words.length;
+
+        stopRepeatingAudio();
+
+        if (currentWordIndexInLine + 1 >= totalWordsInLine) {
+            if (currentLineIndex + 1 < linesList.length) {
+                currentLineIndex++;
+                currentWordIndexInLine = 0;
+                currentTypedText = "";
+                hiddenInput.value = "";
+                updateProgress();
+                renderComparisonView();
+                updateInfoPanel();
+                if (shouldSpeak) {
+                    startLoopForCurrentWord();
+                }
+            } else {
+                return;
+            }
+        } else {
+            currentWordIndexInLine++;
+            currentTypedText = "";
+            hiddenInput.value = "";
+            renderComparisonView();
+            updateInfoPanel();
+            if (shouldSpeak) {
+                startLoopForCurrentWord();
+            }
+        }
+    }
+
+    function updateProgress() {
+        let completedCount = 0;
+        let totalCount = 0;
+        for (let i = 0; i < linesList.length; i++) {
+            totalCount += linesList[i].words.length;
+            if (i < currentLineIndex) {
+                completedCount += linesList[i].words.length;
+            } else if (i === currentLineIndex) {
+                completedCount += currentWordIndexInLine;
+            }
+        }
+        progressDisplay.textContent = `${completedCount + 1} / ${totalCount}`;
+    }
+
+    function showStats() {
+        stopTimer();
+        const totalSecs = timerSeconds;
+        const wordsPerMin = totalSecs > 0 ? Math.round((score / totalSecs) * 60) : 0;
+
+        const oldPanel = document.querySelector('.stats-panel');
+        if (oldPanel) oldPanel.remove();
+
+        document.getElementById('stats').style.display = 'none';
+
+        const panel = document.createElement('div');
+        panel.className = 'stats-panel';
+        panel.innerHTML = `
+            <h2>📊 練習結算報告</h2>
+            <div class="stats-grid">
+                <div class="stats-item">
+                    <span class="label">⏱️ 總花費時間</span>
+                    <span class="value blue">${Math.floor(totalSecs / 60)} 分 ${totalSecs % 60} 秒</span>
+                </div>
+                <div class="stats-item">
+                    <span class="label">📈 平均字速</span>
+                    <span class="value gold">${wordsPerMin} 字/分鐘</span>
+                </div>
+                <div class="stats-item">
+                    <span class="label">❌ 按錯總次數</span>
+                    <span class="value red">${errorCount} 次</span>
+                </div>
+                <div class="stats-item">
+                    <span class="label">✅ 總正確單字數</span>
+                    <span class="value green">${score} 個</span>
+                </div>
+            </div>
+            <button class="restart-btn" onclick="restartPractice()">🔄 重新練習</button>
+        `;
+
+        const container = document.getElementById('main-container');
+        container.appendChild(panel);
+    }
+
+    const comparisonDisplay = document.getElementById('comparison-display');
+    const groupTrans = document.getElementById('group-trans');
+    const groupIpa = document.getElementById('group-ipa');
+    const groupPhonics = document.getElementById('group-phonics');
+    const translationDisplay = document.getElementById('translation-display');
+    const ipaDisplay = document.getElementById('ipa-display');
+    const phoneticDisplay = document.getElementById('phonetic-display');
+    const hiddenInput = document.getElementById('hiddenInput');
+    const statusDisplay = document.getElementById('statusDisplay');
+    const progressDisplay = document.getElementById('progress');
+    const scoreDisplay = document.getElementById('score');
+
+    function getCurrentWordObj() {
+        if (linesList[currentLineIndex] && linesList[currentLineIndex].words[currentWordIndexInLine]) {
+            return linesList[currentLineIndex].words[currentWordIndexInLine];
+        }
+        return null;
+    }
+
+    function formatCharHtml(char) {
+        if (!isColorMode) {
+            return `<span class="normal-char">${char}</span>`;
+        }
+        const lower = char.toLowerCase();
+        if (lower === 'a') return `<span class="vowel-a">${char}</span>`;
+        if (lower === 'e') return `<span class="vowel-e">${char}</span>`;
+        if (lower === 'i') return `<span class="vowel-i">${char}</span>`;
+        if (lower === 'o') return `<span class="vowel-o">${char}</span>`;
+        if (lower === 'u') return `<span class="vowel-u">${char}</span>`;
+
+        if (/[a-zA-Z0-9]/.test(char)) {
+            return `<span class="normal-char">${char}</span>`;
+        }
+        return `<span class="symbol-char">${char}</span>`;
+    }
+
+    function renderComparisonView() {
+        if (currentLineIndex >= linesList.length && currentWordIndexInLine === 0) {
+            comparisonDisplay.innerHTML = '<div class="compare-row"><div class="compare-en" style="text-align: center; color: #2ecc71; font-weight: bold; font-size: 20px;">🎉 太棒了！練習已全部完成！</div></div>';
+            groupTrans.style.display = 'none';
+            groupIpa.style.display = 'none';
+            groupPhonics.style.display = 'none';
+            statusDisplay.textContent = "練習完成！";
+            showStats();
+            return;
+        }
+
+        const lineObj = linesList[currentLineIndex];
+        let lineHtml = '';
+        
+        lineObj.words.forEach((wordObj, wIdx) => {
+            const isCurrentWord = (wIdx === currentWordIndexInLine);
+            const activeWordClass = isCurrentWord ? 'active-word' : '';
+            
+            let wordDisplayStr = wordObj.original;
+            let spaceChar = (wIdx < lineObj.words.length - 1) ? ' ' : '';
+
+            if (isCurrentWord) {
+                let wordCharHtml = '';
+                let targetIdx = 0;
+                let typedIdx = 0;
+                const targetWord = wordDisplayStr;
+
+                while (targetIdx < targetWord.length) {
+                    const char = targetWord[targetIdx];
+                    const isSymbol = /[^a-zA-Z0-9]/.test(char);
+
+                    if (isSymbol) {
+                        wordCharHtml += `<span class="symbol-char">${char}</span>`;
+                        targetIdx++;
+                        continue;
+                    }
+
+                    if (typedIdx < currentTypedText.length) {
+                        const typedChar = currentTypedText[typedIdx];
+                        if (typedChar.toLowerCase() === char.toLowerCase()) {
+                            wordCharHtml += `<span class="correct-char">${char}</span>`;
+                        } else {
+                            wordCharHtml += `<span class="incorrect-char">${typedChar}</span>`;
+                        }
+                        typedIdx++;
+                    } else {
+                        wordCharHtml += formatCharHtml(char);
+                    }
+                    targetIdx++;
+                }
+                lineHtml += `<span class="word-item ${activeWordClass}"><b>${wordCharHtml}</b></span>${spaceChar}`;
+            } else {
+                let formattedWordStr = "";
+                if (wIdx < currentWordIndexInLine) {
+                    for (let c = 0; c < wordDisplayStr.length; c++) {
+                        formattedWordStr += `<span class="completed-word">${wordDisplayStr[c]}</span>`;
+                    }
+                } else {
+                    for (let c = 0; c < wordDisplayStr.length; c++) {
+                        const char = wordDisplayStr[c];
+                        formattedWordStr += formatCharHtml(char);
+                    }
+                }
+                lineHtml += `<span class="word-item">${formattedWordStr}</span>${spaceChar}`;
+            }
+        });
+
+        comparisonDisplay.innerHTML = `
+            <div class="compare-row">
+                <div class="compare-en"><div class="line-block">${lineHtml}</div></div>
+            </div>
+        `;
+    }
+
+    function updateInfoPanel() {
+        const wordObj = getCurrentWordObj();
+        if (!wordObj) {
+            groupTrans.style.display = 'none';
+            groupIpa.style.display = 'none';
+            groupPhonics.style.display = 'none';
+            statusDisplay.textContent = "";
+            return;
+        }
+
+        if (wordObj.translation) {
+            groupTrans.style.display = 'block';
+            translationDisplay.textContent = wordObj.translation;
+        } else {
+            groupTrans.style.display = 'none';
+        }
+
+        if (wordObj.ipa) {
+            groupIpa.style.display = 'block';
+            ipaDisplay.textContent = wordObj.ipa;
+        } else {
+            groupIpa.style.display = 'none';
+        }
+
+        if (wordObj.phonics) {
+            groupPhonics.style.display = 'block';
+            const targetPhonics = wordObj.phonics;
+            const cleanTypedLength = currentTypedText.replace(/[^a-zA-Z0-9]/g, '').length;
+            let matchedAlphaCount = 0;
+            let phoneticHtml = '';
+            
+            for (let i = 0; i < targetPhonics.length; i++) {
+                let char = targetPhonics[i];
+                let isAlpha = /[a-zA-Z]/.test(char);
+
+                if (isAlpha) {
+                    if (matchedAlphaCount < cleanTypedLength) {
+                        phoneticHtml += `<span style="color: #888888 !important;">${char}</span>`;
+                        matchedAlphaCount++;
+                    } else {
+                        phoneticHtml += formatCharHtml(char);
+                    }
+                } else {
+                    if (matchedAlphaCount < cleanTypedLength && matchedAlphaCount > 0) {
+                        phoneticHtml += `<span style="color: #888888 !important;">${char}</span>`;
+                    } else {
+                        phoneticHtml += formatCharHtml(char);
+                    }
+                }
+            }
+            phoneticDisplay.innerHTML = phoneticHtml;
+        } else {
+            groupPhonics.style.display = 'none';
+        }
+
+        statusDisplay.textContent = currentTypedText;
+        hiddenInput.value = currentTypedText;
+    }
+
+    hiddenInput.addEventListener('input', () => {
+        if (currentLineIndex >= linesList.length || isInputLocked) return;
+        
+        const wordObj = getCurrentWordObj();
+        if (!wordObj) return;
+
+        const cleanTarget = wordObj.clean.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        let fullVal = hiddenInput.value;
+        let lastChar = fullVal.length > 0 ? fullVal[fullVal.length - 1] : "";
+
+        if (!isTimerRunning && lastChar && /^[a-zA-Z0-9]$/.test(lastChar)) {
+            startTimer();
+        }
+
+        if (lastChar === ' ') {
+            if (currentTypedText.length < cleanTarget.length) {
+                startLoopForCurrentWord();
+                hiddenInput.value = currentTypedText;
+                return;
+            } else {
+                goToNextWord(true);
+                hiddenInput.value = "";
+                return;
+            }
+        }
+
+        if (lastChar && /^[a-zA-Z0-9]$/.test(lastChar)) {
+            let nextTyped = currentTypedText + lastChar;
+            let cleanTyped = nextTyped.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
+            let hasError = false;
+            for (let i = 0; i < cleanTyped.length; i++) {
+                if (i < cleanTarget.length) {
+                    if (cleanTyped[i] !== cleanTarget[i]) {
+                        hasError = true;
+                        break;
+                    }
+                } else {
+                    hasError = true;
+                    break;
+                }
+            }
+
+            if (hasError) {
+                playErrorSound();
+                hiddenInput.value = currentTypedText;
+                return;
+            }
+
+            currentTypedText = cleanTyped;
+
+            if (currentTypedText.length === cleanTarget.length) {
+                // 停止當前單字的重複發音，並完整朗讀一次該單字，然後鎖定畫面給予緩衝
+                stopRepeatingAudio();
+                speakOnce(wordObj.clean);
+
+                score++;
+                scoreDisplay.textContent = score;
+                isInputLocked = true;
+
+                // 先更新畫面讓最後一個字母變灰色
+                renderComparisonView();
+                updateInfoPanel();
+
+                const lineObj = linesList[currentLineIndex];
+                const isLastWordOfArticle = (currentLineIndex === linesList.length - 1) && (currentWordIndexInLine === lineObj.words.length - 1);
+
+                // 給予緩衝時間（例如 800 毫秒），讓最後一個字母變灰與發音完成後再切換或結算
+                setTimeout(() => {
+                    isInputLocked = false;
+                    if (isLastWordOfArticle) {
+                        currentLineIndex = linesList.length;
+                        currentWordIndexInLine = 0;
+                        currentTypedText = "";
+                        hiddenInput.value = "";
+                        renderComparisonView();
+                        updateInfoPanel();
+                    } else {
+                        if (currentWordIndexInLine === lineObj.words.length - 1) {
+                            currentLineIndex++;
+                            currentWordIndexInLine = 0;
+                            currentTypedText = "";
+                            hiddenInput.value = "";
+                            updateProgress();
+                            renderComparisonView();
+                            updateInfoPanel();
+                            startLoopForCurrentWord();
+                        } else {
+                            currentWordIndexInLine++;
+                            currentTypedText = "";
+                            hiddenInput.value = "";
+                            renderComparisonView();
+                            updateInfoPanel();
+                            startLoopForCurrentWord();
+                        }
+                    }
+                }, 800);
+
+                return;
+            }
+        } else if (fullVal.length < currentTypedText.length) {
+            currentTypedText = fullVal.replace(/[^a-zA-Z0-9]$/g, '').toLowerCase();
+        } else {
+            let filtered = fullVal.replace(/[^a-zA-Z0-9]/g, '');
+            if (filtered !== fullVal) {
+                hiddenInput.value = filtered;
+            }
+        }
+
+        renderComparisonView();
+        updateInfoPanel();
+    });
+
+    function restartPractice() {
+        stopRepeatingAudio();
+        loadDataFromCustomFormat(rawArticleText);
+    }
+
+    window.onload = async () => {
+        loadDataFromCustomFormat(rawArticleText);
+    };
+</script>
+
+</body>
+</html>
