@@ -1,0 +1,2050 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英文打字練習</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            color: #e0e0e0;
+            overflow-y: auto;
+        }
+        .container {
+            background: #1e1e1e;
+            padding: 12px 10px;
+            border-radius: 0;
+            box-shadow: none;
+            text-align: center;
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 10px;
+            border-left: none;
+            border-right: none;
+            border-top: none;
+            border-bottom: 1px solid #2d2d2d;
+        }
+        h1 {
+            margin: 2px 0 6px 0;
+            color: #ffffff;
+            font-size: 20px;
+        }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 8px;
+            background: #252525;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #333333;
+        }
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e1e;
+            border: 1px solid #333333;
+            border-radius: 6px;
+            padding: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            min-height: 38px;
+        }
+        .grid-item select {
+            width: 95%;
+            padding: 4px;
+            border-radius: 4px;
+            border: 1px solid #444444;
+            font-size: 13px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            cursor: pointer;
+            text-align: center;
+            text-align-last: center;
+            margin: 0 auto;
+        }
+
+        button {
+            padding: 5px 8px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #aaaaaa;
+            background-color: transparent;
+            border: 1px solid #6c757d;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 95%;
+            margin: 0 auto;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        button:hover {
+            color: #ffffff;
+            border-color: #ffffff;
+            background-color: transparent;
+            box-shadow: none;
+        }
+        button.secondary-gray {
+            color: #aaaaaa;
+            border-color: #6c757d;
+            background-color: transparent;
+        }
+        button.danger {
+            color: #e74c3c;
+            border-color: #e74c3c;
+            background-color: transparent;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        .modal-content {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 600px;
+            text-align: left;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #333333;
+            color: #ffffff;
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #ffffff;
+        }
+
+        .batch-textarea {
+            width: 100%;
+            height: 280px;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            border: 1px solid #444444;
+            border-radius: 6px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            resize: vertical;
+            outline: none;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        .batch-tip {
+            font-size: 12px;
+            color: #aaaaaa;
+            margin-top: 5px;
+            line-height: 1.5;
+            background: #252525;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #6c757d;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-top: 1px solid #333333;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .modal-buttons-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        #importFile {
+            display: none;
+        }
+
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin: 4px 0;
+            text-align: left;
+            width: 100%;
+        }
+        .compare-row {
+            background: #252525;
+            border-left: none;
+            border-right: none;
+            border-top: 1px solid #333333;
+            border-bottom: 1px solid #333333;
+            padding: 14px 8px;
+            border-radius: 0;
+            box-shadow: none;
+            position: relative;
+            min-height: 85px;
+            overflow: hidden; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+        }
+        .compare-en {
+            font-size: 32px;
+            font-family: Arial, sans-serif;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.4;
+            text-align: center;
+            width: 100%;
+            color: #ffffff;
+        }
+
+        .word-item {
+            display: inline;
+            margin-right: 5px;
+        }
+        
+        .word-item.active-word {
+            background-color: #222222;
+            padding: 2px 8px;
+            border-radius: 5px;
+            border: 2px solid #6c757d;
+            box-shadow: 0 0 6px rgba(108, 117, 125, 0.3);
+        }
+
+        .line-block {
+            display: block;
+            width: 100%;
+        }
+
+        #info-panel {
+            margin: 6px 0;
+            font-size: 16px;
+            color: #e0e0e0;
+            background: #252525;
+            border-left: none;
+            border-right: none;
+            border-top: 1px solid #333333;
+            border-bottom: 1px solid #333333;
+            padding: 8px 10px;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+            width: 100%;
+        }
+        .info-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .info-group {
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            text-align: center;
+            color: #aaaaaa;
+            border: none;
+        }
+        .info-group:hover {
+            background: #333333;
+        }
+        #translation-display {
+            font-weight: bold;
+            color: #aaaaaa;
+            font-size: 18px;
+        }
+        #phonetic-display {
+            font-family: monospace;
+            font-size: 20px;
+            letter-spacing: 0px;
+            color: #888888;
+        }
+        #ipa-display {
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            color: #aaaaaa;
+            font-weight: bold;
+            background: transparent;
+            padding: 2px 4px;
+            border-radius: 0;
+            border: none;
+            display: inline-block;
+        }
+
+        /* 母音色彩樣式 */
+        .vowel-a { color: #ff2a2a !important; text-shadow: 0 0 5px rgba(255, 42, 42, 0.5); font-weight: bold; }
+        .vowel-e { color: #00ff66 !important; text-shadow: 0 0 5px rgba(0, 255, 102, 0.5); font-weight: bold; }
+        .vowel-i { color: #00bfff !important; text-shadow: 0 0 5px rgba(0, 191, 255, 0.5); font-weight: bold; }
+        .vowel-o { color: #ff8800 !important; text-shadow: 0 0 5px rgba(255, 136, 0, 0.5); font-weight: bold; }
+        .vowel-u { color: #d136ff !important; text-shadow: 0 0 5px rgba(209, 54, 255, 0.5); font-weight: bold; }
+        .normal-char { color: #ffffff !important; }
+        .symbol-char { color: #888888 !important; }
+
+        .correct-char {
+            color: #888888 !important;
+            text-shadow: none !important;
+        }
+        .incorrect-char {
+            color: #e74c3c !important;
+            background-color: #4a2c2c;
+        }
+        .completed-word {
+            color: #888888 !important;
+            text-shadow: none !important;
+        }
+
+        .fake-display-box {
+            position: relative;
+            width: 100%;
+            height: 50px;
+            border-left: none;
+            border-right: none;
+            border-top: 2px solid #6c757d;
+            border-bottom: 2px solid #6c757d;
+            border-radius: 0;
+            background: #1e1e1e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 6px;
+            overflow: hidden;
+            cursor: text;
+        }
+
+        #hiddenInput {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            border: none;
+            background: transparent;
+            font-size: 20px;
+            z-index: 2;
+        }
+
+        .status-text-layer {
+            font-size: 22px;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            color: #ffffff;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        #stats {
+            margin-top: 6px;
+            color: #aaaaaa;
+            font-size: 14px;
+            padding: 0 10px;
+        }
+
+        .stats-panel {
+            background: #1a2332;
+            border-left: none;
+            border-right: none;
+            border-top: 2px solid #6c757d;
+            border-bottom: 2px solid #6c757d;
+            border-radius: 0;
+            padding: 16px 10px;
+            margin: 6px 0;
+            text-align: center;
+            width: 100%;
+        }
+        .stats-panel h2 {
+            color: #ffffff;
+            margin: 0 0 12px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .stats-panel .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .stats-panel .stats-item {
+            background: #1e1e1e;
+            padding: 10px 6px;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+        .stats-panel .stats-item .label {
+            font-size: 12px;
+            color: #888;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .stats-panel .stats-item .value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .stats-panel .stats-item .value.green { color: #2ecc71; }
+        .stats-panel .stats-item .value.red { color: #e74c3c; }
+        .stats-panel .stats-item .value.blue { color: #6c757d; }
+        .stats-panel .stats-item .value.gold { color: #f39c12; }
+        .stats-panel .restart-btn {
+            margin-top: 12px;
+            padding: 8px 24px;
+            color: #2ecc71;
+            background: transparent;
+            border: 1px solid #2ecc71;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .stats-panel .restart-btn:hover {
+            color: #fff;
+            border-color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-container">
+    <h1>英文打字練習</h1>
+    
+    <div class="grid-menu" style="margin-left: 5px; margin-right: 5px;">
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="openModal()">📝 修改</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="exportArticle()">📤 匯出</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="triggerImport()">📥 匯入</button>
+            <input type="file" id="importFile" accept=".txt,.json" onchange="importArticle(event)">
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="openProgressModal()">⏸️ 暫停</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="restartPractice()">🔀 隨機</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" id="muteBtn" class="secondary-gray" onclick="toggleMute()">🔊 開啟</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" id="colorModeBtn" class="secondary-gray" onclick="toggleColorMode()">🎨 彩色</button>
+        </div>
+        <div class="grid-item">
+            <button type="button" class="secondary-gray" onclick="toggleFullScreen()">💻 全幕</button>
+        </div>
+        <div class="grid-item">
+            <select id="speedSelect" onchange="updateSpeed()">
+                <option value="0.3">0.3x</option>
+                <option value="0.5">0.5x</option>
+                <option value="0.8">0.8x</option>
+                <option value="1.0" selected>1.0x</option>
+                <option value="1.3">1.3x</option>
+                <option value="1.6">1.6x</option>
+                <option value="2.0">2.0x</option>
+                <option value="2.5">2.5x</option>
+                <option value="3.0">3.0x</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="comparison-display" class="comparison-container"></div>
+
+    <div id="info-panel">
+        <div class="info-row" id="row-trans-ipa">
+            <div class="info-group" id="group-trans" style="display:none;" title="翻譯">
+                翻譯: <span id="translation-display">(無)</span>
+            </div>
+            <div class="info-group" id="group-ipa" style="display:none;" title="音標">
+                音標: <span id="ipa-display">---</span>
+            </div>
+        </div>
+        <div class="info-row" id="row-phonics">
+            <div class="info-group" id="group-phonics" style="display:none;" title="音節">
+                音節: <span id="phonetic-display">---</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="fake-display-box" onclick="focusHiddenInput()">
+        <input type="search" id="hiddenInput" name="typing_practice_field" autocomplete="one-time-code" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="status-text-layer" id="statusDisplay">請點擊此處開始打字</div>
+    </div>
+
+    <div id="stats">
+        ⏱️ <span id="timerDisplay">00:00</span> &nbsp;|&nbsp; 
+        進度: <span id="progress">0 / 0</span> &nbsp;|&nbsp; 
+        ✅ <span id="score">0</span> &nbsp;|&nbsp; 
+        ❌ <span id="errorCountDisplay">0</span>
+    </div>
+</div>
+
+<div id="articleModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>編輯格式化內容</h3>
+        <div style="font-size: 13px; color: #aaaaaa; margin-bottom: 8px;">請依格式輸入（單字 | 翻譯 | 音標）：</div>
+        <textarea id="batchTextarea" class="batch-textarea"></textarea>
+        <div class="batch-tip">
+            <b>格式說明：</b><br>每行一個單字，格式為：單字 | 翻譯 | 音標（以「|」隔開）。
+        </div>
+
+        <div class="modal-buttons">
+            <button type="button" class="danger" onclick="clearModalText()" style="width: auto;">刪除全部</button>
+            <div class="modal-buttons-right">
+                <button type="button" class="secondary-gray" onclick="closeModal()" style="width: auto;">取消</button>
+                <button type="button" class="secondary-gray" onclick="confirmCustomArticle()" style="width: auto;">確定套用</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="progressModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>⏸️ 目前進度統計 (已暫停)</h3>
+        <div class="stats-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0;">
+            <div class="stats-item" style="background: #1e1e1e; padding: 12px; border-radius: 8px; border: 1px solid #333;">
+                <span class="label" style="font-size: 13px; color: #888; display: block; margin-bottom: 4px;">⏱️ 已耗費時間</span>
+                <span class="value blue" id="progTime" style="font-size: 22px; font-weight: bold; color: #6c757d;">00:00</span>
+            </div>
+            <div class="stats-item" style="background: #1e1e1e; padding: 12px; border-radius: 8px; border: 1px solid #333;">
+                <span class="label" style="font-size: 13px; color: #888; display: block; margin-bottom: 4px;">✅ 已完成單字</span>
+                <span class="value green" id="progCompleted" style="font-size: 22px; font-weight: bold; color: #2ecc71;">0</span>
+            </div>
+            <div class="stats-item" style="background: #1e1e1e; padding: 12px; border-radius: 8px; border: 1px solid #333;">
+                <span class="label" style="font-size: 13px; color: #888; display: block; margin-bottom: 4px;">⏳ 剩餘單字數</span>
+                <span class="value gold" id="progRemaining" style="font-size: 22px; font-weight: bold; color: #f39c12;">0</span>
+            </div>
+            <div class="stats-item" style="background: #1e1e1e; padding: 12px; border-radius: 8px; border: 1px solid #333;">
+                <span class="label" style="font-size: 13px; color: #888; display: block; margin-bottom: 4px;">❌ 錯誤次數</span>
+                <span class="value red" id="progErrors" style="font-size: 22px; font-weight: bold; color: #e74c3c;">0</span>
+            </div>
+        </div>
+        <div class="modal-buttons" style="justify-content: flex-end;">
+            <button type="button" class="secondary-gray" onclick="resumePractice()" style="width: auto; color: #2ecc71; border-color: #2ecc71;">▶️ 繼續練習</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let linesList = [];
+    let totalWordsCount = 0;
+    let currentLineIndex = 0;
+    let currentWordIndexInLine = 0;
+    let score = 0;
+    let errorCount = 0;
+    let isColorMode = true;
+    
+    let rawArticleText = 
+    "come｜來吧｜[kʌm]｜[come]\n"+
+"get｜得到｜[ɡɛt]｜[get]\n"+
+"give｜給予｜[ɡɪv]｜[give]\n"+
+"go｜去｜[ɡoʊ]｜[go]\n"+
+"keep｜保留｜[kiːp]｜[keep]\n"+
+"let｜讓｜[lɛt]｜[let]\n"+
+"make｜使｜[meɪk]｜[make]\n"+
+"put｜把｜[pʊt]｜[put]\n"+
+"seem｜似乎｜[siːm]｜[seem]\n"+
+"take｜採取｜[teɪk]｜[take]\n"+
+"be｜是｜[biː]｜[be]\n"+
+"do｜做｜[duː]｜[do]\n"+
+"have｜有｜[hæv]｜[have]\n"+
+"say｜說｜[seɪ]｜[say]\n"+
+"see｜看到｜[siː]｜[see]\n"+
+"send｜傳送｜[sɛnd]｜[send]\n"+
+"may｜可能｜[meɪ]｜[may]\n"+
+"will｜會｜[wɪl]｜[will]\n"+
+"about｜關於｜[əˈbaʊt]｜[a.bout]\n"+
+"across｜跨越｜[əˈkrɔːs]｜[a.cross]\n"+
+"after｜之後｜[ˈæftər]｜[af.ter]\n"+
+"against｜反對｜[əˈɡɛnst]｜[a.gainst]\n"+
+"among｜其中｜[əˈmʌŋ]｜[a.mong]\n"+
+"at｜在｜[æt]｜[at]\n"+
+"before｜之前｜[bɪˈfɔːr]｜[be.fore]\n"+
+"between｜之間｜[bɪˈtwiːn]｜[be.tween]\n"+
+"by｜透過｜[baɪ]｜[by]\n"+
+"down｜向下｜[daʊn]｜[down]\n"+
+"from｜來自｜[frʌm]｜[from]\n"+
+"in｜在｜[ɪn]｜[in]\n"+
+"off｜關閉｜[ɔːf]｜[off]\n"+
+"on｜上｜[ɑːn]｜[on]\n"+
+"over｜結束｜[ˈoʊvər]｜[o.ver]\n"+
+"through｜透過｜[θruː]｜[through]\n"+
+"to｜到｜[tuː]｜[to]\n"+
+"under｜下｜[ˈʌndər]｜[un.der]\n"+
+"up｜向上｜[ʌp]｜[up]\n"+
+"with｜與｜[wɪð]｜[with]\n"+
+"as｜作為｜[æz]｜[as]\n"+
+"for｜為了｜[fɔːr]｜[for]\n"+
+"of｜的｜[ʌv]｜[of]\n"+
+"till｜直到｜[tɪl]｜[till]\n"+
+"than｜比｜[ðæn]｜[than]\n"+
+"a｜一個｜[ə]｜[a]\n"+
+"the｜的｜[ðə]｜[the]\n"+
+"all｜全部｜[ɔːl]｜[all]\n"+
+"any｜任何｜[ˈɛni]｜[an.y]\n"+
+"every｜每個｜[ˈɛvri]｜[ev.ery]\n"+
+"no｜不｜[noʊ]｜[no]\n"+
+"other｜其他｜[ˈʌðər]｜[oth.er]\n"+
+"some｜一些｜[sʌm]｜[some]\n"+
+"such｜這樣的｜[sʌtʃ]｜[such]\n"+
+"that｜那個｜[ðæt]｜[that]\n"+
+"this｜這個｜[ðɪs]｜[this]\n"+
+"I｜我｜[aɪ]｜[I]\n"+
+"he｜他｜[hiː]｜[he]\n"+
+"you｜你｜[juː]｜[you]\n"+
+"who｜誰｜[huː]｜[who]\n"+
+"and｜和｜[ænd]｜[and]\n"+
+"because｜因為｜[bɪˈkɔːz]｜[be.cause]\n"+
+"but｜但是｜[bʌt]｜[but]\n"+
+"or｜或｜[ɔːr]｜[or]\n"+
+"if｜如果｜[ɪf]｜[if]\n"+
+"though｜雖然｜[ðoʊ]｜[though]\n"+
+"while｜同時｜[waɪl]｜[while]\n"+
+"how｜如何｜[haʊ]｜[how]\n"+
+"when｜當｜[wɛn]｜[when]\n"+
+"where｜哪裡｜[wɛr]｜[where]\n"+
+"why｜為什麼｜[waɪ]｜[why]\n"+
+"again｜再次｜[əˈɡɛn]｜[a.gain]\n"+
+"ever｜曾經｜[ˈɛvər]｜[ev.er]\n"+
+"far｜遠｜[fɑːr]｜[far]\n"+
+"forward｜前進｜[ˈfɔːrwərd]｜[for.ward]\n"+
+"here｜這裡｜[hɪr]｜[here]\n"+
+"near｜附近｜[nɪr]｜[near]\n"+
+"now｜現在｜[naʊ]｜[now]\n"+
+"out｜出｜[aʊt]｜[out]\n"+
+"still｜仍然｜[stɪl]｜[still]\n"+
+"then｜然後｜[ðɛn]｜[then]\n"+
+"there｜那裡｜[ðɛr]｜[there]\n"+
+"together｜在一起｜[təˈɡɛðər]｜[to.geth.er]\n"+
+"well｜嗯｜[wɛl]｜[well]\n"+
+"almost｜幾乎｜[ˈɔːlmoʊst]｜[al.most]\n"+
+"enough｜夠了｜[ɪˈnʌf]｜[e.nough]\n"+
+"even｜甚至｜[ˈiːvən]｜[e.ven]\n"+
+"little｜很少｜[ˈlɪtəl]｜[lit.tle]\n"+
+"much｜很多｜[mʌtʃ]｜[much]\n"+
+"not｜不｜[nɑːt]｜[not]\n"+
+"only｜僅｜[ˈoʊnli]｜[on.ly]\n"+
+"quite｜相當｜[kwaɪt]｜[quite]\n"+
+"so｜所以｜[soʊ]｜[so]\n"+
+"very｜非常｜[ˈvɛri]｜[ver.y]\n"+
+"tomorrow｜明天｜[təˈmɑːroʊ]｜[to.mor.row]\n"+
+"yesterday｜昨天｜[ˈjɛstərdeɪ]｜[yes.ter.day]\n"+
+"north｜北｜[nɔːrθ]｜[north]\n"+
+"south｜南｜[saʊθ]｜[south]\n"+
+"east｜東｜[iːst]｜[east]\n"+
+"west｜西｜[wɛst]｜[west]\n"+
+"please｜請｜[pliːz]｜[please]\n"+
+"yes｜是的｜[jɛs]｜[yes]\n"+
+"angle｜角度｜[ˈæŋɡəl]｜[an.gle]\n"+
+"ant｜螞蟻｜[ænt]｜[ant]\n"+
+"apple｜蘋果｜[ˈæpəl]｜[ap.ple]\n"+
+"arch｜拱門｜[ɑːrtʃ]｜[arch]\n"+
+"arm｜手臂｜[ɑːrm]｜[arm]\n"+
+"army｜軍隊｜[ˈɑːrmi]｜[ar.my]\n"+
+"baby｜寶貝｜[ˈbeɪbi]｜[ba.by]\n"+
+"bag｜包包｜[bæɡ]｜[bag]\n"+
+"ball｜球｜[bɔːl]｜[ball]\n"+
+"band｜樂團｜[bænd]｜[band]\n"+
+"basin｜盆地｜[ˈbeɪsən]｜[ba.sin]\n"+
+"basket｜籃子｜[ˈbæskɪt]｜[bas.ket]\n"+
+"bath｜洗澡｜[bæθ]｜[bath]\n"+
+"bed｜床｜[bɛd]｜[bed]\n"+
+"bee｜蜜蜂｜[biː]｜[bee]\n"+
+"bell｜鈴｜[bɛl]｜[bell]\n"+
+"berry｜莓果｜[ˈbɛri]｜[ber.ry]\n"+
+"bird｜鳥｜[bɜːrd]｜[bird]\n"+
+"blade｜刀片｜[bleɪd]｜[blade]\n"+
+"board｜董事會｜[bɔːrd]｜[board]\n"+
+"boat｜船｜[boʊt]｜[boat]\n"+
+"bone｜骨｜[boʊn]｜[bone]\n"+
+"book｜書｜[bʊk]｜[book]\n"+
+"boot｜啟動｜[buːt]｜[boot]\n"+
+"bottle｜瓶子｜[ˈbɑːtəl]｜[bot.tle]\n"+
+"box｜盒子｜[bɑːks]｜[box]\n"+
+"boy｜男孩｜[bɔɪ]｜[boy]\n"+
+"brain｜大腦｜[breɪn]｜[brain]\n"+
+"brake｜煞車｜[breɪk]｜[brake]\n"+
+"branch｜分行｜[bræntʃ]｜[branch]\n"+
+"brick｜磚｜[brɪk]｜[brick]\n"+
+"bridge｜橋｜[brɪdʒ]｜[bridge]\n"+
+"brush｜刷子｜[brʌʃ]｜[brush]\n"+
+"bucket｜桶｜[ˈbʌkɪt]｜[buck.et]\n"+
+"bulb｜燈泡｜[bʌlb]｜[bulb]\n"+
+"button｜按鈕｜[ˈbʌtən]｜[but.ton]\n"+
+"cake｜蛋糕｜[keɪk]｜[cake]\n"+
+"camera｜相機｜[ˈkæmərə]｜[cam.er.a]\n"+
+"card｜卡｜[kɑːrd]｜[card]\n"+
+"cart｜購物車｜[kɑːrt]｜[cart]\n"+
+"carriage｜馬車｜[ˈkærɪdʒ]｜[car.riage]\n"+
+"cat｜貓｜[kæt]｜[cat]\n"+
+"chain｜鏈條｜[tʃeɪn]｜[chain]\n"+
+"cheese｜起司｜[tʃiːz]｜[cheese]\n"+
+"chest｜胸部｜[tʃɛst]｜[chest]\n"+
+"chin｜下巴｜[tʃɪn]｜[chin]\n"+
+"church｜教堂｜[tʃɜːrtʃ]｜[church]\n"+
+"circle｜圓圈｜[ˈsɜːrkəl]｜[cir.cle]\n"+
+"clock｜時鐘｜[klɑːk]｜[clock]\n"+
+"cloud｜雲｜[klaʊd]｜[cloud]\n"+
+"coat｜外套｜[koʊt]｜[coat]\n"+
+"collar｜衣領｜[ˈkɑːlər]｜[col.lar]\n"+
+"comb｜梳子｜[koʊm]｜[comb]\n"+
+"cord｜繩索｜[kɔːrd]｜[cord]\n"+
+"cow｜牛｜[kaʊ]｜[cow]\n"+
+"cup｜杯子｜[kʌp]｜[cup]\n"+
+"curtain｜窗簾｜[ˈkɜːrtən]｜[cur.tain]\n"+
+"cushion｜坐墊｜[ˈkʊʃən]｜[cush.ion]\n"+
+"dog｜狗｜[dɔːɡ]｜[dog]\n"+
+"door｜門｜[dɔːr]｜[door]\n"+
+"drain｜排水管｜[dreɪn]｜[drain]\n"+
+"drawer｜抽屜｜[drɔːr]｜[draw.er]\n"+
+"dress｜洋裝｜[drɛs]｜[dress]\n"+
+"drop｜掉落｜[drɑːp]｜[drop]\n"+
+"ear｜耳朵｜[ɪr]｜[ear]\n"+
+"egg｜蛋｜[ɛɡ]｜[egg]\n"+
+"engine｜引擎｜[ˈɛndʒɪn]｜[en.gine]\n"+
+"eye｜眼睛｜[aɪ]｜[eye]\n"+
+"face｜臉｜[feɪs]｜[face]\n"+
+"farm｜農場｜[fɑːrm]｜[farm]\n"+
+"feather｜羽毛｜[ˈfɛðər]｜[feath.er]\n"+
+"finger｜手指｜[ˈfɪŋɡər]｜[fin.ger]\n"+
+"fish｜魚｜[fɪʃ]｜[fish]\n"+
+"flag｜旗幟｜[flæɡ]｜[flag]\n"+
+"floor｜地板｜[flɔːr]｜[floor]\n"+
+"fly｜飛｜[flaɪ]｜[fly]\n"+
+"foot｜腳｜[fʊt]｜[foot]\n"+
+"fork｜叉子｜[fɔːrk]｜[fork]\n"+
+"fowl｜家禽｜[faʊl]｜[fowl]\n"+
+"frame｜框架｜[freɪm]｜[frame]\n"+
+"garden｜花園｜[ˈɡɑːrdən]｜[gar.den]\n"+
+"girl｜女孩｜[ɡɜːrl]｜[girl]\n"+
+"glove｜手套｜[ɡlʌv]｜[glove]\n"+
+"goat｜山羊｜[ɡoʊt]｜[goat]\n"+
+"gun｜槍｜[ɡʌn]｜[gun]\n"+
+"hair｜頭髮｜[hɛr]｜[hair]\n"+
+"hammer｜錘子｜[ˈhæmər]｜[ham.mer]\n"+
+"hand｜手｜[hænd]｜[hand]\n"+
+"hat｜帽子｜[hæt]｜[hat]\n"+
+"head｜頭｜[hɛd]｜[head]\n"+
+"heart｜心｜[hɑːrt]｜[heart]\n"+
+"hook｜鉤子｜[hʊk]｜[hook]\n"+
+"horn｜號角｜[hɔːrn]｜[horn]\n"+
+"horse｜馬｜[hɔːrs]｜[horse]\n"+
+"hospital｜醫院｜[ˈhɑːspɪtəl]｜[hos.pi.tal]\n"+
+"house｜房子｜[haʊs]｜[house]\n"+
+"island｜島｜[ˈaɪlənd]｜[is.land]\n"+
+"jewel｜寶石｜[ˈdʒuːəl]｜[jew.el]\n"+
+"kettle｜水壺｜[ˈkɛtəl]｜[ket.tle]\n"+
+"key｜鑰匙｜[kiː]｜[key]\n"+
+"knee｜膝蓋｜[niː]｜[knee]\n"+
+"knife｜刀｜[naɪf]｜[knife]\n"+
+"knot｜結｜[nɑːt]｜[knot]\n"+
+"leaf｜葉｜[liːf]｜[leaf]\n"+
+"leg｜腿｜[lɛɡ]｜[leg]\n"+
+"library｜圖書館｜[ˈlaɪbrɛri]｜[li.brar.y]\n"+
+"line｜線｜[laɪn]｜[line]\n"+
+"lip｜嘴唇｜[lɪp]｜[lip]\n"+
+"lock｜鎖｜[lɑːk]｜[lock]\n"+
+"map｜地圖｜[mæp]｜[map]\n"+
+"match｜匹配｜[mætʃ]｜[match]\n"+
+"monkey｜猴子｜[ˈmʌŋki]｜[mon.key]\n"+
+"moon｜月亮｜[muːn]｜[moon]\n"+
+"mouth｜嘴｜[maʊθ]｜[mouth]\n"+
+"muscle｜肌肉｜[ˈmʌsəl]｜[mus.cle]\n"+
+"nail｜釘子｜[neɪl]｜[nail]\n"+
+"neck｜脖子｜[nɛk]｜[neck]\n"+
+"needle｜針｜[ˈniːdəl]｜[nee.dle]\n"+
+"nerve｜神經｜[nɜːrv]｜[nerve]\n"+
+"net｜網｜[nɛt]｜[net]\n"+
+"nose｜鼻子｜[noʊz]｜[nose]\n"+
+"nut｜堅果｜[nʌt]｜[nut]\n"+
+"office｜辦公室｜[ˈɔːfɪs]｜[of.fice]\n"+
+"orange｜橘色｜[ˈɔːrɪndʒ]｜[or.ange]\n"+
+"oven｜烤箱｜[ˈʌvən]｜[ov.en]\n"+
+"parcel｜包裹｜[ˈpɑːrsəl]｜[par.cel]\n"+
+"pen｜筆｜[pɛn]｜[pen]\n"+
+"pencil｜鉛筆｜[ˈpɛnsəl]｜[pen.cil]\n"+
+"picture｜圖片｜[ˈpɪktʃər]｜[pic.ture]\n"+
+"pig｜豬｜[pɪɡ]｜[pig]\n"+
+"pin｜針｜[pɪn]｜[pin]\n"+
+"pipe｜管子｜[paɪp]｜[pipe]\n"+
+"plane｜飛機｜[pleɪn]｜[plane]\n"+
+"plate｜盤子｜[pleɪt]｜[plate]\n"+
+"plough｜犁｜[plaʊ]｜[plough]\n"+
+"pocket｜口袋｜[ˈpɑːkɪt]｜[pock.et]\n"+
+"pot｜鍋｜[pɑːt]｜[pot]\n"+
+"potato｜馬鈴薯｜[pəˈteɪtoʊ]｜[po.ta.to]\n"+
+"prison｜監獄｜[ˈprɪzən]｜[pris.on]\n"+
+"pump｜泵浦｜[pʌmp]｜[pump]\n"+
+"rail｜鐵路｜[reɪl]｜[rail]\n"+
+"rat｜老鼠｜[ræt]｜[rat]\n"+
+"receipt｜收據｜[rɪˈsiːt]｜[re.ceipt]\n"+
+"ring｜圓環｜[rɪŋ]｜[ring]\n"+
+"rod｜桿｜[rɑːd]｜[rod]\n"+
+"roof｜屋頂｜[ruːf]｜[roof]\n"+
+"root｜根｜[ruːt]｜[root]\n"+
+"sail｜帆｜[seɪl]｜[sail]\n"+
+"school｜學校｜[skuːl]｜[school]\n"+
+"scissors｜剪刀｜[ˈsɪzərz]｜[scis.sors]\n"+
+"screw｜螺絲｜[skruː]｜[screw]\n"+
+"seed｜種子｜[siːd]｜[seed]\n"+
+"sheep｜羊｜[ʃiːp]｜[sheep]\n"+
+"shelf｜架子｜[ʃɛlf]｜[shelf]\n"+
+"ship｜船｜[ʃɪp]｜[ship]\n"+
+"shirt｜襯衫｜[ʃɜːrt]｜[shirt]\n"+
+"shoe｜鞋｜[ʃuː]｜[shoe]\n"+
+"skin｜皮膚｜[skɪn]｜[skin]\n"+
+"skirt｜裙子｜[skɜːrt]｜[skirt]\n"+
+"snake｜蛇｜[sneɪk]｜[snake]\n"+
+"sock｜襪子｜[sɑːk]｜[sock]\n"+
+"spade｜鏟子｜[speɪd]｜[spade]\n"+
+"sponge｜海綿｜[spʌndʒ]｜[sponge]\n"+
+"spoon｜湯匙｜[spuːn]｜[spoon]\n"+
+"spring｜春天｜[sprɪŋ]｜[spring]\n"+
+"square｜方塊｜[skwɛr]｜[square]\n"+
+"stamp｜郵票｜[stæmp]｜[stamp]\n"+
+"star｜明星｜[stɑːr]｜[star]\n"+
+"station｜車站｜[ˈsteɪʃən]｜[sta.tion]\n"+
+"stem｜莖｜[stɛm]｜[stem]\n"+
+"stick｜棍子｜[stɪk]｜[stick]\n"+
+"stocking｜放養｜[ˈstɑːkɪŋ]｜[stock.ing]\n"+
+"stomach｜胃｜[ˈstʌmək]｜[stom.ach]\n"+
+"store｜商店｜[stɔːr]｜[store]\n"+
+"street｜街道｜[striːt]｜[street]\n"+
+"sun｜太陽｜[sʌn]｜[sun]\n"+
+"table｜表｜[ˈteɪbəl]｜[ta.ble]\n"+
+"tail｜尾巴｜[teɪl]｜[tail]\n"+
+"thread｜執行緒｜[θrɛd]｜[thread]\n"+
+"throat｜喉嚨｜[θroʊt]｜[throat]\n"+
+"thumb｜大拇指｜[θʌm]｜[thumb]\n"+
+"ticket｜票｜[ˈtɪkɪt]｜[tick.et]\n"+
+"toe｜腳趾｜[toʊ]｜[toe]\n"+
+"tongue｜舌頭｜[tʌŋ]｜[tongue]\n"+
+"tooth｜牙齒｜[tuːθ]｜[tooth]\n"+
+"town｜鎮｜[taʊn]｜[town]\n"+
+"train｜火車｜[treɪn]｜[train]\n"+
+"tray｜托盤｜[treɪ]｜[tray]\n"+
+"tree｜樹｜[triː]｜[tree]\n"+
+"trousers｜褲子｜[ˈtraʊzərz]｜[trou.sers]\n"+
+"umbrella｜雨傘｜[ʌmˈbrɛlə]｜[um.brel.la]\n"+
+"wall｜牆｜[wɔːl]｜[wall]\n"+
+"watch｜手錶｜[wɑːtʃ]｜[watch]\n"+
+"wheel｜輪子｜[wiːl]｜[wheel]\n"+
+"whip｜鞭子｜[wɪp]｜[whip]\n"+
+"whistle｜口哨｜[ˈwɪs.əl]｜[whis.tle]\n"+
+"window｜窗戶｜[ˈwɪn.doʊ]｜[win.dow]\n"+
+"wing｜翅膀｜[wɪŋ]｜[wing]\n"+
+"wire｜電線｜[waɪr]｜[wire]\n"+
+"worm｜蠕蟲｜[wɜːrm]｜[worm]\n"+
+"able｜能夠｜[ˈeɪbəl]｜[a.ble]\n"+
+"acid｜酸｜[ˈæsɪd]｜[ac.id]\n"+
+"angry｜生氣｜[ˈæŋɡri]｜[an.gry]\n"+
+"automatic｜自動｜[ˌɔːtəˈmætɪk]｜[au.to.mat.ic]\n"+
+"beautiful｜美麗的｜[ˈbjuːtɪfəl]｜[beau.ti.ful]\n"+
+"black｜黑色｜[blæk]｜[black]\n"+
+"boiling｜沸騰｜[ˈbɔɪlɪŋ]｜[boil.ing]\n"+
+"bright｜明亮｜[braɪt]｜[bright]\n"+
+"broken｜壞了｜[ˈbroʊkən]｜[bro.ken]\n"+
+"brown｜棕色｜[braʊn]｜[brown]\n"+
+"cheap｜便宜｜[tʃiːp]｜[cheap]\n"+
+"chemical｜化學｜[ˈkɛmɪkəl]｜[chem.i.cal]\n"+
+"chief｜酋長｜[tʃiːf]｜[chief]\n"+
+"clean｜乾淨｜[kliːn]｜[clean]\n"+
+"clear｜清晰｜[klɪr]｜[clear]\n"+
+"common｜常見的｜[ˈkɑːmən]｜[com.mon]\n"+
+"complex｜複雜的｜[kəmˈplɛks]｜[com.plex]\n"+
+"conscious｜有意識的｜[ˈkɑːnʃəs]｜[con.scious]\n"+
+"cut｜切｜[kʌt]｜[cut]\n"+
+"deep｜深｜[diːp]｜[deep]\n"+
+"dependent｜依賴的｜[dɪˈpɛndənt]｜[de.pend.ent]\n"+
+"early｜早｜[ˈɜːrli]｜[ear.ly]\n"+
+"elastic｜彈性的｜[ɪˈlæstɪk]｜[e.las.tic]\n"+
+"electric｜電動的｜[ɪˈlɛktrɪk]｜[e.lec.tric]\n"+
+"equal｜平等｜[ˈiːkwəl]｜[e.qual]\n"+
+"fat｜脂肪｜[fæt]｜[fat]\n"+
+"fertile｜肥沃的｜[ˈfɜːrtəl]｜[fer.tile]\n"+
+"first｜第一｜[fɜːrst]｜[first]\n"+
+"fixed｜固定的｜[fɪkst]｜[fixed]\n"+
+"flat｜平坦｜[flæt]｜[flat]\n"+
+"free｜免費｜[friː]｜[free]\n"+
+"frequent｜常｜[ˈfriːkwənt]｜[fre.quent]\n"+
+"full｜滿｜[fʊl]｜[full]\n"+
+"general｜一般｜[ˈdʒɛnərəl]｜[gen.er.al]\n"+
+"good｜好｜[ɡʊd]｜[good]\n"+
+"great｜太棒了｜[ɡreɪt]｜[great]\n"+
+"grey｜灰色｜[ɡreɪ]｜[grey]\n"+
+"hanging｜懸掛｜[ˈhæŋɪŋ]｜[hang.ing]\n"+
+"happy｜快樂｜[ˈhæpi]｜[hap.py]\n"+
+"hard｜硬｜[hɑːrd]｜[hard]\n"+
+"healthy｜健康的｜[ˈhɛlθi]｜[health.y]\n"+
+"high｜高｜[haɪ]｜[high]\n"+
+"hollow｜空心的｜[ˈhɑːloʊ]｜[hol.low]\n"+
+"important｜重要的｜[ɪmˈpɔːrtənt]｜[im.por.tant]\n"+
+"kind｜善良｜[kaɪnd]｜[kind]\n"+
+"like｜喜歡｜[laɪk]｜[like]\n"+
+"living｜生活｜[ˈlɪvɪŋ]｜[liv.ing]\n"+
+"long｜長｜[lɔːŋ]｜[long]\n"+
+"male｜男｜[meɪl]｜[male]\n"+
+"married｜結婚了｜[ˈmærid]｜[mar.ried]\n"+
+"material｜材料｜[məˈtɪriəl]｜[ma.te.ri.al]\n"+
+"medical｜醫療｜[ˈmɛdɪkəl]｜[med.i.cal]\n"+
+"military｜軍事｜[ˈmɪlɪtɛri]｜[mil.i.tar.y]\n"+
+"natural｜自然的｜[ˈnætʃərəl]｜[nat.u.ral]\n"+
+"necessary｜必要的｜[ˈnɛsəsɛri]｜[nec.es.sar.y]\n"+
+"new｜新的｜[nuː]｜[new]\n"+
+"normal｜正常｜[ˈnɔːrməl]｜[nor.mal]\n"+
+"open｜打開｜[ˈoʊpən]｜[o.pen]\n"+
+"parallel｜平行｜[ˈpærəlɛl]｜[par.al.lel]\n"+
+"past｜過去｜[pæst]｜[past]\n"+
+"physical｜物理的｜[ˈfɪzɪkəl]｜[phys.i.cal]\n"+
+"political｜政治的｜[pəˈlɪtɪkəl]｜[po.lit.i.cal]\n"+
+"poor｜窮｜[pʊr]｜[poor]\n"+
+"possible｜可能｜[ˈpɑːsəbəl]｜[pos.si.ble]\n"+
+"present｜現在｜[ˈprɛzənt]｜[pres.ent]\n"+
+"private｜私人的｜[ˈpraɪvɪt]｜[pri.vate]\n"+
+"probable｜可能的｜[ˈprɑːbəbəl]｜[prob.a.ble]\n"+
+"quick｜快｜[kwɪk]｜[quick]\n"+
+"quiet｜安靜｜[ˈkwaɪət]｜[qui.et]\n"+
+"ready｜準備好了｜[ˈrɛdi]｜[read.y]\n"+
+"red｜紅色｜[rɛd]｜[red]\n"+
+"regular｜常規的｜[ˈrɛɡjələr]｜[reg.u.lar]\n"+
+"responsible｜負責的｜[rɪˈspɑːnsəbəl]｜[re.spon.si.ble]\n"+
+"right｜對｜[raɪt]｜[right]\n"+
+"round｜圓形｜[raʊnd]｜[round]\n"+
+"same｜一樣｜[seɪm]｜[same]\n"+
+"second｜第二｜[ˈsɛkənd]｜[sec.ond]\n"+
+"separate｜分開｜[ˈsɛpəreɪt]｜[sep.a.rate]\n"+
+"serious｜嚴重的｜[ˈsɪriəs]｜[se.ri.ous]\n"+
+"sharp｜鋒利的｜[ʃɑːrp]｜[sharp]\n"+
+"smooth｜光滑｜[smuːð]｜[smooth]\n"+
+"sticky｜黏性的｜[ˈstɪki]｜[stick.y]\n"+
+"stiff｜僵硬的｜[stɪf]｜[stiff]\n"+
+"straight｜直｜[streɪt]｜[straight]\n"+
+"strong｜強｜[strɔːŋ]｜[strong]\n"+
+"sudden｜突然的｜[ˈsʌdən]｜[sud.den]\n"+
+"sweet｜甜甜的｜[swiːt]｜[sweet]\n"+
+"tall｜高｜[tɔːl]｜[tall]\n"+
+"thick｜厚｜[θɪk]｜[thick]\n"+
+"tight｜緊｜[taɪt]｜[tight]\n"+
+"tired｜累了｜[taɪrd]｜[tired]\n"+
+"true｜真實｜[truː]｜[true]\n"+
+"violent｜暴力的｜[ˈvaɪələnt]｜[vi.o.lent]\n"+
+"waiting｜等待｜[ˈweɪtɪŋ]｜[wait.ing]\n"+
+"warm｜溫暖｜[wɔːrm]｜[warm]\n"+
+"wet｜濕的｜[wɛt]｜[wet]\n"+
+"wide｜寬｜[waɪd]｜[wide]\n"+
+"wise｜明智的｜[waɪz]｜[wise]\n"+
+"yellow｜黃色｜[ˈjɛloʊ]｜[yel.low]\n"+
+"young｜年輕｜[jʌŋ]｜[young]\n"+
+"awake｜醒著｜[əˈweɪk]｜[a.wake]\n"+
+"bad｜壞｜[bæd]｜[bad]\n"+
+"bent｜彎曲｜[bɛnt]｜[bent]\n"+
+"bitter｜苦的｜[ˈbɪtər]｜[bit.ter]\n"+
+"blue｜藍色｜[bluː]｜[blue]\n"+
+"certain｜某些｜[ˈsɜːrtən]｜[cer.tain]\n"+
+"cold｜冷｜[koʊld]｜[cold]\n"+
+"complete｜完成｜[kəmˈpliːt]｜[com.plete]\n"+
+"cruel｜殘酷的｜[ˈkruːəl]｜[cru.el]\n"+
+"dark｜黑暗｜[dɑːrk]｜[dark]\n"+
+"dead｜死了｜[dɛd]｜[dead]\n"+
+"dear｜親愛的｜[dɪr]｜[dear]\n"+
+"delicate｜精緻的｜[ˈdɛlɪkət]｜[del.i.cate]\n"+
+"different｜不同的｜[ˈdɪfərənt]｜[dif.fer.ent]\n"+
+"dirty｜骯髒的｜[ˈdɜːrti]｜[dirt.y]\n"+
+"dry｜幹｜[draɪ]｜[dry]\n"+
+"false｜假的｜[fɔːls]｜[false]\n"+
+"feeble｜軟弱的｜[ˈfiːbəl]｜[fee.ble]\n"+
+"female｜女｜[ˈfiːmeɪl]｜[fe.male]\n"+
+"foolish｜愚蠢的｜[ˈfuːlɪʃ]｜[fool.ish]\n"+
+"future｜未來｜[ˈfjuːtʃər]｜[fu.ture]\n"+
+"green｜綠色｜[ɡriːn]｜[green]\n"+
+"ill｜生病了｜[ɪl]｜[ill]\n"+
+"last｜最後｜[læst]｜[last]\n"+
+"late｜遲到了｜[leɪt]｜[late]\n"+
+"left｜左｜[lɛft]｜[left]\n"+
+"loose｜寬鬆的｜[luːs]｜[loose]\n"+
+"loud｜大聲｜[laʊd]｜[loud]\n"+
+"low｜低｜[loʊ]｜[low]\n"+
+"mixed｜混合的｜[mɪkst]｜[mixed]\n"+
+"narrow｜狹窄｜[ˈnæroʊ]｜[nar.row]\n"+
+"old｜老｜[oʊld]｜[old]\n"+
+"opposite｜對面｜[ˈɑːpəzɪt]｜[op.po.site]\n"+
+"public｜公開的｜[ˈpʌblɪk]｜[pub.lic]\n"+
+"rough｜粗糙｜[rʌf]｜[rough]\n"+
+"sad｜悲傷｜[sæd]｜[sad]\n"+
+"safe｜安全｜[seɪf]｜[safe]\n"+
+"secret｜秘密｜[ˈsiːkrɪt]｜[se.cret]\n"+
+"short｜短｜[ʃɔːrt]｜[short]\n"+
+"shut｜關閉｜[ʃʌt]｜[shut]\n"+
+"simple｜簡單｜[ˈsɪmpəl]｜[sim.ple]\n"+
+"slow｜慢｜[sloʊ]｜[slow]\n"+
+"small｜小｜[smɔːl]｜[small]\n"+
+"soft｜軟的｜[sɔːft]｜[soft]\n"+
+"solid｜固體｜[ˈsɑːlɪd]｜[sol.id]\n"+
+"special｜特別的｜[ˈspɛʃəl]｜[spe.cial]\n"+
+"strange｜奇怪的｜[streɪndʒ]｜[strange]\n"+
+"thin｜薄｜[θɪn]｜[thin]\n"+
+"white｜白色｜[waɪt]｜[white]\n"+
+"wrong｜錯誤｜[rɔːŋ]｜[wrong]\n"+
+"account｜帳戶｜[əˈkaʊnt]｜[ac.count]\n"+
+"act｜行動｜[ækt]｜[act]\n"+
+"addition｜加法｜[əˈdɪʃən]｜[ad.di.tion]\n"+
+"adjustment｜調整｜[əˈdʒʌstmənt]｜[ad.just.ment]\n"+
+"advertisement｜廣告｜[ˌædvərˈtaɪzmənt]｜[ad.ver.tise.ment]\n"+
+"agreement｜協定｜[əˈɡriːmənt]｜[a.gree.ment]\n"+
+"air｜空氣｜[ɛr]｜[air]\n"+
+"amount｜金額｜[əˈmaʊnt]｜[a.mount]\n"+
+"amusement｜娛樂｜[əˈmjuːzmənt]｜[a.muse.ment]\n"+
+"animal｜動物｜[ˈænɪməl]｜[an.i.mal]\n"+
+"answer｜回答｜[ˈænsər]｜[an.swer]\n"+
+"apparatus｜儀器｜[ˌæpəˈrætəs]｜[ap.pa.ra.tus]\n"+
+"approval｜核准｜[əˈpruːvəl]｜[ap.prov.al]\n"+
+"argument｜論證｜[ˈɑːrɡjumənt]｜[ar.gu.ment]\n"+
+"art｜藝術｜[ɑːrt]｜[art]\n"+
+"attack｜攻擊｜[əˈtæk]｜[at.tack]\n"+
+"attempt｜嘗試｜[əˈtɛmpt]｜[at.tempt]\n"+
+"attention｜關注｜[əˈtɛnʃən]｜[at.ten.tion]\n"+
+"attraction｜景點｜[əˈtrækʃən]｜[at.trac.tion]\n"+
+"authority｜權威｜[əˈθɔːrəti]｜[au.thor.i.ty]\n"+
+"back｜回來｜[bæk]｜[back]\n"+
+"balance｜平衡｜[ˈbæləns]｜[bal.ance]\n"+
+"base｜基地｜[beɪs]｜[base]\n"+
+"behaviour｜行為｜[bɪˈheɪvjər]｜[be.hav.iour]\n"+
+"belief｜信念｜[bɪˈliːf]｜[be.lief]\n"+
+"birth｜出生｜[bɜːrθ]｜[birth]\n"+
+"bit｜一點｜[bɪt]｜[bit]\n"+
+"bite｜咬｜[baɪt]｜[bite]\n"+
+"blood｜血｜[blʌd]｜[blood]\n"+
+"blow｜吹｜[bloʊ]｜[blow]\n"+
+"body｜身體｜[ˈbɑːdi]｜[bod.y]\n"+
+"brass｜黃銅｜[bræs]｜[brass]\n"+
+"bread｜麵包｜[brɛd]｜[bread]\n"+
+"breath｜呼吸｜[brɛθ]｜[breath]\n"+
+"brother｜兄弟｜[ˈbrʌðər]｜[broth.er]\n"+
+"building｜建築物｜[ˈbɪldɪŋ]｜[build.ing]\n"+
+"burn｜燒傷｜[bɜːrn]｜[burn]\n"+
+"burst｜爆發｜[bɜːrst]｜[burst]\n"+
+"business｜商業｜[ˈbɪznɪs]｜[busi.ness]\n"+
+"butter｜奶油｜[ˈbʌtər]｜[but.ter]\n"+
+"canvas｜畫布｜[ˈkænvəs]｜[can.vas]\n"+
+"care｜照顧｜[kɛr]｜[care]\n"+
+"cause｜原因｜[kɔːz]｜[cause]\n"+
+"chalk｜粉筆｜[tʃɔːk]｜[chalk]\n"+
+"chance｜機會｜[tʃæns]｜[chance]\n"+
+"change｜改變｜[tʃeɪndʒ]｜[change]\n"+
+"cloth｜布｜[klɔːθ]｜[cloth]\n"+
+"coal｜煤｜[koʊl]｜[coal]\n"+
+"colour｜顏色｜[ˈkʌlər]｜[col.our]\n"+
+"comfort｜舒適度｜[ˈkʌmfərt]｜[com.fort]\n"+
+"committee｜委員會｜[kəˈmɪti]｜[com.mit.tee]\n"+
+"company｜公司｜[ˈkʌmpəni]｜[com.pa.ny]\n"+
+"comparison｜比較｜[kəmˈpærɪsən]｜[com.par.i.son]\n"+
+"competition｜競爭｜[ˌkɑːmpəˈtɪʃən]｜[com.pe.ti.tion]\n"+
+"condition｜條件｜[kənˈdɪʃən]｜[con.di.tion]\n"+
+"connection｜連接｜[kəˈnɛkʃən]｜[con.nec.tion]\n"+
+"control｜控制｜[kənˈtroʊl]｜[con.trol]\n"+
+"cook｜廚師｜[kʊk]｜[cook]\n"+
+"copper｜銅｜[ˈkɑːpər]｜[cop.per]\n"+
+"copy｜複製｜[ˈkɑːpi]｜[cop.y]\n"+
+"cork｜軟木塞｜[kɔːrk]｜[cork]\n"+
+"cotton｜棉｜[ˈkɑːtən]｜[cot.ton]\n"+
+"cough｜咳嗽｜[kɔːf]｜[cough]\n"+
+"country｜國家｜[ˈkʌntri]｜[coun.try]\n"+
+"cover｜封面｜[ˈkʌvər]｜[cov.er]\n"+
+"crack｜裂紋｜[kræk]｜[crack]\n"+
+"credit｜信用｜[ˈkrɛdɪt]｜[cred.it]\n"+
+"crime｜犯罪｜[kraɪm]｜[crime]\n"+
+"crush｜暗戀｜[krʌʃ]｜[crush]\n"+
+"cry｜哭｜[kraɪ]｜[cry]\n"+
+"current｜目前｜[ˈkɜːrənt]｜[cur.rent]\n"+
+"curve｜曲線｜[kɜːrv]｜[curve]\n"+
+"damage｜損壞｜[ˈdæmɪdʒ]｜[dam.age]\n"+
+"danger｜危險｜[ˈdeɪndʒər]｜[dan.ger]\n"+
+"daughter｜女兒｜[ˈdɔːtər]｜[daugh.ter]\n"+
+"day｜日｜[deɪ]｜[day]\n"+
+"death｜死亡｜[dɛθ]｜[death]\n"+
+"debt｜債務｜[dɛt]｜[debt]\n"+
+"decision｜決定｜[dɪˈsɪʒən]｜[de.ci.sion]\n"+
+"degree｜學位｜[dɪˈɡriː]｜[de.gree]\n"+
+"design｜設計｜[dɪˈzaɪn]｜[de.sign]\n"+
+"desire｜慾望｜[dɪˈzaɪər]｜[de.sire]\n"+
+"destruction｜破壞｜[dɪˈstrʌkʃən]｜[de.struc.tion]\n"+
+"detail｜細節｜[ˈdiːteɪl]｜[de.tail]\n"+
+"development｜發展｜[dɪˈvɛləpmənt]｜[de.vel.op.ment]\n"+
+"digestion｜消化｜[daɪˈdʒɛstʃən]｜[di.ges.tion]\n"+
+"direction｜方向｜[dəˈrɛkʃən]｜[di.rec.tion]\n"+
+"discovery｜發現｜[dɪˈskʌvəri]｜[dis.cov.er.y]\n"+
+"discussion｜討論｜[dɪˈskʌʃən]｜[dis.cus.sion]\n"+
+"disease｜疾病｜[dɪˈziːz]｜[dis.ease]\n"+
+"disgust｜厭惡｜[dɪsˈɡʌst]｜[dis.gust]\n"+
+"distance｜距離｜[ˈdɪstəns]｜[dis.tance]\n"+
+"distribution｜分佈｜[ˌdɪstrɪˈbjuːʃən]｜[dis.tri.bu.tion]\n"+
+"division｜師｜[dɪˈvɪʒən]｜[di.vi.sion]\n"+
+"doubt｜懷疑｜[daʊt]｜[doubt]\n"+
+"drink｜喝｜[drɪŋk]｜[drink]\n"+
+"driving｜駕駛｜[ˈdraɪvɪŋ]｜[driv.ing]\n"+
+"dust｜灰塵｜[dʌst]｜[dust]\n"+
+"earth｜地球｜[ɜːrθ]｜[earth]\n"+
+"edge｜邊緣｜[ɛdʒ]｜[edge]\n"+
+"education｜教育｜[ˌɛdʒʊˈkeɪʃən]｜[ed.u.ca.tion]\n"+
+"effect｜效果｜[ɪˈfɛkt]｜[ef.fect]\n"+
+"end｜結束｜[ɛnd]｜[end]\n"+
+"error｜錯誤｜[ˈɛrər]｜[er.ror]\n"+
+"event｜事件｜[ɪˈvɛnt]｜[e.vent]\n"+
+"example｜例子｜[ɪɡˈzæmpəl]｜[ex.am.ple]\n"+
+"exchange｜交換｜[ɪksˈtʃeɪndʒ]｜[ex.change]\n"+
+"existence｜存在｜[ɪɡˈzɪstəns]｜[ex.is.tence]\n"+
+"expansion｜擴張｜[ɪkˈspænʃən]｜[ex.pan.sion]\n"+
+"experience｜經驗｜[ɪkˈspɪriəns]｜[ex.pe.ri.ence]\n"+
+"expert｜專家｜[ˈɛkspɜːrt]｜[ex.pert]\n"+
+"fact｜事實｜[fækt]｜[fact]\n"+
+"fall｜秋天｜[fɔːl]｜[fall]\n"+
+"family｜家庭｜[ˈfæməli]｜[fam.i.ly]\n"+
+"father｜父親｜[ˈfɑːðər]｜[fa.ther]\n"+
+"fear｜恐懼｜[fɪr]｜[fear]\n"+
+"feeling｜感覺｜[ˈfiːlɪŋ]｜[feel.ing]\n"+
+"fiction｜小說｜[ˈfɪkʃən]｜[fic.tion]\n"+
+"field｜領域｜[fiːld]｜[field]\n"+
+"fight｜戰鬥｜[faɪt]｜[fight]\n"+
+"fire｜火｜[faɪər]｜[fire]\n"+
+"flame｜火焰｜[fleɪm]｜[flame]\n"+
+"flight｜飛行｜[flaɪt]｜[flight]\n"+
+"flower｜花｜[ˈflaʊər]｜[flow.er]\n"+
+"fold｜折疊｜[foʊld]｜[fold]\n"+
+"food｜食物｜[fuːd]｜[food]\n"+
+"force｜力｜[fɔːrs]｜[force]\n"+
+"form｜形式｜[fɔːrm]｜[form]\n"+
+"friend｜朋友｜[frɛnd]｜[friend]\n"+
+"front｜前面｜[frʌnt]｜[front]\n"+
+"fruit｜水果｜[fruːt]｜[fruit]\n"+
+"glass｜玻璃｜[ɡlæs]｜[glass]\n"+
+"gold｜黃金｜[ɡoʊld]｜[gold]\n"+
+"government｜政府｜[ˈɡʌvərnmənt]｜[gov.ern.ment]\n"+
+"grain｜穀物｜[ɡreɪn]｜[grain]\n"+
+"grass｜草｜[ɡræs]｜[grass]\n"+
+"grip｜握力｜[ɡrɪp]｜[grip]\n"+
+"group｜群組｜[ɡruːp]｜[group]\n"+
+"growth｜成長｜[ɡroʊθ]｜[growth]\n"+
+"guide｜指南｜[ɡaɪd]｜[guide]\n"+
+"harbour｜港口｜[ˈhɑːrbər]｜[har.bour]\n"+
+"harmony｜和諧｜[ˈhɑːrməni]｜[har.mo.ny]\n"+
+"hate｜討厭｜[heɪt]｜[hate]\n"+
+"hearing｜聽力｜[ˈhɪrɪŋ]｜[hear.ing]\n"+
+"heat｜熱｜[hiːt]｜[heat]\n"+
+"help｜幫助｜[hɛlp]｜[help]\n"+
+"history｜歷史｜[ˈhɪstəri]｜[his.to.ry]\n"+
+"hole｜洞｜[hoʊl]｜[hole]\n"+
+"hope｜希望｜[hoʊp]｜[hope]\n"+
+"hour｜小時｜[aʊər]｜[hour]\n"+
+"humour｜幽默｜[ˈhjuːmər]｜[hu.mour]\n"+
+"ice｜冰｜[aɪs]｜[ice]\n"+
+"idea｜想法｜[aɪˈdiːə]｜[i.de.a]\n"+
+"impulse｜衝動｜[ˈɪmpʌls]｜[im.pulse]\n"+
+"increase｜增加｜[ɪnˈkriːs]｜[in.crease]\n"+
+"industry｜工業｜[ˈɪndəstri]｜[in.dus.try]\n"+
+"ink｜墨水｜[ɪŋk]｜[ink]\n"+
+"insect｜昆蟲｜[ˈɪnsɛkt]｜[in.sect]\n"+
+"instrument｜儀器｜[ˈɪnstrəmənt]｜[in.stru.ment]\n"+
+"insurance｜保險｜[ɪnˈʃʊrəns]｜[in.sur.ance]\n"+
+"interest｜興趣｜[ˈɪntrəst]｜[in.ter.est]\n"+
+"invention｜發明｜[ɪnˈvɛnʃən]｜[in.ven.tion]\n"+
+"iron｜鐵｜[ˈaɪərn]｜[i.ron]\n"+
+"jelly｜果凍｜[ˈdʒɛli]｜[jel.ly]\n"+
+"join｜加入｜[dʒɔɪn]｜[join]\n"+
+"journey｜旅程｜[ˈdʒɜːrni]｜[jour.ney]\n"+
+"judge｜法官｜[dʒʌdʒ]｜[judge]\n"+
+"jump｜跳躍｜[dʒʌmp]｜[jump]\n"+
+"kick｜踢｜[kɪk]｜[kick]\n"+
+"kiss｜親吻｜[kɪs]｜[kiss]\n"+
+"knowledge｜知識｜[ˈnɑːlɪdʒ]｜[knowl.edge]\n"+
+"land｜土地｜[lænd]｜[land]\n"+
+"language｜語言｜[ˈlæŋɡwɪdʒ]｜[lan.guage]\n"+
+"laugh｜笑｜[læf]｜[laugh]\n"+
+"law｜法律｜[lɔː]｜[law]\n"+
+"lead｜鉛｜[lɛd]｜[lead]\n"+
+"learning｜學習｜[ˈlɜːrnɪŋ]｜[learn.ing]\n"+
+"leather｜皮革｜[ˈlɛðər]｜[leath.er]\n"+
+"letter｜信｜[ˈlɛtər]｜[let.ter]\n"+
+"level｜水平｜[ˈlɛvəl]｜[lev.el]\n"+
+"lift｜電梯｜[lɪft]｜[lift]\n"+
+"light｜光｜[laɪt]｜[light]\n"+
+"limit｜限制｜[ˈlɪmɪt]｜[lim.it]\n"+
+"linen｜亞麻布｜[ˈlɪnɪn]｜[lin.en]\n"+
+"liquid｜液體｜[ˈlɪkwɪd]｜[liq.uid]\n"+
+"list｜清單｜[lɪst]｜[list]\n"+
+"look｜看看｜[lʊk]｜[look]\n"+
+"loss｜損失｜[lɔːs]｜[loss]\n"+
+"love｜愛｜[lʌv]｜[love]\n"+
+"machine｜機器｜[məˈʃiːn]｜[ma.chine]\n"+
+"man｜男人｜[mæn]｜[man]\n"+
+"manager｜主管｜[ˈmænɪdʒər]｜[man.a.ger]\n"+
+"mark｜標記｜[mɑːrk]｜[mark]\n"+
+"market｜市場｜[ˈmɑːrkɪt]｜[mar.ket]\n"+
+"mass｜品質｜[mæs]｜[mass]\n"+
+"meal｜餐｜[miːl]｜[meal]\n"+
+"measure｜測量｜[ˈmɛʒər]｜[meas.ure]\n"+
+"meat｜肉｜[miːt]｜[meat]\n"+
+"meeting｜會議｜[ˈmiːtɪŋ]｜[meet.ing]\n"+
+"memory｜記憶｜[ˈmɛməri]｜[mem.o.ry]\n"+
+"metal｜金屬｜[ˈmɛtəl]｜[met.al]\n"+
+"middle｜中｜[ˈmɪdəl]｜[mid.dle]\n"+
+"milk｜牛奶｜[mɪlk]｜[milk]\n"+
+"mind｜頭腦｜[maɪnd]｜[mind]\n"+
+"mine｜我的｜[maɪn]｜[mine]\n"+
+"minute｜分分鐘｜[ˈmɪnɪt]｜[min.ute]\n"+
+"mist｜薄霧｜[mɪst]｜[mist]\n"+
+"money｜錢｜[ˈmʌni]｜[mon.ey]\n"+
+"month｜月｜[mʌnθ]｜[month]\n"+
+"morning｜早安｜[ˈmɔːrnɪŋ]｜[morn.ing]\n"+
+"mother｜媽媽｜[ˈmʌðər]｜[moth.er]\n"+
+"motion｜運動｜[ˈmoʊʃən]｜[mo.tion]\n"+
+"mountain｜山｜[ˈmaʊntən]｜[moun.tain]\n"+
+"move｜移動｜[muːv]｜[move]\n"+
+"music｜音樂｜[ˈmjuːzɪk]｜[mu.sic]\n"+
+"name｜姓名｜[neɪm]｜[name]\n"+
+"nation｜民族｜[ˈneɪʃən]｜[na.tion]\n"+
+"need｜需要｜[niːd]｜[need]\n"+
+"news｜新聞｜[nuːz]｜[news]\n"+
+"night｜晚上｜[naɪt]｜[night]\n"+
+"noise｜噪音｜[nɔɪz]｜[noise]\n"+
+"note｜註解｜[noʊt]｜[note]\n"+
+"number｜數量｜[ˈnʌmbər]｜[num.ber]\n"+
+"observation｜觀察｜[ˌɑːbzərˈveɪʃən]｜[ob.ser.va.tion]\n"+
+"offer｜報價｜[ˈɔːfər]｜[of.fer]\n"+
+"oil｜油｜[ɔɪl]｜[oil]\n"+
+"operation｜操作｜[ˌɑːpəˈreɪʃən]｜[op.er.a.tion]\n"+
+"opinion｜意見｜[əˈpɪnjən]｜[o.pin.ion]\n"+
+"order｜訂單｜[ˈɔːrdər]｜[or.der]\n"+
+"organization｜組織｜[ˌɔːrɡənɪˈzeɪʃən]｜[or.gan.i.za.tion]\n"+
+"ornament｜裝飾品｜[ˈɔːrnəmənt]｜[or.na.ment]\n"+
+"owner｜業主｜[ˈoʊnər]｜[own.er]\n"+
+"page｜頁面｜[peɪdʒ]｜[page]\n"+
+"pain｜疼痛｜[peɪn]｜[pain]\n"+
+"paint｜油漆｜[peɪnt]｜[paint]\n"+
+"paper｜紙｜[ˈpeɪpər]｜[pa.per]\n"+
+"part｜部分｜[pɑːrt]｜[part]\n"+
+"paste｜貼上｜[peɪst]｜[paste]\n"+
+"payment｜付款｜[ˈpeɪmənt]｜[pay.ment]\n"+
+"peace｜和平｜[piːs]｜[peace]\n"+
+"person｜人｜[ˈpɜːrsən]｜[per.son]\n"+
+"place｜地方｜[pleɪs]｜[place]\n"+
+"plant｜植物｜[plænt]｜[plant]\n"+
+"play｜玩｜[pleɪ]｜[play]\n"+
+"pleasure｜快樂｜[ˈplɛʒər]｜[pleas.ure]\n"+
+"point｜點｜[pɔɪnt]｜[point]\n"+
+"poison｜毒藥｜[ˈpɔɪzən]｜[poi.son]\n"+
+"polish｜波蘭語｜[ˈpɑːlɪʃ]｜[pol.ish]\n"+
+"porter｜搬運工｜[ˈpɔːrtər]｜[port.er]\n"+
+"position｜位置｜[pəˈzɪʃən]｜[po.si.tion]\n"+
+"powder｜粉末｜[ˈpaʊdər]｜[pow.der]\n"+
+"power｜電源｜[ˈpaʊər]｜[pow.er]\n"+
+"price｜價格｜[praɪs]｜[price]\n"+
+"print｜列印｜[prɪnt]｜[print]\n"+
+"process｜過程｜[ˈprɑːsɛs]｜[proc.ess]\n"+
+"produce｜生產｜[prəˈduːs]｜[pro.duce]\n"+
+"profit｜利潤｜[ˈprɑːfɪt]｜[prof.it]\n"+
+"property｜財產｜[ˈprɑːpərti]｜[prop.er.ty]\n"+
+"prose｜散文｜[proʊz]｜[prose]\n"+
+"protest｜抗議｜[ˈproʊtɛst]｜[pro.test]\n"+
+"pull｜拉｜[pʊl]｜[pull]\n"+
+"punishment｜懲罰｜[ˈpʌnɪʃmənt]｜[pun.ish.ment]\n"+
+"purpose｜目的｜[ˈpɜːrpəs]｜[pur.pose]\n"+
+"push｜推｜[pʊʃ]｜[push]\n"+
+"quality｜品質｜[ˈkwɑːləti]｜[qual.i.ty]\n"+
+"question｜問題｜[ˈkwɛstʃən]｜[ques.tion]\n"+
+"rain｜雨｜[reɪn]｜[rain]\n"+
+"range｜範圍｜[reɪndʒ]｜[range]\n"+
+"rate｜率｜[reɪt]｜[rate]\n"+
+"ray｜雷｜[reɪ]｜[ray]\n"+
+"reaction｜反應｜[riˈækʃən]｜[re.ac.tion]\n"+
+"reading｜閱讀｜[ˈriːdɪŋ]｜[read.ing]\n"+
+"reason｜原因｜[ˈriːzən]｜[rea.son]\n"+
+"record｜記錄｜[ˈrɛkərd]｜[rec.ord]\n"+
+"regret｜遺憾｜[rɪˈɡrɛt]｜[re.gret]\n"+
+"relation｜關係｜[rɪˈleɪʃən]｜[re.la.tion]\n"+
+"religion｜宗教｜[rɪˈlɪdʒən]｜[re.li.gion]\n"+
+"representative｜代表｜[ˌrɛprɪˈzɛntətɪv]｜[rep.re.sen.ta.tive]\n"+
+"request｜要求｜[rɪˈkwɛst]｜[re.quest]\n"+
+"respect｜尊重｜[rɪˈspɛkt]｜[re.spect]\n"+
+"rest｜休息｜[rɛst]｜[rest]\n"+
+"reward｜獎勵｜[rɪˈwɔːrd]｜[re.ward]\n"+
+"rhythm｜節奏｜[ˈrɪðəm]｜[rhythm]\n"+
+"rice｜米飯｜[raɪs]｜[rice]\n"+
+"river｜河｜[ˈrɪvər]｜[riv.er]\n"+
+"road｜路｜[roʊd]｜[road]\n"+
+"roll｜卷｜[roʊl]｜[roll]\n"+
+"room｜房間｜[ruːm]｜[room]\n"+
+"rub｜擦｜[rʌb]｜[rub]\n"+
+"rule｜規則｜[ruːl]｜[rule]\n"+
+"run｜跑｜[rʌn]｜[run]\n"+
+"salt｜鹽｜[sɔːlt]｜[salt]\n"+
+"sand｜沙子｜[sænd]｜[sand]\n"+
+"scale｜規模｜[skeɪl]｜[scale]\n"+
+"science｜科學｜[ˈsaɪəns]｜[sci.ence]\n"+
+"sea｜海｜[siː]｜[sea]\n"+
+"seat｜座位｜[siːt]｜[seat]\n"+
+"secretary｜秘書｜[ˈsɛkrətɛri]｜[sec.re.tar.y]\n"+
+"selection｜選擇｜[sɪˈlɛkʃən]｜[se.lec.tion]\n"+
+"self｜自我｜[sɛlf]｜[self]\n"+
+"sense｜感覺｜[sɛns]｜[sense]\n"+
+"servant｜僕人｜[ˈsɜːrvənt]｜[serv.ant]\n"+
+"sex｜性別｜[sɛks]｜[sex]\n"+
+"shade｜陰影｜[ʃeɪd]｜[shade]\n"+
+"shake｜搖動｜[ʃeɪk]｜[shake]\n"+
+"shame｜恥辱｜[ʃeɪm]｜[shame]\n"+
+"shock｜震驚｜[ʃɑːk]｜[shock]\n"+
+"side｜側面｜[saɪd]｜[side]\n"+
+"sign｜標誌｜[saɪn]｜[sign]\n"+
+"silk｜絲綢｜[sɪlk]｜[silk]\n"+
+"silver｜銀｜[ˈsɪlvər]｜[sil.ver]\n"+
+"sister｜妹妹｜[ˈsɪstər]｜[sis.ter]\n"+
+"size｜尺寸｜[saɪz]｜[size]\n"+
+"sky｜天空｜[skaɪ]｜[sky]\n"+
+"sleep｜睡覺｜[sliːp]｜[sleep]\n"+
+"slip｜滑倒｜[slɪp]｜[slip]\n"+
+"slope｜坡度｜[sloʊp]｜[slope]\n"+
+"smash｜粉碎｜[smæʃ]｜[smash]\n"+
+"smell｜氣味｜[smɛl]｜[smell]\n"+
+"smile｜微笑｜[smaɪl]｜[smile]\n"+
+"smoke｜抽煙｜[smoʊk]｜[smoke]\n"+
+"sneeze｜打噴嚏｜[sniːz]｜[sneeze]\n"+
+"snow｜雪｜[snoʊ]｜[snow]\n"+
+"soap｜肥皂｜[soʊp]｜[soap]\n"+
+"society｜社會｜[səˈsaɪəti]｜[so.ci.e.ty]\n"+
+"son｜兒子｜[sʌn]｜[son]\n"+
+"song｜歌曲｜[sɔːŋ]｜[song]\n"+
+"sort｜排序｜[sɔːrt]｜[sort]\n"+
+"sound｜聲音｜[saʊnd]｜[sound]\n"+
+"soup｜湯｜[suːp]｜[soup]\n"+
+"space｜空間｜[speɪs]｜[space]\n"+
+"stage｜舞台｜[steɪdʒ]｜[stage]\n"+
+"start｜開始｜[stɑːrt]｜[start]\n"+
+"statement｜聲明｜[ˈsteɪtmənt]｜[state.ment]\n"+
+"steam｜蒸氣｜[stiːm]｜[steam]\n"+
+"steel｜鋼｜[stiːl]｜[steel]\n"+
+"step｜步驟｜[stɛp]｜[step]\n"+
+"stitch｜針跡｜[stɪtʃ]｜[stitch]\n"+
+"stone｜石頭｜[stoʊn]｜[stone]\n"+
+"stop｜停止｜[stɑːp]｜[stop]\n"+
+"story｜故事｜[ˈstɔːri]｜[sto.ry]\n"+
+"stretch｜伸展｜[strɛtʃ]｜[stretch]\n"+
+"structure｜結構｜[ˈstrʌktʃər]｜[struc.ture]\n"+
+"substance｜物質｜[ˈsʌbstəns]｜[sub.stance]\n"+
+"sugar｜糖｜[ˈʃʊɡər]｜[sug.ar]\n"+
+"suggestion｜建議｜[səˈdʒɛstʃən]｜[sug.ges.tion]\n"+
+"summer｜夏天｜[ˈsʌmər]｜[sum.mer]\n"+
+"support｜支援｜[səˈpɔːrt]｜[sup.port]\n"+
+"surprise｜驚喜｜[sərˈpraɪz]｜[sur.prise]\n"+
+"swim｜游泳｜[swɪm]｜[swim]\n"+
+"system｜系統｜[ˈsɪstəm]｜[sys.tem]\n"+
+"talk｜談話｜[tɔːk]｜[talk]\n"+
+"taste｜味道｜[teɪst]｜[taste]\n"+
+"tax｜稅｜[tæks]｜[tax]\n"+
+"teaching｜教學｜[ˈtiːtʃɪŋ]｜[teach.ing]\n"+
+"tendency｜趨勢｜[ˈtɛndənsi]｜[ten.den.cy]\n"+
+"test｜測試｜[tɛst]｜[test]\n"+
+"theory｜理論｜[ˈθɪri]｜[the.o.ry]\n"+
+"thing｜東西｜[θɪŋ]｜[thing]\n"+
+"thought｜思想｜[θɔːt]｜[thought]\n"+
+"thunder｜雷聲｜[ˈθʌndər]｜[thun.der]\n"+
+"time｜時間｜[taɪm]｜[time]\n"+
+"tin｜錫｜[tɪn]｜[tin]\n"+
+"top｜頂部｜[tɑːp]｜[top]\n"+
+"touch｜觸摸｜[tʌtʃ]｜[touch]\n"+
+"trade｜貿易｜[treɪd]｜[trade]\n"+
+"transport｜運輸｜[ˈtrænspɔːrt]｜[trans.port]\n"+
+"trick｜伎倆｜[trɪk]｜[trick]\n"+
+"trouble｜麻煩｜[ˈtrʌbəl]｜[trou.ble]\n"+
+"turn｜轉｜[tɜːrn]｜[turn]\n"+
+"twist｜扭轉｜[twɪst]｜[twist]\n"+
+"unit｜單位｜[ˈjuːnɪt]｜[u.nit]\n"+
+"use｜使用｜[juːs]｜[use]\n"+
+"value｜值｜[ˈvæljuː]｜[val.ue]\n"+
+"verse｜詩句｜[vɜːrs]｜[verse]\n"+
+"vessel｜容器｜[ˈvɛsəl]｜[ves.sel]\n"+
+"view｜查看｜[vjuː]｜[view]\n"+
+"voice｜聲音｜[vɔɪs]｜[voice]\n"+
+"walk｜行人徒步區｜[wɔːk]｜[walk]\n"+
+"war｜戰爭｜[wɔːr]｜[war]\n"+
+"wash｜洗｜[wɔːʃ]｜[wash]\n"+
+"waste｜廢棄物｜[weɪst]｜[waste]\n"+
+"water｜水｜[ˈwɔːtər]｜[wa.ter]\n"+
+"wave｜波｜[weɪv]｜[wave]\n"+
+"wax｜蠟｜[wæks]｜[wax]\n"+
+"way｜方式｜[weɪ]｜[way]\n"+
+"weather｜天氣｜[ˈwɛðər]｜[weath.er]\n"+
+"week｜週｜[wiːk]｜[week]\n"+
+"weight｜重量｜[weɪt]｜[weight]\n"+
+"wind｜風｜[wɪnd]｜[wind]\n"+
+"wine｜酒｜[waɪn]｜[wine]\n"+
+"winter｜冬天｜[ˈwɪntər]｜[win.ter]\n"+
+"woman｜女人｜[ˈwʊmən]｜[wom.an]\n"+
+"wood｜木頭｜[wʊd]｜[wood]\n"+
+"wool｜羊毛｜[wʊl]｜[wool]\n"+
+"word｜字｜[wɜːrd]｜[word]\n"+
+"work｜工作｜[wɜːrk]｜[work]\n"+
+"wound｜傷口｜[wuːnd]｜[wound]\n"+
+"writing｜寫作｜[ˈraɪtɪŋ]｜[writ.ing]\n"+
+"year｜年｜[jɪr]｜[year]";
+
+    let currentTypedText = "";
+    let isMuted = false;
+    let currentSpeed = 1.0;
+    let audioCtx = null;
+    let isInputLocked = false;
+    let repeatAudioTimer = null;
+    let currentSpeakWord = "";
+
+    let timerSeconds = 0;
+    let timerInterval = null;
+    let isTimerRunning = false;
+    let wasTimerRunningBeforePause = false;
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function startTimer() {
+        if (isTimerRunning) return;
+        isTimerRunning = true;
+        timerInterval = setInterval(() => {
+            timerSeconds++;
+            updateTimerDisplay();
+        }, 1000);
+    }
+
+    function stopTimer() {
+        isTimerRunning = false;
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    function resetTimer() {
+        stopTimer();
+        timerSeconds = 0;
+        updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+        const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+        const secs = String(timerSeconds % 60).padStart(2, '0');
+        document.getElementById('timerDisplay').textContent = `${mins}:${secs}`;
+    }
+
+    function focusHiddenInput() {
+        const hiddenInput = document.getElementById('hiddenInput');
+        hiddenInput.focus();
+    }
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        const muteBtn = document.getElementById('muteBtn');
+        if (isMuted) {
+            muteBtn.textContent = "🔇 靜音";
+            stopRepeatingAudio();
+        } else {
+            muteBtn.textContent = "🔊 開啟";
+        }
+    }
+
+    function toggleColorMode() {
+        isColorMode = !isColorMode;
+        const btn = document.getElementById('colorModeBtn');
+        if (isColorMode) {
+            btn.textContent = "🎨 彩色";
+        } else {
+            btn.textContent = "⬛ 黑白";
+        }
+        renderComparisonView();
+        updateInfoPanel();
+    }
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                alert(`無法切換全螢幕: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    function updateSpeed() {
+        const select = document.getElementById('speedSelect');
+        currentSpeed = parseFloat(select.value);
+    }
+
+    function openModal() {
+        document.getElementById('batchTextarea').value = rawArticleText;
+        document.getElementById('articleModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('articleModal').style.display = 'none';
+    }
+
+    function openProgressModal() {
+        wasTimerRunningBeforePause = isTimerRunning;
+        stopTimer();
+        stopRepeatingAudio();
+
+        let completed = score;
+        let remaining = Math.max(0, linesList.length - currentLineIndex);
+        let mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+        let secs = String(timerSeconds % 60).padStart(2, '0');
+
+        document.getElementById('progTime').textContent = `${mins}:${secs}`;
+        document.getElementById('progCompleted').textContent = completed;
+        document.getElementById('progRemaining').textContent = remaining;
+        document.getElementById('progErrors').textContent = errorCount;
+
+        document.getElementById('progressModal').style.display = 'flex';
+    }
+
+    function resumePractice() {
+        document.getElementById('progressModal').style.display = 'none';
+        if (wasTimerRunningBeforePause) {
+            startTimer();
+        }
+        focusHiddenInput();
+        startLoopForCurrentWord();
+    }
+
+    function clearModalText() {
+        if (confirm('確定要清空所有內容嗎？')) {
+            document.getElementById('batchTextarea').value = '';
+        }
+    }
+
+    async function confirmCustomArticle() {
+        const text = document.getElementById('batchTextarea').value;
+        if (!text.trim()) {
+            alert('請輸入有效的內容！');
+            return;
+        }
+        closeModal();
+        try {
+            loadDataFromCustomFormat(text);
+        } catch(err) {
+            alert('格式解析失敗，請確保格式正確！');
+        }
+    }
+
+    function exportArticle() {
+        let userFileName = prompt("請輸入要儲存的檔案名稱：", "⌨️英打練習-01");
+        if (userFileName === null) return;
+        
+        let trimmedName = userFileName.trim();
+        if (!trimmedName) {
+            trimmedName = "⌨️英打練習-01";
+        }
+        if (!trimmedName.toLowerCase().endsWith('.txt') && !trimmedName.toLowerCase().endsWith('.json')) {
+            trimmedName += '.txt';
+        }
+
+        let exportParts = [];
+        linesList.forEach(line => {
+            line.words.forEach((w) => {
+                let orig = w.original;
+                let trans = w.translation || "";
+                let ipa = w.ipa || "";
+                let ph = w.phonics || "";
+                exportParts.push(`${orig} ｜ ${trans} ｜ ${ipa} ｜ ${ph}`);
+            });
+        });
+
+        const fileContent = exportParts.join('\n');
+        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = trimmedName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function triggerImport() {
+        document.getElementById('importFile').click();
+    }
+
+    function importArticle(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const content = e.target.result;
+            if (!content.trim()) {
+                alert('匯入的檔案內容為空！');
+                event.target.value = '';
+                return;
+            }
+
+            try {
+                loadDataFromCustomFormat(content);
+                alert('檔案匯入成功！');
+            } catch (err) {
+                alert('檔案格式錯誤，請確認是否符合指定格式！');
+            }
+            event.target.value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    function loadDataFromCustomFormat(text) {
+        rawArticleText = text;
+        let itemTexts = text.split(/\r?\n/);
+        let parsedLines = [];
+        let allWordsCount = 0;
+
+        itemTexts.forEach((lineStr) => {
+            if (!lineStr.trim()) return;
+            // 支援標準半形 | 或全形 ｜ 作為分隔符號
+            let parts = lineStr.split(/[|｜]/);
+            if (parts.length >= 1) {
+                let original = parts[0].trim();
+                original = original.replace(/\.$/, '');
+                let cleanWord = original.replace(/[^a-zA-Z0-9]/g, '');
+                if (!cleanWord) return;
+
+                let translation = parts[1] ? parts[1].trim() : "";
+                let ipa = parts[2] ? parts[2].trim() : "";
+                let phonics = parts[3] ? parts[3].trim() : "";
+
+                let currentLineWords = [{
+                    original: original,
+                    clean: cleanWord,
+                    translation: translation,
+                    ipa: ipa,
+                    phonics: phonics
+                }];
+                allWordsCount++;
+                parsedLines.push({ words: currentLineWords });
+            }
+        });
+
+        if (parsedLines.length === 0) {
+            throw new Error("無效的格式");
+        }
+
+        shuffleArray(parsedLines);
+
+        linesList = parsedLines;
+        totalWordsCount = allWordsCount;
+        currentLineIndex = 0;
+        currentWordIndexInLine = 0;
+        score = 0;
+        errorCount = 0;
+        document.getElementById('errorCountDisplay').textContent = errorCount;
+        scoreDisplay.textContent = score;
+        currentTypedText = "";
+        hiddenInput.value = "";
+        statusDisplay.textContent = "";
+        isInputLocked = false;
+        stopRepeatingAudio();
+        resetTimer();
+
+        updateProgress();
+        renderComparisonView();
+        updateInfoPanel();
+        const existingStats = document.querySelector('.stats-panel');
+        if (existingStats) existingStats.remove();
+        document.getElementById('stats').style.display = 'block';
+        startLoopForCurrentWord();
+    }
+
+    function playErrorSound() {
+        if (isMuted) return;
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.15);
+        
+        errorCount++;
+        document.getElementById('errorCountDisplay').textContent = errorCount;
+    }
+
+    function speakOnce(text) {
+        if (isMuted || !('speechSynthesis' in window)) return;
+        let utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = currentSpeed;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function startLoopForCurrentWord() {
+        stopRepeatingAudio();
+        const wordObj = getCurrentWordObj();
+        if (!wordObj) return;
+        if (currentTypedText.length >= wordObj.clean.length) return;
+        if (isMuted) return;
+
+        currentSpeakWord = wordObj.clean;
+        speakOnce(currentSpeakWord);
+        repeatAudioTimer = setInterval(() => {
+            if (isMuted) return;
+            if (currentTypedText.length >= wordObj.clean.length) {
+                stopRepeatingAudio();
+                return;
+            }
+            speakOnce(currentSpeakWord);
+        }, 1500);
+    }
+
+    function stopRepeatingAudio() {
+        if (repeatAudioTimer) {
+            clearInterval(repeatAudioTimer);
+            repeatAudioTimer = null;
+        }
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+        currentSpeakWord = "";
+    }
+
+    function goToNextWord(shouldSpeak = true) {
+        if (currentLineIndex >= linesList.length) return;
+
+        stopRepeatingAudio();
+
+        if (currentLineIndex + 1 < linesList.length) {
+            currentLineIndex++;
+            currentWordIndexInLine = 0;
+            currentTypedText = "";
+            hiddenInput.value = "";
+            updateProgress();
+            renderComparisonView();
+            updateInfoPanel();
+            if (shouldSpeak) {
+                startLoopForCurrentWord();
+            }
+        } else {
+            currentLineIndex = linesList.length;
+            renderComparisonView();
+            updateInfoPanel();
+        }
+    }
+
+    function updateProgress() {
+        let completedCount = currentLineIndex;
+        progressDisplay.textContent = `${completedCount + 1} / ${linesList.length}`;
+    }
+
+    function showStats() {
+        stopTimer();
+        const totalSecs = timerSeconds;
+        const wordsPerMin = totalSecs > 0 ? Math.round((score / totalSecs) * 60) : 0;
+
+        const oldPanel = document.querySelector('.stats-panel');
+        if (oldPanel) oldPanel.remove();
+
+        document.getElementById('stats').style.display = 'none';
+
+        const panel = document.createElement('div');
+        panel.className = 'stats-panel';
+        panel.innerHTML = `
+            <h2>📊 練習結算報告</h2>
+            <div class="stats-grid">
+                <div class="stats-item">
+                    <span class="label">⏱️ 總花費時間</span>
+                    <span class="value blue">${Math.floor(totalSecs / 60)} 分 ${totalSecs % 60} 秒</span>
+                </div>
+                <div class="stats-item">
+                    <span class="label">📈 平均字速</span>
+                    <span class="value gold">${wordsPerMin} 字/分鐘</span>
+                </div>
+                <div class="stats-item">
+                    <span class="label">❌ 按錯總次數</span>
+                    <span class="value red">${errorCount} 次</span>
+                </div>
+                <div class="stats-item">
+                    <span class="label">✅ 總正確單字數</span>
+                    <span class="value green">${score} 個</span>
+                </div>
+            </div>
+            <button class="restart-btn" onclick="restartPractice()">🔀 隨機重新練習</button>
+        `;
+
+        const container = document.getElementById('main-container');
+        container.appendChild(panel);
+    }
+
+    const comparisonDisplay = document.getElementById('comparison-display');
+    const groupTrans = document.getElementById('group-trans');
+    const groupIpa = document.getElementById('group-ipa');
+    const groupPhonics = document.getElementById('group-phonics');
+    const translationDisplay = document.getElementById('translation-display');
+    const ipaDisplay = document.getElementById('ipa-display');
+    const phoneticDisplay = document.getElementById('phonetic-display');
+    const hiddenInput = document.getElementById('hiddenInput');
+    const statusDisplay = document.getElementById('statusDisplay');
+    const progressDisplay = document.getElementById('progress');
+    const scoreDisplay = document.getElementById('score');
+
+    function getCurrentWordObj() {
+        if (linesList[currentLineIndex] && linesList[currentLineIndex].words[0]) {
+            return linesList[currentLineIndex].words[0];
+        }
+        return null;
+    }
+
+    function formatCharHtml(char) {
+        if (!isColorMode) {
+            return `<span class="normal-char">${char}</span>`;
+        }
+        const lower = char.toLowerCase();
+        if (lower === 'a') return `<span class="vowel-a">${char}</span>`;
+        if (lower === 'e') return `<span class="vowel-e">${char}</span>`;
+        if (lower === 'i') return `<span class="vowel-i">${char}</span>`;
+        if (lower === 'o') return `<span class="vowel-o">${char}</span>`;
+        if (lower === 'u') return `<span class="vowel-u">${char}</span>`;
+
+        if (/[a-zA-Z0-9]/.test(char)) {
+            return `<span class="normal-char">${char}</span>`;
+        }
+        return `<span class="symbol-char">${char}</span>`;
+    }
+
+    function renderComparisonView() {
+        if (currentLineIndex >= linesList.length) {
+            comparisonDisplay.innerHTML = '<div class="compare-row"><div class="compare-en" style="text-align: center; color: #2ecc71; font-weight: bold; font-size: 24px;">🎉 太棒了！練習已全部完成！</div></div>';
+            groupTrans.style.display = 'none';
+            groupIpa.style.display = 'none';
+            groupPhonics.style.display = 'none';
+            statusDisplay.textContent = "練習完成！";
+            showStats();
+            return;
+        }
+
+        const lineObj = linesList[currentLineIndex];
+        const wordObj = lineObj.words[0];
+        let wordDisplayStr = wordObj.original;
+        
+        let wordCharHtml = '';
+        let targetIdx = 0;
+        let typedIdx = 0;
+        const targetWord = wordDisplayStr;
+
+        while (targetIdx < targetWord.length) {
+            const char = targetWord[targetIdx];
+            const isSymbol = /[^a-zA-Z0-9]/.test(char);
+
+            if (isSymbol) {
+                wordCharHtml += `<span class="symbol-char">${char}</span>`;
+                targetIdx++;
+                continue;
+            }
+
+            if (typedIdx < currentTypedText.length) {
+                const typedChar = currentTypedText[typedIdx];
+                if (typedChar.toLowerCase() === char.toLowerCase()) {
+                    wordCharHtml += `<span class="correct-char">${char}</span>`;
+                } else {
+                    wordCharHtml += `<span class="incorrect-char">${typedChar}</span>`;
+                }
+                typedIdx++;
+            } else {
+                wordCharHtml += formatCharHtml(char);
+            }
+            targetIdx++;
+        }
+
+        let lineHtml = `<span class="word-item active-word"><b>${wordCharHtml}</b></span>`;
+
+        comparisonDisplay.innerHTML = `
+            <div class="compare-row">
+                <div class="compare-en"><div class="line-block">${lineHtml}</div></div>
+            </div>
+        `;
+    }
+
+    function updateInfoPanel() {
+        const wordObj = getCurrentWordObj();
+        if (!wordObj) {
+            groupTrans.style.display = 'none';
+            groupIpa.style.display = 'none';
+            groupPhonics.style.display = 'none';
+            statusDisplay.textContent = "";
+            return;
+        }
+
+        if (wordObj.translation) {
+            groupTrans.style.display = 'block';
+            translationDisplay.textContent = wordObj.translation;
+        } else {
+            groupTrans.style.display = 'none';
+        }
+
+        if (wordObj.ipa) {
+            groupIpa.style.display = 'block';
+            ipaDisplay.textContent = wordObj.ipa;
+        } else {
+            groupIpa.style.display = 'none';
+        }
+
+        if (wordObj.phonics) {
+            groupPhonics.style.display = 'block';
+            phoneticDisplay.textContent = wordObj.phonics;
+        } else {
+            groupPhonics.style.display = 'none';
+        }
+
+        statusDisplay.textContent = currentTypedText;
+        hiddenInput.value = currentTypedText;
+    }
+
+    hiddenInput.addEventListener('input', () => {
+        if (currentLineIndex >= linesList.length || isInputLocked) return;
+        
+        const wordObj = getCurrentWordObj();
+        if (!wordObj) return;
+
+        const cleanTarget = wordObj.clean.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        let fullVal = hiddenInput.value;
+        let lastChar = fullVal.length > 0 ? fullVal[fullVal.length - 1] : "";
+
+        if (!isTimerRunning && lastChar && /^[a-zA-Z0-9]$/.test(lastChar)) {
+            startTimer();
+        }
+
+        if (lastChar === ' ' || lastChar === '\n') {
+            if (currentTypedText.length < cleanTarget.length) {
+                startLoopForCurrentWord();
+                hiddenInput.value = currentTypedText;
+                return;
+            } else {
+                goToNextWord(true);
+                hiddenInput.value = "";
+                return;
+            }
+        }
+
+        if (lastChar && /^[a-zA-Z0-9]$/.test(lastChar)) {
+            let nextTyped = currentTypedText + lastChar;
+            let cleanTyped = nextTyped.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
+            let hasError = false;
+            for (let i = 0; i < cleanTyped.length; i++) {
+                if (i < cleanTarget.length) {
+                    if (cleanTyped[i] !== cleanTarget[i]) {
+                        hasError = true;
+                        break;
+                    }
+                } else {
+                    hasError = true;
+                    break;
+                }
+            }
+
+            if (hasError) {
+                playErrorSound();
+                hiddenInput.value = currentTypedText;
+                return;
+            }
+
+            currentTypedText = cleanTyped;
+
+            if (currentTypedText.length === cleanTarget.length) {
+                stopRepeatingAudio();
+                speakOnce(wordObj.clean);
+
+                score++;
+                scoreDisplay.textContent = score;
+                isInputLocked = true;
+
+                renderComparisonView();
+                updateInfoPanel();
+
+                setTimeout(() => {
+                    isInputLocked = false;
+                    goToNextWord(true);
+                    updateProgress();
+                    renderComparisonView();
+                    updateInfoPanel();
+                }, 800);
+
+                return;
+            }
+        } else if (fullVal.length < currentTypedText.length) {
+            currentTypedText = fullVal.replace(/[^a-zA-Z0-9]$/g, '').toLowerCase();
+        } else {
+            let filtered = fullVal.replace(/[^a-zA-Z0-9]/g, '');
+            if (filtered !== fullVal) {
+                hiddenInput.value = filtered;
+            }
+        }
+
+        renderComparisonView();
+        updateInfoPanel();
+    });
+
+    function restartPractice() {
+        stopRepeatingAudio();
+        loadDataFromCustomFormat(rawArticleText);
+    }
+
+    window.onload = async () => {
+        loadDataFromCustomFormat(rawArticleText);
+    };
+</script>
+
+</body>
+</html>
