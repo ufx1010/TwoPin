@@ -416,27 +416,24 @@ textarea.editor-max{height:62vh !important;transition:height .2s ease}
     if (currentImageBlobUrl) URL.revokeObjectURL(currentImageBlobUrl);
     
     const audioFile = await getMediaFromDB(s.id + "_audio"), imageFile = await getMediaFromDB(s.id + "_image");
-    // 「封面」欄位現在也能放動畫 mp4：用檔名副檔名判斷是圖片還是影片，是影片就用靜音循環的方式播放
-    // 當作背景動畫，聲音還是吃音檔那邊，不會互相干擾。
-    const imgExt = (s.savedImageName||'').split('.').pop().toLowerCase();
-    const imageIsVideo = ['mp4','mov','webm','m4v'].includes(imgExt);
+    const imageIsVideo = isVideoFileName(s.savedImageName);
     
     if (audioFile) {
-      currentAudioBlobUrl = URL.createObjectURL(audioFile); const ext = s.savedAudioName.split('.').pop().toLowerCase();
-      if(['mp4','mov','webm','m4v'].includes(ext)){ 
+      currentAudioBlobUrl = URL.createObjectURL(audioFile);
+      if(isVideoFileName(s.savedAudioName)){
         videoPlayer.src = currentAudioBlobUrl; videoPlayer.classList.remove('hidden'); activeMedia = videoPlayer; 
       } else { 
         audioPlayer.src = currentAudioBlobUrl; activeMedia = audioPlayer; mediaPlaceholder.classList.remove('hidden'); $('#placeholderText').textContent = ''; 
       }
       if (imageFile) { 
         currentImageBlobUrl = URL.createObjectURL(imageFile);
-        if(imageIsVideo){ bgVideoPlayer.src = currentImageBlobUrl; bgVideoPlayer.classList.remove('hidden'); if(activeMedia && !activeMedia.paused) bgVideoPlayer.play().catch(()=>{}); }
+        if(imageIsVideo){ bgVideoPlayer.src = currentImageBlobUrl; bgVideoPlayer.classList.remove('hidden'); syncBgVideo(true); }
         else { imageViewer.src = currentImageBlobUrl; imageViewer.classList.remove('hidden'); }
         mediaPlaceholder.classList.add('hidden'); 
       }
     } else if (imageFile) {
       currentImageBlobUrl = URL.createObjectURL(imageFile);
-      if(imageIsVideo){ bgVideoPlayer.src = currentImageBlobUrl; bgVideoPlayer.classList.remove('hidden'); }
+      if(imageIsVideo){ bgVideoPlayer.src = currentImageBlobUrl; bgVideoPlayer.classList.remove('hidden'); syncBgVideo(true); }
       else { imageViewer.src = currentImageBlobUrl; imageViewer.classList.remove('hidden'); }
       activeMedia = audioPlayer; isImageOnlyMode = true;
     } else {
@@ -444,10 +441,12 @@ textarea.editor-max{height:62vh !important;transition:height .2s ease}
     }
     parsedLyrics = parse(s.l1, s.l2); _parsedResult=parsedLyrics; _lastSubIdx=-1; updateMarquee(0); updateToggleButtonsUI(); setPlayIcon(activeMedia.paused);
     activeMedia.playbackRate = ttsRate;
+    syncBgVideo(true);
   }
   
   const onTimeUpdateAction=(target)=>{
     const cur=target.currentTime, dur=target.duration||0; if(dur>0)$('#playbackProgress').value=(cur/dur)*1000; $('#pTimeStart').textContent=formatTimeWithMs(cur); $('#pTimeEnd').textContent=formatTimeWithMs(dur);
+    syncBgVideo(false);
     if(tapSyncActive){
       // 修改時間模式：字幕跟著實際播放時間走（用每一句「目前」的時間點，包含還沒點過、自動間隔排好的）。
       // 重新開始模式：完全不看播放時間，只有依序點擊才會換下一句，這裡略過不處理。
@@ -467,6 +466,10 @@ textarea.editor-max{height:62vh !important;transition:height .2s ease}
     }
   };
   audioPlayer.ontimeupdate=()=>onTimeUpdateAction(audioPlayer); videoPlayer.ontimeupdate=()=>onTimeUpdateAction(videoPlayer);
+  ['play','pause','seeking','seeked','ratechange'].forEach(ev => {
+    audioPlayer.addEventListener(ev, ()=>syncBgVideo(ev==='seeking'||ev==='seeked'));
+    videoPlayer.addEventListener(ev, ()=>syncBgVideo(ev==='seeking'||ev==='seeked'));
+  });
   let loopSongOn=false;
   audioPlayer.addEventListener('ended', onMediaEnded); videoPlayer.addEventListener('ended', onMediaEnded);
   // 動畫封面（背景循環影片）跟著實際播放的音檔/影片一起播放/暫停，聲音還是吃音檔本身，
@@ -475,11 +478,44 @@ textarea.editor-max{height:62vh !important;transition:height .2s ease}
   // （例如暫停時用上一句/下一句切換，不會觸發 play 事件，動畫就會卡住不動）。
   // 改成固定每 400ms 檢查一次「目前應該播放的媒體」實際是播放中還暫停中，強制讓背景動畫跟著對齊，
   // 不管狀態是被什麼操作改變的，最多 400ms 內一定會自動修正回來，不會再卡住。
+  function isVideoFileName(filename){
+    if(!filename) return false;
+    const ext = filename.split('.').pop().toLowerCase();
+    return ['mp4','webm','mov','m4v','mkv','ogv','avi','3gp'].includes(ext);
+  }
+
+  function syncBgVideo(forceSeek=false, targetTime=null){
+    if(bgVideoPlayer.classList.contains('hidden') || !bgVideoPlayer.src) return;
+    const curRate = ttsRate || 1.0;
+    if(bgVideoPlayer.playbackRate !== curRate){
+      bgVideoPlayer.playbackRate = curRate;
+    }
+    const duration = bgVideoPlayer.duration;
+    let expectedTime = targetTime;
+    if(expectedTime === null || expectedTime === undefined){
+      if(!isImageOnlyMode && activeMedia){
+        expectedTime = activeMedia.currentTime || 0;
+      } else if(isImageOnlyMode && imageTtsPlaying){
+        expectedTime = (performance.now() - imageTtsStartWallTime)/1000 + imageTtsStartLyricTime;
+      }
+    }
+    if(expectedTime !== null && expectedTime !== undefined && duration > 0 && !isNaN(duration)){
+      const targetBgTime = expectedTime % duration;
+      if(forceSeek || Math.abs(bgVideoPlayer.currentTime - targetBgTime) > 0.3){
+        bgVideoPlayer.currentTime = targetBgTime;
+      }
+    }
+    const shouldPlay = isImageOnlyMode ? imageTtsPlaying : (activeMedia && !activeMedia.paused);
+    if(shouldPlay){
+      if(bgVideoPlayer.paused) bgVideoPlayer.play().catch(()=>{});
+    } else {
+      if(!bgVideoPlayer.paused) bgVideoPlayer.pause();
+    }
+  }
+
   setInterval(()=>{
-    if(!activeMedia || bgVideoPlayer.classList.contains('hidden')) return;
-    if(activeMedia.paused){ if(!bgVideoPlayer.paused) bgVideoPlayer.pause(); }
-    else { if(bgVideoPlayer.paused) bgVideoPlayer.play().catch(()=>{}); }
-  }, 400);
+    syncBgVideo(false);
+  }, 300);
   function onMediaEnded(){
     // 播完自動回到最開頭；如果有開單曲循環，就直接重播。
     if(activeMedia){ activeMedia.currentTime=0; }
@@ -518,13 +554,12 @@ textarea.editor-max{height:62vh !important;transition:height .2s ease}
   function formatTimeWithMs(s){ if(isNaN(s))return"00:00:00"; return formatSecondsToStamp(s); }
   function setPlayIcon(isPaused){ $('#pPlayIcon').innerHTML=isPaused?'<polygon points="5 3 19 12 5 21 5 3"></polygon>':'<rect x="6" y="5" width="4" height="14" fill="currentColor"/><rect x="14" y="5" width="4" height="14" fill="currentColor"/>'; }
   let imageTtsPlaying=false, imageTtsTimer=null, imageTtsStartWallTime=0, imageTtsStartLyricTime=0, imageProgressTimer=null;
-  function stopImageTtsPlayback(){ imageTtsPlaying=false; if(imageTtsTimer)clearTimeout(imageTtsTimer); if(imageProgressTimer)clearInterval(imageProgressTimer); window.speechSynthesis.cancel(); setPlayIcon(true); bgVideoPlayer.pause(); }
+  function stopImageTtsPlayback(){ imageTtsPlaying=false; if(imageTtsTimer)clearTimeout(imageTtsTimer); if(imageProgressTimer)clearInterval(imageProgressTimer); window.speechSynthesis.cancel(); setPlayIcon(true); syncBgVideo(true); }
   function startImageTtsPlayback(fromLyricTime=0){
     const _pl=()=>(parsedLyrics?.lines||[]); if(_pl().length===0)return; imageTtsPlaying=true; setPlayIcon(false);
-    // 沒有音檔、純靠語音合成朗讀的模式下，動畫封面也要跟著開始循環播放，不能只有靜態畫面。
-    if(!bgVideoPlayer.classList.contains('hidden')) bgVideoPlayer.play().catch(()=>{});
+    syncBgVideo(true, fromLyricTime);
     imageTtsStartWallTime=performance.now(); imageTtsStartLyricTime=fromLyricTime;
-    imageProgressTimer=setInterval(()=>{ if(!imageTtsPlaying)return; const elapsed=(performance.now()-imageTtsStartWallTime)/1000+imageTtsStartLyricTime; $('#pTimeStart').textContent=formatTimeWithMs(elapsed); const pl=_pl(); const total=pl.length?pl[pl.length-1].time:0; $('#pTimeEnd').textContent=formatTimeWithMs(total); if(total>0)$('#playbackProgress').value=Math.min(1000,(elapsed/total)*1000); },200);
+    imageProgressTimer=setInterval(()=>{ if(!imageTtsPlaying)return; const elapsed=(performance.now()-imageTtsStartWallTime)/1000+imageTtsStartLyricTime; $('#pTimeStart').textContent=formatTimeWithMs(elapsed); const pl=_pl(); const total=pl.length?pl[pl.length-1].time:0; $('#pTimeEnd').textContent=formatTimeWithMs(total); if(total>0)$('#playbackProgress').value=Math.min(1000,(elapsed/total)*1000); syncBgVideo(false, elapsed); },200);
     let i=_pl().findIndex(l=>l.time>=fromLyricTime); if(i===-1)i=0;
     function playLine(idx){
       const pl=_pl(); if(!imageTtsPlaying)return; if(idx>=pl.length){ stopImageTtsPlayback(); return; } const item=pl[idx];
@@ -532,7 +567,7 @@ textarea.editor-max{height:62vh !important;transition:height .2s ease}
       imageTtsTimer=setTimeout(()=>{ if(!imageTtsPlaying)return; updateMarquee(idx); speakText(playOriginSound?item.t1:"",()=>speakText(playTransSound?item.t2:"",()=>playLine(idx+1))); },waitMs);
     } playLine(i);
   }
-  $('#pPlay').onclick=()=>{ if(isImageOnlyMode){ if(imageTtsPlaying){stopImageTtsPlayback();}else{startImageTtsPlayback(parsedLyrics[_currentActiveIdx]?.time||0);}return; } if(!activeMedia.src)return; if(activeMedia.paused){window.speechSynthesis.cancel();activeMedia.play();}else{activeMedia.pause();} setPlayIcon(activeMedia.paused); };
+  $('#pPlay').onclick=()=>{ if(isImageOnlyMode){ if(imageTtsPlaying){stopImageTtsPlayback();}else{startImageTtsPlayback(parsedLyrics[_currentActiveIdx]?.time||0);}return; } if(!activeMedia.src)return; if(activeMedia.paused){window.speechSynthesis.cancel();activeMedia.play();}else{activeMedia.pause();} setPlayIcon(activeMedia.paused); syncBgVideo(true); };
   function findVoiceForLang(lang){
     if(!availableVoices.length) return null;
     const norm=s=>(s||'').toLowerCase().replace(/_/g,'-');
@@ -557,16 +592,18 @@ textarea.editor-max{height:62vh !important;transition:height .2s ease}
   $('#lyricMarqueeBox').addEventListener('touchend',(e)=>{ if(!_marqueeTouch)return; _marqueeTouch=false; if(window._marqueeWasDragged){ window._marqueeWasDragged=false; return; } e.preventDefault(); if(window._tapSyncLongPressFired){ window._tapSyncLongPressFired=false; return; } if(tapSyncActive){ recordTapSyncPoint(); return; } if(!activeMedia.paused){activeMedia.pause();setPlayIcon(true);return;} speakCurrentLine(); },{ passive:false });
   $('#pPrev').onclick=()=>{
     // 即時打點進行中時，這顆鍵改成控制打點的上一句，跟頂部橫幅共用同一組邏輯，不用另外準備一組按鍵。
-    if(tapSyncActive){ if(tapSyncIdx>0){ tapSyncIdx--; if(tapSyncLines[tapSyncIdx].time!=null) activeMedia.currentTime=tapSyncLines[tapSyncIdx].time; updateTapSyncBanner(); } return; }
+    if(tapSyncActive){ if(tapSyncIdx>0){ tapSyncIdx--; if(tapSyncLines[tapSyncIdx].time!=null) activeMedia.currentTime=tapSyncLines[tapSyncIdx].time; updateTapSyncBanner(); } syncBgVideo(true); return; }
     // 原文/翻譯時間各自獨立（沒有合併）的歌曲，parsedLyrics.lines 本來就是空的，要改讀 l1 這個陣列，
     // 不然這種歌曲的上一句/下一句按了會完全沒反應，看起來像當機。
     const pr=_parsedResult; const pl = (pr && !pr.merged) ? (pr.l1||[]) : (parsedLyrics?.lines||[]);
     if(pl.length===0)return; let tIdx=_currentActiveIdx-1; if(tIdx<0)tIdx=0; const tTime=pl[tIdx].time; if(isImageOnlyMode){ if(imageTtsPlaying){stopImageTtsPlayback();updateMarquee(tIdx);startImageTtsPlayback(tTime);}else{updateMarquee(tIdx);} }else{activeMedia.currentTime=tTime;}
+    syncBgVideo(true);
   };
   $('#pNext').onclick=()=>{
-    if(tapSyncActive){ if(tapSyncIdx<tapSyncLines.length-1){ tapSyncIdx++; if(tapSyncLines[tapSyncIdx].time!=null) activeMedia.currentTime=tapSyncLines[tapSyncIdx].time; updateTapSyncBanner(); } return; }
+    if(tapSyncActive){ if(tapSyncIdx<tapSyncLines.length-1){ tapSyncIdx++; if(tapSyncLines[tapSyncIdx].time!=null) activeMedia.currentTime=tapSyncLines[tapSyncIdx].time; updateTapSyncBanner(); } syncBgVideo(true); return; }
     const pr=_parsedResult; const pl = (pr && !pr.merged) ? (pr.l1||[]) : (parsedLyrics?.lines||[]);
     if(pl.length===0)return; let tIdx=_currentActiveIdx+1; if(tIdx>=pl.length)tIdx=pl.length-1; const tTime=pl[tIdx].time; if(isImageOnlyMode){ if(imageTtsPlaying){stopImageTtsPlayback();updateMarquee(tIdx);startImageTtsPlayback(tTime);}else{updateMarquee(tIdx);} }else{activeMedia.currentTime=tTime;}
+    syncBgVideo(true);
   };
   // 拖曳進度條時 oninput 會非常密集地連續觸發（每移動一點點就觸發一次），如果每次都真的去 seek，
   // 對音檔/背景動畫下達的指令會多到來不及各自安定下來，音樂、背景動畫、字幕三者容易暫時對不齊。
@@ -575,6 +612,7 @@ textarea.editor-max{height:62vh !important;transition:height .2s ease}
   function doSeek(val){
     if(!activeMedia.duration) return;
     activeMedia.currentTime=(val/1000)*activeMedia.duration;
+    syncBgVideo(true);
   }
   $('#playbackProgress').oninput=(e)=>{
     _seekPendingValue=e.target.value;
@@ -585,9 +623,9 @@ textarea.editor-max{height:62vh !important;transition:height .2s ease}
     if(_seekThrottleTimer){ clearTimeout(_seekThrottleTimer); _seekThrottleTimer=null; }
     doSeek(e.target.value);
     // 放開手指後，強制把字幕、背景動畫都重新對一次最終確定的時間，避免中途節流跳過的那幾次更新累積出落差。
-    if(activeMedia){ onTimeUpdateAction(activeMedia); if(!bgVideoPlayer.classList.contains('hidden') && !activeMedia.paused) bgVideoPlayer.play().catch(()=>{}); }
+    if(activeMedia){ onTimeUpdateAction(activeMedia); syncBgVideo(true); }
   });
-  $('#ttsSpeed').onclick=()=>{ ttsRate=speedList[(speedList.indexOf(ttsRate)+1)%speedList.length]; $('#ttsSpeed').textContent=ttsRate+'x'; if(activeMedia)activeMedia.playbackRate=ttsRate; };
+  $('#ttsSpeed').onclick=()=>{ ttsRate=speedList[(speedList.indexOf(ttsRate)+1)%speedList.length]; $('#ttsSpeed').textContent=ttsRate+'x'; if(activeMedia)activeMedia.playbackRate=ttsRate; syncBgVideo(false); };
   
   function updateToggleButtonsUI(){
     const onCls='w-8 h-8 grid place-items-center text-[13px] rounded-lg border border-violet-500 bg-violet-600/40 text-white shadow-sm shadow-violet-600/20';
