@@ -474,20 +474,6 @@
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col" style="flex: 1.2;">
-                                <span class="file-label">⬜ 內文框底色</span>
-                                <input type="color" id="content-box-bg-color" value="#000000" style="width:100%; height:34px; padding:0; cursor:pointer;">
-                            </div>
-                            <div class="col" style="flex: 1.8;">
-                                <span class="file-label">💧 內文框透明度 (<span id="val-content-opacity-text">0</span>%)</span>
-                                <div style="display: flex; align-items: center; gap: 4px; height: 34px;">
-                                    <input type="range" id="content-box-bg-opacity" min="0" max="100" value="0" step="5" style="flex: 1; height: 20px; cursor: pointer; accent-color: #39cccc;">
-                                    <button class="size-btn" style="width: 28px; height: 28px; font-size: 11px; border-radius: 4px;" onclick="adjustOpacity('content-box-bg-opacity', -5)">-</button>
-                                    <button class="size-btn" style="width: 28px; height: 28px; font-size: 11px; border-radius: 4px;" onclick="adjustOpacity('content-box-bg-opacity', 5)">+</button>
-                                </div>
-                            </div>
-                        </div>
 
                         <div class="row">
                             <div class="col" style="flex: 1;">
@@ -596,39 +582,6 @@
                     </div>
                 </div>
 
-                <div class="row" style="align-items: flex-start;">
-                    <div class="col" style="flex: 1.0;">
-                        <span class="file-label">📝 內文 (單指移動/雙指縮放)</span>
-                        <textarea id="text-content" placeholder="輸入內文"></textarea>
-                    </div>
-                    <div class="col" style="flex: 1.0;">
-                        <span class="file-label">📐 大小 / 角度 / 微調</span>
-                        <div style="display: flex; gap: 4px; margin-bottom: 4px;">
-                            <div class="size-ctrl" style="flex: 1; height: 34px;">
-                                <button class="size-btn" onclick="changeContentScale(-2)">-</button>
-                                <span class="size-val" id="val-content-scale">60</span>     
-                                <button class="size-btn" onclick="changeContentScale(2)">+</button>
-                            </div>
-                            <div class="size-ctrl" style="flex: 1; height: 34px;">
-                                <button class="size-btn" onclick="changeContentAngle(-5)">-</button>
-                                <span class="size-val" id="val-content-angle">0°</span>     
-                                <button class="size-btn" onclick="changeContentAngle(5)">+</button>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 4px;">
-                            <div class="size-ctrl" style="flex: 1; height: 34px;" title="上下微調">
-                                <button class="size-btn" onclick="moveContentPos(0, -5)">⬆️</button>
-                                <span class="size-val" id="val-content-y">↕️上下</span>
-                                <button class="size-btn" onclick="moveContentPos(0, 5)">⬇️</button>
-                            </div>
-                            <div class="size-ctrl" style="flex: 1; height: 34px;" title="左右微調">
-                                <button class="size-btn" onclick="moveContentPos(-5, 0)">⬅️</button>
-                                <span class="size-val" id="val-content-x">↔️左右</span>
-                                <button class="size-btn" onclick="moveContentPos(5, 0)">➡️</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- 功能鍵列 -->
                 <div class="row" style="padding-top: 8px; gap: 8px;">
@@ -653,7 +606,6 @@
 
         const bgConf = { x: 0, y: 0, scale: 1.0, angle: 0 };
         const titleObj = { centerX: 400, centerY: 250, width: 100, height: 50, scale: 60, angle: 0, userMoved: false };
-        const contentObj = { centerX: 400, centerY: 450, width: 100, height: 100, scale: 60, angle: 0, userMoved: false };
         
         const conf = { gap: 12 };
         const img2Conf = { centerX: 200, centerY: 200, scale: 1.0, angle: 0 };
@@ -679,7 +631,6 @@
         };
 
         window.shrinkInputs = function() {
-            document.getElementById('text-content').blur();
             document.getElementById('input-title').blur();
         };
 
@@ -728,14 +679,12 @@
             slider.value = val;
             if (elementId === 'title-box-bg-opacity') {
                 document.getElementById('val-title-opacity-text').innerText = val;
-            } else {
-                document.getElementById('val-content-opacity-text').innerText = val;
             }
             render();
         };
 
         document.getElementById('ctrl-panel').addEventListener('click', function(e) {
-            if(e.target.id !== 'text-content' && e.target.id !== 'input-title') {
+            if(e.target.id !== 'input-title') {
                 shrinkInputs();
             }
         });
@@ -747,24 +696,18 @@
             isImg2Loaded = false;
             img2 = new Image();
             document.getElementById('input-title').value = '';
-            document.getElementById('text-content').value = '';
             document.getElementById('aspect-ratio-select').value = '1:1';
             
             document.getElementById('title-box-bg-opacity').value = '0';
             document.getElementById('val-title-opacity-text').innerText = '0';
-            document.getElementById('content-box-bg-opacity').value = '0';
-            document.getElementById('val-content-opacity-text').innerText = '0';
 
             canvas.width = 800;
             canvas.height = 800;
             bgConf.x = 0; bgConf.y = 0; bgConf.scale = 1.0; bgConf.angle = 0;
             titleObj.scale = 60; titleObj.angle = 0;
-            contentObj.scale = 60; contentObj.angle = 0;
             
             document.getElementById('val-title-scale').innerText = "60";
             document.getElementById('val-title-angle').innerText = "0°";
-            document.getElementById('val-content-scale').innerText = "60";
-            document.getElementById('val-content-angle').innerText = "0°";
             render();
         };
 
@@ -791,28 +734,6 @@
             requestRender();
         };
 
-        window.changeContentScale = function(amt) {
-            shrinkInputs();
-            contentObj.scale = Math.max(4, Math.min(300, contentObj.scale + amt));
-            document.getElementById('val-content-scale').innerText = Math.round(contentObj.scale);
-            requestRender();
-        };
-
-        window.changeContentAngle = function(amt) {
-            shrinkInputs();
-            contentObj.angle = (contentObj.angle + amt) % 360;
-            document.getElementById('val-content-angle').innerText = contentObj.angle + '°';
-            requestRender();
-        };
-
-        window.moveContentPos = function(dx, dy) {
-            shrinkInputs();
-            saveStateToHistory();
-            contentObj.centerX += dx;
-            contentObj.centerY += dy;
-            contentObj.userMoved = true;
-            requestRender();
-        };
 
         window.changeImg2Scale = function(amt) {
             img2Conf.scale = Math.max(0.01, Math.min(15.0, img2Conf.scale + amt));
@@ -864,11 +785,8 @@
             bgConf.angle = 0;
 
             const dir = document.getElementById('text-dir').value;
-            contentObj.centerX = (dir === 'v-rl') ? canvas.width * 0.75 : canvas.width * 0.25;
-            contentObj.centerY = canvas.height * 0.5;
             titleObj.centerX = (dir === 'v-rl') ? canvas.width * 0.85 : canvas.width * 0.25;
             titleObj.centerY = canvas.height * 0.2;
-            contentObj.userMoved = false;
             titleObj.userMoved = false;
         }
 
@@ -879,8 +797,6 @@
             } else {
                 updateCanvasDimensionsByRatio();
                 const dir = document.getElementById('text-dir').value;
-                contentObj.centerX = (dir === 'v-rl') ? canvas.width * 0.75 : canvas.width * 0.25;
-                contentObj.centerY = canvas.height * 0.5;
                 titleObj.centerX = (dir === 'v-rl') ? canvas.width * 0.85 : canvas.width * 0.25;
                 titleObj.centerY = canvas.height * 0.2;
             }
@@ -961,15 +877,6 @@
                 ) * (180 / Math.PI);
 
                 const pos = getCanvasCoord(e);
-                const contentDist = Math.hypot(pos.x - contentObj.centerX, pos.y - contentObj.centerY);
-                if (document.getElementById('text-content').value.trim() !== '' && contentDist < Math.max(contentObj.width, contentObj.height) / 1.0) {
-                    saveStateToHistory();
-                    activeObj = 'pinch-content';
-                    initialPinchScale = contentObj.scale;
-                    if (e.cancelable) e.preventDefault();
-                    return;
-                }
-
                 const titleDist = Math.hypot(pos.x - titleObj.centerX, pos.y - titleObj.centerY);
                 if (titleTextActive() && titleDist < Math.max(titleObj.width, titleObj.height) / 1.0) {
                     saveStateToHistory();
@@ -1005,17 +912,6 @@
                 }
             }
 
-            const contentDist = Math.hypot(pos.x - contentObj.centerX, pos.y - contentObj.centerY);
-            if (document.getElementById('text-content').value.trim() !== '' && contentDist < Math.max(contentObj.width, contentObj.height) / 1.4) {
-                saveStateToHistory();
-                activeObj = 'content';
-                dragOffset.x = pos.x - contentObj.centerX;
-                dragOffset.y = pos.y - contentObj.centerY;
-                contentObj.userMoved = true;
-                if (e.cancelable) e.preventDefault();
-                return;
-            }
-
             const titleDist = Math.hypot(pos.x - titleObj.centerX, pos.y - titleObj.centerY);
             if (titleTextActive() && titleDist < Math.max(titleObj.width, titleObj.height) / 1.2) {
                 saveStateToHistory();
@@ -1044,7 +940,7 @@
         function dragMove(e) {
             if (!activeObj) return;
 
-            if ((activeObj === 'pinch-bg' || activeObj === 'pinch-content' || activeObj === 'pinch-title') && e.touches && e.touches.length === 2) {
+            if ((activeObj === 'pinch-bg' || activeObj === 'pinch-title') && e.touches && e.touches.length === 2) {
                 const currentDist = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
                     e.touches[0].clientY - e.touches[1].clientY
@@ -1061,9 +957,6 @@
                     if (activeObj === 'pinch-bg') {
                         bgConf.scale = Math.max(0.05, Math.min(10.0, initialPinchScale * scaleFactor));
                         bgConf.angle = (initialBgAngle + angleDiff) % 360;
-                    } else if (activeObj === 'pinch-content') {
-                        contentObj.scale = Math.max(4, Math.min(300, initialPinchScale * scaleFactor));
-                        document.getElementById('val-content-scale').innerText = Math.round(contentObj.scale);
                     } else if (activeObj === 'pinch-title') {
                         titleObj.scale = Math.max(4, Math.min(300, initialPinchScale * scaleFactor));
                         document.getElementById('val-title-scale').innerText = Math.round(titleObj.scale);
@@ -1076,10 +969,7 @@
 
             const pos = getCanvasCoord(e);
 
-            if (activeObj === 'content') {
-                contentObj.centerX = pos.x - dragOffset.x;
-                contentObj.centerY = pos.y - dragOffset.y;
-            } else if (activeObj === 'title') {
+            if (activeObj === 'title') {
                 titleObj.centerX = pos.x - dragOffset.x;
                 titleObj.centerY = pos.y - dragOffset.y;
             } else if (activeObj === 'img2') {
@@ -1109,12 +999,8 @@
             document.getElementById('val-title-opacity-text').innerText = this.value;
             requestRender();
         });
-        document.getElementById('content-box-bg-opacity').addEventListener('input', function() {
-            document.getElementById('val-content-opacity-text').innerText = this.value;
-            requestRender();
-        });
 
-        const elIds = ['input-title', 'text-content', 'font-family-select', 'english-font-select', 'text-color', 'title-box-bg-color', 'content-box-bg-color', 'text-align', 'aspect-ratio-select'];
+        const elIds = ['input-title', 'font-family-select', 'english-font-select', 'text-color', 'title-box-bg-color', 'text-align', 'aspect-ratio-select'];
         elIds.forEach(id => {
             document.getElementById(id).addEventListener('input', requestRender);
             document.getElementById(id).addEventListener('change', requestRender);
@@ -1123,20 +1009,16 @@
         function saveStateToHistory() {
             const state = {
                 title: document.getElementById('input-title').value,
-                content: document.getElementById('text-content').value,
                 bgSrc: isBgLoaded ? bgImg.src : null,
                 canvasW: canvas.width,
                 canvasH: canvas.height,
                 bgConf: { ...bgConf },
-                contentObj: { ...contentObj },
                 titleObj: { ...titleObj },
                 img2Conf: { ...img2Conf },
                 isBgLoaded: isBgLoaded,
                 isImg2Loaded: isImg2Loaded,
                 titleBoxBgColor: document.getElementById('title-box-bg-color').value,
-                titleBoxBgOpacity: document.getElementById('title-box-bg-opacity').value,
-                contentBoxBgColor: document.getElementById('content-box-bg-color').value,
-                contentBoxBgOpacity: document.getElementById('content-box-bg-opacity').value
+                titleBoxBgOpacity: document.getElementById('title-box-bg-opacity').value
             };
             historyStack.push(state);
             if (historyStack.length > 20) historyStack.shift();
@@ -1149,20 +1031,14 @@
             }
             const prevState = historyStack.pop();
             document.getElementById('input-title').value = prevState.title;
-            document.getElementById('text-content').value = prevState.content;
             
             document.getElementById('title-box-bg-color').value = prevState.titleBoxBgColor || '#000000';
             document.getElementById('title-box-bg-opacity').value = prevState.titleBoxBgOpacity || '0';
             document.getElementById('val-title-opacity-text').innerText = prevState.titleBoxBgOpacity || '0';
 
-            document.getElementById('content-box-bg-color').value = prevState.contentBoxBgColor || '#000000';
-            document.getElementById('content-box-bg-opacity').value = prevState.contentBoxBgOpacity || '0';
-            document.getElementById('val-content-opacity-text').innerText = prevState.contentBoxBgOpacity || '0';
-
             canvas.width = prevState.canvasW;
             canvas.height = prevState.canvasH;
             Object.assign(bgConf, prevState.bgConf);
-            Object.assign(contentObj, prevState.contentObj);
             Object.assign(titleObj, prevState.titleObj);
             Object.assign(img2Conf, prevState.img2Conf);
             isBgLoaded = prevState.isBgLoaded;
@@ -1170,8 +1046,6 @@
 
             document.getElementById('val-title-scale').innerText = Math.round(titleObj.scale);
             document.getElementById('val-title-angle').innerText = titleObj.angle + "°";
-            document.getElementById('val-content-scale').innerText = Math.round(contentObj.scale);
-            document.getElementById('val-content-angle').innerText = contentObj.angle + "°";
             document.getElementById('val-img2-scale').innerText = Math.round(img2Conf.scale * 100) + "%";
             document.getElementById('val-img2-angle').innerText = img2Conf.angle + "°";
 
@@ -1243,16 +1117,12 @@
 
         function drawTextAndTitle() {
             const rawTitle = document.getElementById('input-title').value;
-            const content = document.getElementById('text-content').value;
             const selectFont = document.getElementById('font-family-select').value;
             const englishFont = document.getElementById('english-font-select').value;
             const color = document.getElementById('text-color').value;
             
             const titleBoxBgHex = document.getElementById('title-box-bg-color').value;
             const titleOpacityVal = parseFloat(document.getElementById('title-box-bg-opacity').value) / 100;
-            
-            const contentBoxBgHex = document.getElementById('content-box-bg-color').value;
-            const contentOpacityVal = parseFloat(document.getElementById('content-box-bg-opacity').value) / 100;
 
             const dir = document.getElementById('text-dir').value;
             const align = document.getElementById('text-align').value;
@@ -1262,16 +1132,12 @@
                 return `${sizePx}px ${fontToUse}`;
             }
 
-            if (!contentObj.userMoved && isBgLoaded) {
-                contentObj.centerX = (dir === 'v-rl') ? canvas.width * 0.75 : canvas.width * 0.25;
-                contentObj.centerY = canvas.height * 0.5;
-            }
             if (!titleObj.userMoved && isBgLoaded) {
                 titleObj.centerX = (dir === 'v-rl') ? canvas.width * 0.85 : canvas.width * 0.25;
                 titleObj.centerY = canvas.height * 0.2;
             }
 
-            // 1. 繪製標題
+            // 繪製標題
             if (rawTitle.trim() !== '') {
                 let titleLines = rawTitle.split('\n');
                 ctx.save();
@@ -1361,131 +1227,6 @@
             } else {
                 titleObj.width = 0; titleObj.height = 0;
             }
-
-            // 2. 繪製內文
-            if (content.trim() !== '') {
-                let lines = content.split('\n');
-                ctx.save();
-                ctx.translate(contentObj.centerX, contentObj.centerY);
-                ctx.rotate((contentObj.angle * Math.PI) / 180);
-
-                let contentW = 0, contentH = 0;
-                const scaledContentSize = contentObj.scale;
-
-                if (dir === 'h-lr') {
-                    let blockLines = [];
-                    lines.forEach((l, idx) => {
-                        blockLines.push({ 
-                            text: l, 
-                            size: scaledContentSize,
-                            isLastLine: (idx === lines.length - 1)
-                        });
-                    });
-
-                    let estimatedH = 0;
-                    blockLines.forEach((b, idx) => {
-                        estimatedH += b.size;
-                        if (idx < blockLines.length - 1) estimatedH += conf.gap;
-                    });
-                    contentH = estimatedH;
-
-                    blockLines.forEach(b => {
-                        ctx.font = getCompositeFont(b.text, scaledContentSize);
-                        let m = ctx.measureText(b.text).width;
-                        if(m > contentW) contentW = m;
-                    });
-
-                    if (contentOpacityVal > 0) {
-                        ctx.fillStyle = hexToRgba(contentBoxBgHex, contentOpacityVal);
-                        let padding = 16;
-                        ctx.beginPath();
-                        if (ctx.roundRect) {
-                            ctx.roundRect(-contentW/2 - padding, -contentH/2 - padding, contentW + padding*2, contentH + padding*2, 8);
-                        } else {
-                            ctx.rect(-contentW/2 - padding, -contentH/2 - padding, contentW + padding*2, contentH + padding*2);
-                        }
-                        ctx.fill();
-                    }
-
-                    ctx.fillStyle = color;
-                    ctx.shadowColor = "rgba(0,0,0,0.85)"; ctx.shadowBlur = canvas.width * 0.006; ctx.shadowOffsetX = canvas.width * 0.002; ctx.shadowOffsetY = canvas.width * 0.002;
-                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-
-                    let startY = -estimatedH / 2;
-                    blockLines.forEach(b => {
-                        ctx.font = getCompositeFont(b.text, b.size);
-                        ctx.fillText(b.text, 0, startY + b.size/2);
-                        startY += b.size + conf.gap;
-                    });
-                } else {
-                    let cols = [];
-                    lines.forEach((l) => {
-                        let charsObj = splitStringIntoChars(l).map(c => ({ char: c, size: scaledContentSize, isAuthor: false }));
-                        cols.push({ chars: charsObj, size: scaledContentSize });
-                    });
-
-                    let maxH = 0;
-                    cols.forEach(c => {
-                        let colH = 0;
-                        c.chars.forEach(ch => { colH += ch.size * 1.0; });
-                        if (colH > maxH) maxH = colH;
-                    });
-                    contentH = maxH;
-
-                    let estimatedW = 0;
-                    cols.forEach((c, idx) => {
-                        estimatedW += c.size;
-                        if (idx < cols.length - 1) estimatedW += conf.gap;
-                    });
-                    contentW = estimatedW;
-
-                    if (contentOpacityVal > 0) {
-                        ctx.fillStyle = hexToRgba(contentBoxBgHex, contentOpacityVal);
-                        let padding = 16;
-                        ctx.beginPath();
-                        if (ctx.roundRect) {
-                            ctx.roundRect(-contentW/2 - padding, -contentH/2 - padding, contentW + padding*2, contentH + padding*2, 8);
-                        } else {
-                            ctx.rect(-contentW/2 - padding, -contentH/2 - padding, contentW + padding*2, contentH + padding*2);
-                        }
-                        ctx.fill();
-                    }
-
-                    ctx.fillStyle = color;
-                    ctx.shadowColor = "rgba(0,0,0,0.85)"; ctx.shadowBlur = canvas.width * 0.006; ctx.shadowOffsetX = canvas.width * 0.002; ctx.shadowOffsetY = canvas.width * 0.002;
-                    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-
-                    let startX = (dir === 'v-rl' ? estimatedW / 2 : -estimatedW / 2);
-
-                    cols.forEach(c => {
-                        let colH = 0;
-                        c.chars.forEach(ch => { colH += ch.size * 1.0; });
-
-                        let drawY = -contentH / 2;
-                        if (align === 'center') {
-                            drawY = -colH / 2;
-                        } else if (align === 'end') {
-                            drawY = (contentH / 2) - colH;
-                        }
-
-                        let currentX = startX + (dir === 'v-rl' ? -c.size/2 : c.size/2);
-
-                        for (let i = 0; i < c.chars.length; i++) {
-                            let chObj = c.chars[i];
-                            let chosenFont = /[a-zA-Z0-9]/.test(chObj.char) ? englishFont : selectFont;
-                            drawChar(chObj.char, currentX, drawY, chObj.size, chosenFont, true, chObj.isAuthor);
-                            drawY += chObj.size * 1.0;
-                        }
-                        
-                        if (dir === 'v-rl') startX -= (c.size + conf.gap);
-                        else startX += (c.size + conf.gap);
-                    });
-                }
-                contentObj.width = contentW; contentObj.height = contentH;
-                ctx.restore();
-            } else {
-                contentObj.width = 0; contentObj.height = 0;
-            }
         }
 
         function drawImg2() {
@@ -1530,11 +1271,10 @@
         }
 
         window.saveAndContinue = function() {
-            const content = document.getElementById('text-content').value;
             const title = document.getElementById('input-title').value;
             
-            if (!content && !title && !isImg2Loaded) {
-                alert("目前沒有輸入文字、標題或印章，無需儲存。");
+            if (!title && !isImg2Loaded) {
+                alert("目前沒有輸入標題或印章，無需儲存。");
                 return;
             }
 
@@ -1549,7 +1289,6 @@
                 fitImageToCanvas();
                 
                 document.getElementById('input-title').value = '';
-                document.getElementById('text-content').value = '';
                 isImg2Loaded = false;
                 img2 = new Image();
                 
