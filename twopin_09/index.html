@@ -6,13 +6,35 @@
     <title>畫中有詩篇</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Dancing+Script:wght@500;700&family=Great+Vibes&family=Pacifico&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Sacramento&family=Parisienne&family=Allura&family=Petit+Formal+Script&family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; outline: none; }
+        :root {
+            --bg-dark: #080a11;
+            --panel-bg: rgba(15, 19, 34, 0.85);
+            --card-bg: rgba(255, 255, 255, 0.035);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00f2fe;
+            --accent-teal: #39cccc;
+            --accent-amber: #f39c12;
+            --accent-gold: #ffb347;
+            --accent-coral: #ff5252;
+            --text-main: #f0f4f8;
+            --text-muted: #a0aec0;
+            --radius-lg: 12px;
+            --radius-md: 8px;
+            --radius-sm: 6px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            outline: none;
+        }
         
         body {
             margin: 0;
             padding: 0;
-            background: radial-gradient(circle at 50% 50%, #111424 0%, #080a11 100%);
-            color: #e5e9f0;
+            background: radial-gradient(circle at 50% 30%, #151b2e 0%, #080a11 100%);
+            color: var(--text-main);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Noto Serif TC", sans-serif;
             display: flex;
             flex-direction: column;
@@ -21,18 +43,22 @@
         }
 
         header {
-            background: rgba(18, 22, 38, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 8px 16px;
+            background: rgba(15, 19, 34, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 10px 16px;
             text-align: center;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
-            letter-spacing: 2px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            color: #39cccc;
-            text-shadow: 0 0 10px rgba(57, 204, 204, 0.4);
+            letter-spacing: 3px;
+            border-bottom: 1px solid var(--card-border);
+            color: var(--accent-cyan);
+            text-shadow: 0 0 12px rgba(0, 242, 254, 0.4);
             flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         
         .main-layout {
@@ -40,27 +66,29 @@
             flex-direction: column;
             flex: 1;
             overflow: hidden;
-            height: calc(100vh - 40px);
+            height: calc(100vh - 46px);
         }
+
         @media (min-width: 900px) {
             .main-layout { flex-direction: row; }
         }
         
         .stage {
             flex: 1;
-            background-color: #05060b;
+            background-color: #040508;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 6px;
+            padding: 12px;
             overflow: hidden;
             position: relative;
             touch-action: none;
             min-height: 0;
         }
+
         .canvas-box {
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7), 0 0 1px rgba(255,255,255,0.1);
-            border-radius: 8px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 2px rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-lg);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -70,39 +98,41 @@
             overflow: hidden;
             background: #000;
         }
+
         canvas {
             display: block;
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-            background-color: #12131a;
+            background-color: #11131c;
             cursor: move;
             touch-action: none;
-            border-radius: 4px;
+            border-radius: var(--radius-sm);
             transform-origin: center center;
             transition: transform 0.1s ease-out;
         }
 
         .toolbar {
-            flex: 1.6;
-            background: rgba(13, 16, 28, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 8px 12px;
+            flex: 1;
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--card-border);
+            padding: 10px 14px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 8px;
             overflow: hidden;
             max-width: 100vw;
             flex-shrink: 0;
-            box-shadow: -5px 0 25px rgba(0,0,0,0.4);
+            box-shadow: -6px 0 30px rgba(0, 0, 0, 0.5);
         }
+
         @media (min-width: 900px) {
             .toolbar {
                 border-top: none;
-                border-left: 1px solid rgba(255, 255, 255, 0.08);
-                flex: 1;
+                border-left: 1px solid var(--card-border);
+                width: 460px;
                 max-width: 460px;
             }
         }
@@ -112,234 +142,294 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 10px;
             -webkit-overflow-scrolling: touch;
-            padding-bottom: 4px;
+            padding-right: 2px;
+            padding-bottom: 8px;
+        }
+
+        /* Custom Scrollbar */
+        .toolbar-scroll-area::-webkit-scrollbar {
+            width: 5px;
+        }
+        .toolbar-scroll-area::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        .toolbar-scroll-area::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+        .toolbar-scroll-area::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-teal);
         }
         
+        .card-block {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: border-color 0.2s ease;
+        }
+
+        .card-block:hover {
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+
         .row {
             display: flex;
-            gap: 4px;
+            gap: 8px;
             align-items: center;
             width: 100%;
         }
+
         .col {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
             min-width: 0;
         }
         
         input[type="text"], select {
             width: 100%;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #fff;
-            padding: 0 6px;
-            border-radius: 6px;
-            font-size: 11px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: var(--text-main);
+            padding: 0 10px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
             box-sizing: border-box;
             -webkit-user-select: text;
             user-select: text;
-            height: 28px;
-            line-height: 28px;
-            transition: all 0.25s;
+            height: 34px;
+            line-height: 34px;
+            transition: all 0.25s ease;
         }
+
         input[type="text"]:focus, select:focus {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: #39cccc;
-            box-shadow: 0 0 8px rgba(57, 204, 204, 0.3);
+            background: rgba(0, 0, 0, 0.5);
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 10px rgba(57, 204, 204, 0.35);
+        }
+
+        select option {
+            background: #111424;
+            color: #fff;
+            padding: 8px;
         }
         
         textarea {
             width: 100%;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #fff;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            line-height: 1.5;
             box-sizing: border-box;
             -webkit-user-select: text;
             user-select: text;
-            height: 32px;
-            min-height: 32px;
-            transition: all 0.25s;
-            resize: none;
+            height: 60px;
+            min-height: 60px;
+            transition: border-color 0.25s, box-shadow 0.25s;
+            resize: vertical;
         }
+
         textarea:focus {
-            position: relative;
-            left: 0;
-            width: 100vw !important;
-            margin-left: -12px;
-            margin-right: -12px;
-            height: 12vh;
-            border-color: #39cccc;
-            background: rgba(13, 16, 28, 0.95);
-            box-shadow: 0 0 15px rgba(57,204,204,0.4);
-            border-radius: 0;
-            padding: 8px 16px;
-            z-index: 10;
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 12px rgba(57, 204, 204, 0.35);
+            background: rgba(0, 0, 0, 0.5);
         }
 
         .size-ctrl {
             display: flex;
             align-items: center;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: var(--radius-sm);
             overflow: hidden;
             width: 100%;
-            height: 28px;
+            height: 34px;
         }
+
         .size-btn {
             background: rgba(255, 255, 255, 0.06);
-            color: #e5e9f0;
+            color: var(--text-main);
             border: none;
-            width: 24px;
+            width: 30px;
             height: 100%;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
         }
+
         .size-btn:hover {
-            background: rgba(57, 204, 204, 0.2);
-            color: #39cccc;
+            background: rgba(57, 204, 204, 0.25);
+            color: var(--accent-cyan);
         }
+
+        .size-btn:active {
+            transform: scale(0.92);
+        }
+
         .size-val {
             flex: 1;
             text-align: center;
-            font-size: 10px;
-            font-family: monospace;
+            font-size: 12px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             color: #fff;
             white-space: nowrap;
-            line-height: 28px;
+            line-height: 34px;
+            font-weight: 600;
         }
 
         .file-label {
-            font-size: 10px;
-            color: rgba(229, 233, 240, 0.7);
-            margin-bottom: 1px;
-            display: block;
-            font-weight: bold;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
+        .file-label.cyan { color: var(--accent-teal); }
+        .file-label.amber { color: var(--accent-amber); }
         
         .btn-action {
             background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #fff;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: var(--text-main);
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 3px;
-            height: 32px;
-            transition: all 0.25s;
+            gap: 4px;
+            height: 36px;
+            transition: all 0.25s ease;
             flex: 1;
         }
+
         .btn-action:hover {
             background: rgba(255, 255, 255, 0.12);
             border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-action:active {
+            transform: translateY(0);
         }
         
         .btn-dl {
-            background: linear-gradient(135deg, #39cccc 0%, #2bc0c0 100%);
-            color: #0b0d16;
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-teal) 100%);
+            color: #060913;
             border: none;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 800;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 3px;
-            height: 32px;
-            transition: all 0.25s;
-            box-shadow: 0 4px 15px rgba(57, 204, 204, 0.2);
-            flex: 1.2;
-        }
-        .btn-dl:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(57, 204, 204, 0.35);
+            gap: 4px;
+            height: 36px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 16px rgba(0, 242, 254, 0.25);
+            flex: 1.3;
         }
 
-        .top-triple-row {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 4px 6px;
-            border-radius: 8px;
-            display: flex;
-            gap: 6px;
-            width: 100%;
-            align-items: stretch;
+        .btn-dl:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(0, 242, 254, 0.4);
+            filter: brightness(1.05);
         }
+
+        .btn-dl:active {
+            transform: translateY(0);
+        }
+
         .custom-file-upload {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             width: 100%;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 6px;
-            padding: 0 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: var(--radius-sm);
+            padding: 0 8px;
             text-align: center;
             color: #fff;
-            font-size: 10px;
-            font-weight: bold;
+            font-size: 12px;
+            font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
             overflow: hidden;
-            height: 28px;
-            line-height: 28px;
-            transition: all 0.25s;
+            height: 34px;
+            line-height: 34px;
+            transition: all 0.25s ease;
         }
+
         .custom-file-upload:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255,255,255,0.25);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         .collapse-container {
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            background: var(--card-bg);
             overflow: hidden;
             flex-shrink: 0;
+            transition: border-color 0.2s ease;
         }
+
+        .collapse-container:hover {
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+
         .collapse-header {
-            background: rgba(255, 255, 255, 0.04);
-            color: #39cccc;
-            padding: 4px 8px;
-            font-size: 11px;
-            font-weight: bold;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--accent-teal);
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
             user-select: none;
+            transition: background 0.2s ease;
         }
+
         .collapse-header:hover {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(57, 204, 204, 0.08);
         }
+
         .collapse-content {
-            padding: 4px 6px;
+            padding: 12px;
             display: none;
             flex-direction: column;
-            gap: 4px;
-            background: rgba(13, 16, 28, 0.6);
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            gap: 10px;
+            background: rgba(8, 10, 17, 0.5);
+            border-top: 1px solid var(--card-border);
         }
+
         .collapse-content.show {
             display: flex;
         }
@@ -349,9 +439,15 @@
             border: none;
             cursor: pointer;
             background: transparent !important;
+            border-radius: var(--radius-sm);
         }
+
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        input[type="color"]::-webkit-color-swatch { border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; }
+        input[type="color"]::-webkit-color-swatch {
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: var(--radius-sm);
+            box-shadow: inset 0 0 4px rgba(0,0,0,0.5);
+        }
 
         input[type="range"] {
             -webkit-appearance: none;
@@ -360,23 +456,67 @@
             cursor: pointer;
             width: 100%;
         }
-        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 3px;
+        }
+
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            height: 10px;
-            width: 10px;
+            height: 14px;
+            width: 14px;
             border-radius: 50%;
-            background: #39cccc;
+            background: var(--accent-teal);
             border: 2px solid #fff;
-            margin-top: -3px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            margin-top: -4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+            transition: transform 0.15s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .option-toggle-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            height: 32px;
+            color: var(--text-main);
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .option-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .option-toggle-btn.teal {
+            background: rgba(57, 204, 204, 0.12);
+            border-color: var(--accent-teal);
+            color: var(--accent-teal);
         }
     </style>
 </head>
 <body>
 
-    <header>🏞️畫中有詩篇🗺️</header>
+    <header>
+        <span>🏞️</span>
+        <span>畫中有詩篇</span>
+        <span>🗺️</span>
+    </header>
 
     <div class="main-layout">
         <div class="stage">
@@ -387,15 +527,17 @@
 
         <div class="toolbar" id="ctrl-panel">
             <div class="toolbar-scroll-area">
+
+                <!-- Advanced Typography & Style Collapse Panel -->
                 <div class="collapse-container">
                     <div class="collapse-header" onclick="toggleCollapse()">
-                        <span>⚙️ 進階排版設定</span>
+                        <span>⚙️ 進階排版與樣式設定</span>
                         <span id="collapse-icon">▼ 展開</span>
                     </div>
                     <div class="collapse-content" id="collapse-box">
                         <div class="row">
                             <div class="col" style="flex: 1.1;">
-                                <span class="file-label">🀄字型</span>
+                                <span class="file-label">🀄 中文字型</span>
                                 <select id="font-family-select" onchange="shrinkInputs()">
                                     <option value="'Noto Serif TC', 'PMingLiU', 'MingLiU', serif" selected>思源宋體</option>
                                     <option value="'Noto Sans TC', 'Microsoft JhengHei', sans-serif">思源黑體</option>
@@ -405,35 +547,35 @@
                                 </select>
                             </div>
                             <div class="col" style="flex: 1.1;">
-                                <span class="file-label">🆎英文字型</span>
+                                <span class="file-label">🆎 英文字型</span>
                                 <select id="english-font-select" onchange="shrinkInputs()">
-                                    <option value="'Dancing Script', cursive" selected>優雅手寫 </option>
-                                    <option value="'Great Vibes', cursive">浪漫草書 </option>
-                                    <option value="'Parisienne', cursive">法式優雅草寫 </option>
-                                    <option value="'Allura', cursive">流暢細緻草寫 </option>
-                                    <option value="'Petit Formal Script', cursive">古典精緻草寫 </option>
-                                    <option value="'Pacifico', cursive">圓潤藝術 </option>
-                                    <option value="'Cinzel', serif">古典羅馬 </option>
+                                    <option value="'Dancing Script', cursive" selected>優雅手寫</option>
+                                    <option value="'Great Vibes', cursive">浪漫草書</option>
+                                    <option value="'Parisienne', cursive">法式優雅草寫</option>
+                                    <option value="'Allura', cursive">流暢細緻草寫</option>
+                                    <option value="'Petit Formal Script', cursive">古典精緻草寫</option>
+                                    <option value="'Pacifico', cursive">圓潤藝術</option>
+                                    <option value="'Cinzel', serif">古典羅馬</option>
                                     <option value="sans-serif">標準無襯線</option>
                                 </select>
                             </div>
-                            <div class="col" style="flex: 0.4;">
+                            <div class="col" style="flex: 0.5;">
                                 <span class="file-label">🎨 字色</span>
-                                <input type="color" id="text-color" value="#ffffff" style="width:100%; height:28px; padding:0; cursor:pointer;">
+                                <input type="color" id="text-color" value="#ffffff" style="width:100%; height:34px; padding:0; cursor:pointer;">
                             </div>
                         </div>
 
                         <div class="row">
-                            <div class="col" style="flex: 1.2;">
+                            <div class="col" style="flex: 1;">
                                 <span class="file-label">⬜ 框底色</span>
-                                <input type="color" id="title-box-bg-color" value="#000000" style="width:100%; height:28px; padding:0; cursor:pointer;">
+                                <input type="color" id="title-box-bg-color" value="#000000" style="width:100%; height:34px; padding:0; cursor:pointer;">
                             </div>
-                            <div class="col" style="flex: 1.8;">
+                            <div class="col" style="flex: 2;">
                                 <span class="file-label">💧 透明度 (<span id="val-title-opacity-text">0</span>%)</span>
-                                <div style="display: flex; align-items: center; gap: 4px; height: 28px;">
-                                    <input type="range" id="title-box-bg-opacity" min="0" max="100" value="0" step="5" style="flex: 1; cursor: pointer; accent-color: #39cccc;">
-                                    <button class="size-btn" style="width: 22px; height: 22px; font-size: 10px; border-radius: 4px;" onclick="adjustOpacity('title-box-bg-opacity', -5)">-</button>
-                                    <button class="size-btn" style="width: 22px; height: 22px; font-size: 10px; border-radius: 4px;" onclick="adjustOpacity('title-box-bg-opacity', 5)">+</button>
+                                <div style="display: flex; align-items: center; gap: 6px; height: 34px;">
+                                    <input type="range" id="title-box-bg-opacity" min="0" max="100" value="0" step="5" style="flex: 1; cursor: pointer; accent-color: var(--accent-teal);">
+                                    <button class="size-btn" style="width: 28px; height: 28px; font-size: 12px; border-radius: var(--radius-sm);" onclick="adjustOpacity('title-box-bg-opacity', -5)">-</button>
+                                    <button class="size-btn" style="width: 28px; height: 28px; font-size: 12px; border-radius: var(--radius-sm);" onclick="adjustOpacity('title-box-bg-opacity', 5)">+</button>
                                 </div>
                             </div>
                         </div>
@@ -450,73 +592,74 @@
                             <div class="col" style="flex: 1;">
                                 <span class="file-label">🎯 對齊方式</span>
                                 <select id="text-align" onchange="shrinkInputs()">
-                                    <option value="start">靠頂/置左</option>
+                                    <option value="start">靠頂 / 置左</option>
                                     <option value="center" selected>置中</option>
-                                    <option value="end">靠底/置右</option>
+                                    <option value="end">靠底 / 置右</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="top-triple-row">
-                    <div class="col" style="flex: 1.1;">
-                        <span class="file-label" style="color:#39cccc;">🖼️ 底圖與圖框</span>
-                        <div style="display: flex; gap: 4px; margin-bottom: 2px;">
-                            <label class="custom-file-upload" style="border-color: #39cccc; color: #39cccc; flex: 1;">
-                                選擇照片
-                                <input type="file" id="choose-img" accept="image/*" style="display: none;">
-                            </label>
-                            <select id="aspect-ratio-select" onchange="handleAspectRatioChange()" style="border-color: #39cccc; color: #39cccc; flex: 1; height: 28px; font-size: 10px;">
-                                <option value="original">原始比例</option>
-                                <option value="1:1" selected>1 : 1 正方</option>
-                                <option value="9:16">9 : 16 直式</option>
-                                <option value="16:9">16 : 9 橫式</option>
-                                <option value="4:3">4 : 3 標準</option>
-                                <option value="3:4">3 : 4 直式</option>
-                            </select>
-                        </div>
-                        <div style="display: flex; gap: 3px;">
-                            <button onclick="clearCanvasData()" style="background: rgba(231, 76, 60, 0.15); border: 1px solid #e74c3c; color: #ff6b6b; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; height: 26px; flex: 1;">🗑️ 清除</button>
-                            <label style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 2px; font-size: 9px; cursor: pointer; height: 26px; color: #e5e9f0; flex: 1;">
-                                <input type="checkbox" id="lock-bg" style="cursor: pointer; accent-color: #39cccc;"> 🔒 
-                            </label>
-                            <label style="background: rgba(57,204,204,0.08); border: 1px solid rgba(57,204,204,0.3); border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 2px; font-size: 9px; cursor: pointer; height: 26px; color: #39cccc; flex: 1.2;" title="鎖定後可兩指縮放">
-                                <input type="checkbox" id="zoom-mode" style="cursor: pointer; accent-color: #39cccc;" onchange="handleZoomModeChange()"> 🔍 
-                            </label>
-                        </div>
+                <!-- Section: Bottom Image Card -->
+                <div class="card-block">
+                    <span class="file-label cyan">🖼️ 底圖與圖框設定</span>
+                    <div class="row">
+                        <label class="custom-file-upload" style="border-color: var(--accent-teal); color: var(--accent-teal); flex: 1.2;">
+                            選擇照片
+                            <input type="file" id="choose-img" accept="image/*" style="display: none;">
+                        </label>
+                        <select id="aspect-ratio-select" onchange="handleAspectRatioChange()" style="border-color: var(--accent-teal); color: var(--accent-teal); flex: 1; height: 34px;">
+                            <option value="original">原始比例</option>
+                            <option value="1:1" selected>1 : 1 正方</option>
+                            <option value="9:16">9 : 16 直式</option>
+                            <option value="16:9">16 : 9 橫式</option>
+                            <option value="4:3">4 : 3 標準</option>
+                            <option value="3:4">3 : 4 直式</option>
+                        </select>
                     </div>
+                    <div class="row">
+                        <button onclick="clearCanvasData()" style="background: rgba(255, 82, 82, 0.15); border: 1px solid var(--accent-coral); color: #ff6b6b; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; cursor: pointer; height: 32px; flex: 0.9; transition: all 0.2s;">🗑️ 清除</button>
+                        <label class="option-toggle-btn" style="flex: 1;">
+                            <input type="checkbox" id="lock-bg" style="cursor: pointer; accent-color: var(--accent-teal);"> 🔒 鎖底圖
+                        </label>
+                        <label class="option-toggle-btn teal" style="flex: 1.1;" title="鎖定後可兩指縮放">
+                            <input type="checkbox" id="zoom-mode" style="cursor: pointer; accent-color: var(--accent-teal);" onchange="handleZoomModeChange()"> 🔍 雙指縮放
+                        </label>
+                    </div>
+                </div>
 
-                    <div class="col" style="flex: 1.2;">
-                        <span class="file-label" style="color:#e67e22;">🎨 印章與圖層</span>
-                        <div style="display: flex; gap: 4px; margin-bottom: 2px;">
-                            <label class="custom-file-upload" style="border-color: #e67e22; color: #e67e22; flex: 1.2;">
-                                選擇印章
-                                <input type="file" id="choose-img2" accept="image/*" style="display: none;">
-                            </label>
-                            <button id="btn-img2-text-layer" onclick="toggleImg2TextLayer()" style="background: rgba(255,255,255,0.04); border: 1px solid #e67e22; color: #e67e22; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; height: 28px; flex: 0.8;">中層</button>
-                            <button id="btn-img2-bg-layer" onclick="toggleImg2BgLayer()" style="background: rgba(255,255,255,0.04); border: 1px solid #e67e22; color: #e67e22; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; height: 28px; flex: 0.8;">上層</button>
+                <!-- Section: Stamp / Layer Card -->
+                <div class="card-block">
+                    <span class="file-label amber">🎨 印章與圖層控制</span>
+                    <div class="row">
+                        <label class="custom-file-upload" style="border-color: var(--accent-amber); color: var(--accent-amber); flex: 1.2;">
+                            選擇印章
+                            <input type="file" id="choose-img2" accept="image/*" style="display: none;">
+                        </label>
+                        <button id="btn-img2-text-layer" onclick="toggleImg2TextLayer()" style="background: rgba(0,0,0,0.3); border: 1px solid var(--accent-amber); color: var(--accent-amber); border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; cursor: pointer; height: 34px; flex: 0.9; transition: all 0.2s;">中層</button>
+                        <button id="btn-img2-bg-layer" onclick="toggleImg2BgLayer()" style="background: rgba(0,0,0,0.3); border: 1px solid var(--accent-amber); color: var(--accent-amber); border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; cursor: pointer; height: 34px; flex: 0.9; transition: all 0.2s;">上層</button>
+                    </div>
+                    <div class="row">
+                        <div class="size-ctrl" style="border-color: var(--accent-amber); flex: 1;">
+                            <button class="size-btn" style="background:transparent; color: var(--accent-amber); width: 28px;" onclick="changeImg2Scale(-0.05)">-</button>
+                            <span class="size-val" id="val-img2-scale" style="color: var(--accent-gold); font-size: 11px;">100%</span>
+                            <button class="size-btn" style="background:transparent; color: var(--accent-amber); width: 28px;" onclick="changeImg2Scale(0.05)">+</button>
                         </div>
-                        <div style="display: flex; gap: 4px;">
-                            <div class="size-ctrl" style="border-color:#e67e22; height:26px; flex: 1;">
-                                <button class="size-btn" style="background:transparent; color:#e67e22; width:20px; height:100%;" onclick="changeImg2Scale(-0.05)">-</button>
-                                <span class="size-val" id="val-img2-scale" style="color:#e67e22; font-size:10px; font-weight:bold; line-height:26px;">100%</span>
-                                <button class="size-btn" style="background:transparent; color:#e67e22; width:20px; height:100%;" onclick="changeImg2Scale(0.05)">+</button>
-                            </div>
-                            <div class="size-ctrl" style="border-color:#e67e22; height:26px; flex: 1;">
-                                <button class="size-btn" style="background:transparent; color:#e67e22; width:20px; height:100%;" onclick="changeImg2Angle(-5)">-</button>
-                                <span class="size-val" id="val-img2-angle" style="color:#e67e22; font-size:10px; font-weight:bold; line-height:26px;">0°</span>
-                                <button class="size-btn" style="background:transparent; color:#e67e22; width:20px; height:100%;" onclick="changeImg2Angle(5)">+</button>
-                            </div>
+                        <div class="size-ctrl" style="border-color: var(--accent-amber); flex: 1;">
+                            <button class="size-btn" style="background:transparent; color: var(--accent-amber); width: 28px;" onclick="changeImg2Angle(-5)">-</button>
+                            <span class="size-val" id="val-img2-angle" style="color: var(--accent-gold); font-size: 11px;">0°</span>
+                            <button class="size-btn" style="background:transparent; color: var(--accent-amber); width: 28px;" onclick="changeImg2Angle(5)">+</button>
                         </div>
                     </div>
                 </div>
 
-                <div class="row" style="margin-top: 2px; flex-shrink: 0;">
-                    <button class="btn-action" onclick="saveProgress()" style="background: rgba(230, 126, 34, 0.2); border-color: #e67e22; color: #f39c12;">
+                <!-- Section: Action Toolbar -->
+                <div class="row">
+                    <button class="btn-action" onclick="saveProgress()" style="background: rgba(243, 156, 18, 0.18); border-color: var(--accent-amber); color: var(--accent-gold);">
                         💾 儲存進度
                     </button>
-                    <button class="btn-action" onclick="undoState()" style="background: rgba(255, 255, 255, 0.05); border-color: rgba(255,255,255,0.2);">
+                    <button class="btn-action" onclick="undoState()" style="background: rgba(255, 255, 255, 0.06); border-color: rgba(255,255,255,0.2);">
                         ↩️ 退回
                     </button>
                     <button class="btn-dl" onclick="customDownload()">
@@ -524,47 +667,50 @@
                     </button>
                 </div>
 
-                <div class="row" style="align-items: center;">
-                    <div class="col" style="flex: 1;">
-                        <span class="file-label">📐文字大小</span>
-                        <div class="size-ctrl" style="height: 28px;">
-                            <button class="size-btn" onclick="changeTitleScale(-2)">-</button>
-                            <span class="size-val" id="val-title-scale">60</span>     
-                            <button class="size-btn" onclick="changeTitleScale(2)">+</button>
+                <!-- Section: Text Fine-Tuning Controls -->
+                <div class="card-block">
+                    <div class="row" style="align-items: center;">
+                        <div class="col" style="flex: 1;">
+                            <span class="file-label">📐 文字大小</span>
+                            <div class="size-ctrl">
+                                <button class="size-btn" onclick="changeTitleScale(-2)">-</button>
+                                <span class="size-val" id="val-title-scale">60</span>
+                                <button class="size-btn" onclick="changeTitleScale(2)">+</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col" style="flex: 1;">
-                        <span class="file-label">🔄 文字角度</span>
-                        <div class="size-ctrl" style="height: 28px;">
-                            <button class="size-btn" onclick="changeTitleAngle(-5)">-</button>
-                            <span class="size-val" id="val-title-angle">0°</span>     
-                            <button class="size-btn" onclick="changeTitleAngle(5)">+</button>
+                        <div class="col" style="flex: 1;">
+                            <span class="file-label">🔄 文字角度</span>
+                            <div class="size-ctrl">
+                                <button class="size-btn" onclick="changeTitleAngle(-5)">-</button>
+                                <span class="size-val" id="val-title-angle">0°</span>
+                                <button class="size-btn" onclick="changeTitleAngle(5)">+</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col" style="flex: 1.2;">
-                        <span class="file-label">↕️ 文字微調</span>
-                        <div class="size-ctrl" style="height: 28px;">
-                            <button class="size-btn" onclick="moveTitlePos(0, -5)" style="font-size:11px;">⬆️</button>
-                            <span class="size-val" style="font-size:9px;">上下</span>
-                            <button class="size-btn" onclick="moveTitlePos(0, 5)" style="font-size:11px;">⬇️</button>
+                        <div class="col" style="flex: 1.1;">
+                            <span class="file-label">↕️ 上下微調</span>
+                            <div class="size-ctrl">
+                                <button class="size-btn" onclick="moveTitlePos(0, -5)" style="font-size: 12px;">⬆️</button>
+                                <span class="size-val" style="font-size: 11px;">位置</span>
+                                <button class="size-btn" onclick="moveTitlePos(0, 5)" style="font-size: 12px;">⬇️</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col" style="flex: 1.2;">
-                        <span class="file-label">↔️ 文字微調</span>
-                        <div class="size-ctrl" style="height: 28px;">
-                            <button class="size-btn" onclick="moveTitlePos(-5, 0)" style="font-size:11px;">⬅️</button>
-                            <span class="size-val" style="font-size:9px;">左右</span>
-                            <button class="size-btn" onclick="moveTitlePos(5, 0)" style="font-size:11px;">➡️</button>
+                        <div class="col" style="flex: 1.1;">
+                            <span class="file-label">↔️ 左右微調</span>
+                            <div class="size-ctrl">
+                                <button class="size-btn" onclick="moveTitlePos(-5, 0)" style="font-size: 12px;">⬅️</button>
+                                <span class="size-val" style="font-size: 11px;">位置</span>
+                                <button class="size-btn" onclick="moveTitlePos(5, 0)" style="font-size: 12px;">➡️</button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="row" style="align-items: flex-start;">
-                    <div class="col" style="flex: 1.0;">
-                        <span class="file-label" style="color:#39cccc;">✍️ 文字輸入框（單指平移&雙指縮放）</span>
-                        <textarea id="input-title" placeholder="輸入文字..."></textarea>
-                    </div>
+                <!-- Section: Text Area Input -->
+                <div class="card-block">
+                    <span class="file-label cyan">✍️ 詩篇文字輸入框（畫布支援單指平移 & 雙指縮放）</span>
+                    <textarea id="input-title" placeholder="請輸入詩詞或文字..."></textarea>
                 </div>
+
             </div>
         </div>
     </div>
@@ -618,8 +764,8 @@
             img2BehindText = !img2BehindText;
             const btn = document.getElementById('btn-img2-text-layer');
             btn.innerHTML = img2BehindText ? "上層" : "中層";
-            btn.style.color = img2BehindText ? "#fff" : "#e67e22";
-            btn.style.background = img2BehindText ? "#e67e22" : "rgba(255,255,255,0.04)";
+            btn.style.color = img2BehindText ? "#fff" : "var(--accent-amber)";
+            btn.style.background = img2BehindText ? "var(--accent-amber)" : "rgba(0,0,0,0.3)";
             render();
         };
 
@@ -627,8 +773,8 @@
             img2BehindBg = !img2BehindBg;
             const btn = document.getElementById('btn-img2-bg-layer');
             btn.innerHTML = img2BehindBg ? "下層" : "上層";
-            btn.style.color = img2BehindBg ? "#fff" : "#e67e22";
-            btn.style.background = img2BehindBg ? "#e67e22" : "rgba(255,255,255,0.04)";
+            btn.style.color = img2BehindBg ? "#fff" : "var(--accent-amber)";
+            btn.style.background = img2BehindBg ? "var(--accent-amber)" : "rgba(0,0,0,0.3)";
             render();
         };
 
@@ -1029,7 +1175,7 @@
 
         function render() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#12131a';
+            ctx.fillStyle = '#11131c';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             if (img2BehindBg) {
