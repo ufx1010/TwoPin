@@ -1365,7 +1365,7 @@
         }
 
         function customDownload() {
-            let fileName = prompt("儲存檔名（.jpg）：", "畫中有詩篇_000");
+            let fileName = prompt("儲存檔名（.jpg）：", "畫中有詩篇");
             if (fileName === null) return;
             const link = document.createElement('a');
             link.download = (fileName.trim() === "" ? "作品" : fileName) + ".jpg";
