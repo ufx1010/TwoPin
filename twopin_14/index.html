@@ -369,12 +369,13 @@
                 voidShape: 'none',
                 voidRotation: 0,
                 innerHole: 0,
-                locked: false
+                locked: false,
+                bgImage: '', bgCss: ''
             },
-            bottom: { el: document.getElementById('layer-bottom'), x: 0, y: 0, s: 1, o: 1, voidShape: 'none', voidRotation: 0, innerHole: 0, locked: false },
-            mask: { el: document.getElementById('layer-mask'), x: 0, y: 0, s: 1, o: 0, c1: '#000000', c2: '#444444', c3: '#000000', startX: 50, startY: 50, voidShape: 'none', voidRotation: 0, innerHole: 0, locked: false },
-            border: { el: document.getElementById('layer-border'), w: 0, p: 0, r: 0, c: '#ffffff', o: 1, voidShape: 'none', voidRotation: 0, innerHole: 0, locked: false },
-            top: { el: document.getElementById('layer-top'), x: 0, y: 0, s: 1, o: 1, voidShape: 'none', voidRotation: 0, innerHole: 0, locked: false }
+            bottom: { el: document.getElementById('layer-bottom'), x: 0, y: 0, s: 1, o: 1, voidShape: 'none', voidRotation: 0, innerHole: 0, locked: false, bgImage: '', bgCss: '' },
+            mask: { el: document.getElementById('layer-mask'), x: 0, y: 0, s: 1, o: 0, c1: '#000000', c2: '#444444', c3: '#000000', startX: 50, startY: 50, voidShape: 'none', voidRotation: 0, innerHole: 0, locked: false, bgImage: '', bgCss: '' },
+            border: { el: document.getElementById('layer-border'), w: 0, p: 0, r: 0, c: '#ffffff', o: 1, voidShape: 'none', voidRotation: 0, innerHole: 0, locked: false, bgImage: '', bgCss: '' },
+            top: { el: document.getElementById('layer-top'), x: 0, y: 0, s: 1, o: 1, voidShape: 'none', voidRotation: 0, innerHole: 0, locked: false, bgImage: '', bgCss: '' }
         };
 
         let activeLayerKey = 'kaleido', activeEditId = 'blk-title', historyStack = [];
@@ -474,18 +475,24 @@
             const w = area.clientWidth, h = area.clientHeight;
             if (w === 0 || h === 0) return;
 
-            // Preserve inner HTML / styles for foreignObject rendering if shape is applied
             const layerKey = Object.keys(layerData).find(k => layerData[k] === l) || 'layer';
             const clipId = `clip-${layerKey}`;
 
             if (shape === 'none') {
                 if (l._renderedSvg) {
                     l.el.innerHTML = l._origContent || '';
-                    if (l._savedBgCss) { l.el.style.background = l._savedBgCss; l._savedBgCss = null; }
-                    if (l._savedBgImg) { l.el.style.backgroundImage = l._savedBgImg; l._savedBgImg = null; }
                     l._renderedSvg = false;
                 }
                 l.el.style.clipPath = 'none';
+                if (l.bgImage) {
+                    l.el.style.backgroundImage = `url("${l.bgImage}")`;
+                    l.el.style.backgroundSize = 'contain';
+                    l.el.style.backgroundPosition = 'center';
+                    l.el.style.backgroundRepeat = 'no-repeat';
+                } else {
+                    l.el.style.backgroundImage = 'none';
+                }
+                l.el.style.background = l.bgCss || (l.bgImage ? '' : 'none');
                 return;
             }
 
@@ -533,7 +540,7 @@
                 case 'star': {
                     const outerR = (minSide / 2) * limit;
                     const innerR = outerR * 0.4;
-                    const cyOffset = outerR * 0.05; // Visual centering offset for 5-point star
+                    const cyOffset = outerR * 0.05;
                     let pts = [];
                     for (let i = 0; i < 10; i++) {
                         const angle = (i * Math.PI / 5) - Math.PI / 2;
@@ -570,31 +577,17 @@
                     clipSvgElement = `<rect x="0" y="0" width="${w}" height="${h}" />`;
             }
 
-            const bgImg = l.el.style.backgroundImage;
-            const bgCss = l.el.style.background;
-
             let contentSvg = '';
-            if (bgImg && bgImg !== 'none') {
-                const imgUrlMatch = bgImg.match(/url\(["']?(.*?)["']?\)/);
-                if (imgUrlMatch) {
-                    contentSvg = `<image href="${imgUrlMatch[1]}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet" />`;
-                }
-            }
-            if (!contentSvg && bgCss && bgCss !== 'none') {
-                contentSvg = `<foreignObject width="${w}" height="${h}"><div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;background:${bgCss};"></div></foreignObject>`;
-            }
-            if (!contentSvg) {
+            if (l.bgImage) {
+                contentSvg = `<image href="${l.bgImage}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet" />`;
+            } else if (l.bgCss) {
+                contentSvg = `<foreignObject width="${w}" height="${h}"><div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;background:${l.bgCss};"></div></foreignObject>`;
+            } else {
                 contentSvg = `<foreignObject width="${w}" height="${h}"><div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;">${l._origContent || ''}</div></foreignObject>`;
             }
 
-            if (!l._savedBgCss) {
-                l._savedBgCss = bgCss;
-                l.el.style.background = 'none';
-            }
-            if (!l._savedBgImg) {
-                l._savedBgImg = bgImg;
-                l.el.style.backgroundImage = 'none';
-            }
+            l.el.style.background = 'none';
+            l.el.style.backgroundImage = 'none';
 
             l.el.innerHTML = `
                 <svg width="${w}" height="${h}" style="display:block;width:100%;height:100%;">
@@ -960,8 +953,10 @@
             document.getElementById('val-mStartX').innerText = m.startX;
             document.getElementById('val-mStartY').innerText = m.startY;
 
-            m.el.style.background = `radial-gradient(circle at ${m.startX}% ${m.startY}%, ${m.c1} 0%, ${m.c2} 50%, ${m.c3} 100%)`;
+            m.bgCss = `radial-gradient(circle at ${m.startX}% ${m.startY}%, ${m.c1} 0%, ${m.c2} 50%, ${m.c3} 100%)`;
+            m.bgImage = '';
             if(m.o < 0.1) updateLayerAttr('o', 0.5);
+            applyLayerClipPath(m);
             saveHistory();
         }
 
@@ -1281,16 +1276,12 @@
                 const r = new FileReader();
                 r.onload = e => {
                     const l = layerData[activeLayerKey];
-                    l.el.style.backgroundImage = `url(${e.target.result})`;
-                    l.el.style.backgroundSize = 'contain';
-                    l.el.style.backgroundPosition = 'center';
-                    l.el.style.backgroundRepeat = 'no-repeat';
+                    l.bgImage = e.target.result;
+                    l.bgCss = '';
                     l.locked = false;
                     l.x = 0;
                     l.y = 0;
                     l.s = 1;
-                    l.voidShape = 'none';
-                    l.innerHole = 0;
                     l.el.style.transform = 'translate(0px, 0px) scale(1)';
                     applyLayerClipPath(l);
                     updateGlobalShapeUI();
@@ -1315,7 +1306,10 @@
             } else {
                 const rx = Math.floor(Math.random() * 80) + 10;
                 const ry = Math.floor(Math.random() * 80) + 10;
-                layerData[activeLayerKey].el.style.background = `radial-gradient(circle at ${rx}% ${ry}%, ${c1}, ${c2}, ${c3})`;
+                const l = layerData[activeLayerKey];
+                l.bgCss = `radial-gradient(circle at ${rx}% ${ry}%, ${c1}, ${c2}, ${c3})`;
+                l.bgImage = '';
+                applyLayerClipPath(l);
                 saveHistory();
             }
         }
