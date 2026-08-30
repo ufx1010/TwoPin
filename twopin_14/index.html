@@ -50,7 +50,7 @@
         #layer-mask { z-index: 20; background-size: cover; }
         #layer-border { z-index: 25; border: 0px solid transparent; }
         #layer-top { z-index: 30; }
-        #layer-text { z-index: 200; pointer-events: auto; width: 100%; height: 100%; }
+        #layer-text { z-index: 40; pointer-events: auto; width: 100%; height: 100%; }
 
         #layer-kaleido svg { width: 100%; height: 100%; display: block; }
         #interactionShield { position: absolute; inset: 0; z-index: 100; display: none; touch-action: none; background: transparent; pointer-events: auto; }
@@ -443,13 +443,8 @@
             
             l[prop] = isNaN(val) ? val : Number(val);
 
-            // Auto-set innerHole to default 80% if innerHole is 0 when switching to a shape other than 'none'
-            if (prop === 'voidShape' && val !== 'none' && (l.innerHole === 0 || l.innerHole === undefined)) {
-                l.innerHole = 80;
-            }
-
-            if(prop === 'voidRotation') { document.getElementById('val-gVoidRot').innerText = l.voidRotation; document.getElementById('range-gVoidRot').value = l.voidRotation; }
-            if(prop === 'innerHole' || prop === 'voidShape') { document.getElementById('val-gHole').innerText = l.innerHole; document.getElementById('range-gHole').value = l.innerHole; }
+            if(prop === 'voidRotation') { document.getElementById('val-gVoidRot').innerText = val; document.getElementById('range-gVoidRot').value = val; }
+            if(prop === 'innerHole') { document.getElementById('val-gHole').innerText = val; document.getElementById('range-gHole').value = val; }
             
             if (activeLayerKey === 'kaleido') {
                 drawKaleidoscope();
@@ -460,145 +455,81 @@
         }
 
         function applyLayerClipPath(l) {
+            const shape = l.voidShape;
+            const hole = l.innerHole; 
+            const rot = l.voidRotation || 0;
+
             if (!l.el || activeLayerKey === 'border' || activeLayerKey === 'kaleido') return;
 
-            const rot = l.voidRotation || 0;
             let transformStr = `translate(${l.x || 0}px, ${l.y || 0}px) scale(${l.s || 1})`;
             if (rot !== 0) {
                 transformStr += ` rotate(${rot}deg)`;
             }
             l.el.style.transform = transformStr;
 
-            const shape = l.voidShape || 'none';
-            const hole = l.innerHole !== undefined ? l.innerHole : 0;
-            const w = area.clientWidth, h = area.clientHeight;
-            if (w === 0 || h === 0) return;
-
-            // Preserve inner HTML / styles for foreignObject rendering if shape is applied
-            const layerKey = Object.keys(layerData).find(k => layerData[k] === l) || 'layer';
-            const clipId = `clip-${layerKey}`;
-
-            if (shape === 'none') {
-                if (l._renderedSvg) {
-                    l.el.innerHTML = l._origContent || '';
-                    l._renderedSvg = false;
-                }
+            if (shape === 'none' || hole === 0) {
                 l.el.style.clipPath = 'none';
                 return;
             }
 
-            if (!l._renderedSvg) {
-                l._origContent = l.el.innerHTML;
-            }
+            let clipVal = 'none';
+            const limit = Math.abs(hole) / 100;
 
-            const limit = hole === 0 ? 1 : Math.abs(hole) / 100;
-            const minSide = Math.min(w, h);
-            const cx = w / 2, cy = h / 2;
-
-            let clipSvgElement = '';
             switch(shape) {
                 case 'circle': {
-                    const r = (minSide / 2) * limit;
-                    clipSvgElement = `<circle cx="${cx}" cy="${cy}" r="${r}" />`;
+                    const w = area.clientWidth, h = area.clientHeight;
+                    const minSide = Math.min(w, h);
+                    const rx = (minSide / 2 * limit) / w * 100;
+                    const ry = (minSide / 2 * limit) / h * 100;
+                    clipVal = `ellipse(${rx}% ${ry}% at 50% 50%)`;
                     break;
                 }
                 case 'ellipse': {
-                    const rx = (w / 2) * limit;
-                    const ry = (h / 2) * limit;
-                    clipSvgElement = `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" />`;
+                    clipVal = `ellipse(${limit*50}% ${limit*50}% at 50% 50%)`;
                     break;
                 }
                 case 'rectangle': {
-                    const rw = w * limit;
-                    const rh = h * limit;
-                    clipSvgElement = `<rect x="${cx - rw/2}" y="${cy - rh/2}" width="${rw}" height="${rh}" />`;
+                    const insetX = (1 - limit) * 50;
+                    const insetY = (1 - limit) * 50;
+                    clipVal = `inset(${insetY}% ${insetX}% ${insetY}% ${insetX}%)`;
                     break;
                 }
                 case 'square': {
-                    const side = minSide * limit;
-                    clipSvgElement = `<rect x="${cx - side/2}" y="${cy - side/2}" width="${side}" height="${side}" />`;
+                    const w = area.clientWidth, h = area.clientHeight;
+                    const minSide = Math.min(w, h);
+                    const insetX = (1 - (minSide * limit / w)) * 50;
+                    const insetY = (1 - (minSide * limit / h)) * 50;
+                    clipVal = `inset(${insetY}% ${insetX}% ${insetY}% ${insetX}%)`;
                     break;
                 }
                 case 'triangle': {
-                    const s = minSide * limit;
-                    const hTri = s * Math.sqrt(3) / 2;
-                    const p1 = `${cx},${cy - (2/3)*hTri}`;
-                    const p2 = `${cx + s/2},${cy + (1/3)*hTri}`;
-                    const p3 = `${cx - s/2},${cy + (1/3)*hTri}`;
-                    clipSvgElement = `<polygon points="${p1} ${p2} ${p3}" />`;
+                    const s = limit * 100;
+                    clipVal = `polygon(50% ${50-s/2}%, ${50+s/2}% ${50+s/2}%, ${50-s/2}% ${50+s/2}%)`;
                     break;
                 }
                 case 'star': {
-                    const outerR = (minSide / 2) * limit;
-                    const innerR = outerR * 0.4;
-                    const cyOffset = outerR * 0.05; // Visual centering offset for 5-point star
-                    let pts = [];
-                    for (let i = 0; i < 10; i++) {
-                        const angle = (i * Math.PI / 5) - Math.PI / 2;
-                        const r = i % 2 === 0 ? outerR : innerR;
-                        pts.push(`${cx + r * Math.cos(angle)},${cy + cyOffset + r * Math.sin(angle)}`);
-                    }
-                    clipSvgElement = `<polygon points="${pts.join(' ')}" />`;
+                    const sc = limit;
+                    clipVal = `polygon(50% ${50-50*sc}%, ${61-11*sc}% ${50-15*sc}%, ${98-48*sc}% ${50-15*sc}%, ${68-18*sc}% ${50+7*sc}%, ${79-29*sc}% ${50+41*sc}%, 50% ${50+20*sc}%, ${21+29*sc}% ${50+41*sc}%, ${32+18*sc}% ${50+7*sc}%, ${2+48*sc}% ${50-15*sc}%, ${39+11*sc}% ${50-15*sc}%)`;
                     break;
                 }
                 case 'heart': {
-                    const scale = (minSide / 100) * limit;
-                    const d = `M ${cx},${cy - 18 * scale} C ${cx - 25 * scale},${cy - 44 * scale} ${cx - 50 * scale},${cy - 21 * scale} ${cx - 50 * scale},${cy - 1 * scale} C ${cx - 50 * scale},${cy + 19 * scale} ${cx - 25 * scale},${cy + 36 * scale} ${cx},${cy + 44 * scale} C ${cx + 25 * scale},${cy + 36 * scale} ${cx + 50 * scale},${cy + 19 * scale} ${cx + 50 * scale},${cy - 1 * scale} C ${cx + 50 * scale},${cy - 21 * scale} ${cx + 25 * scale},${cy - 44 * scale} ${cx},${cy - 18 * scale} Z`;
-                    clipSvgElement = `<path d="${d}" />`;
+                    const sc = limit;
+                    clipVal = `path('M 50,${50-20*sc} C ${50-35*sc},${50-40*sc} ${50-50*sc},${50-15*sc} ${50-50*sc},${50+5*sc} C ${50-50*sc},${50+30*sc} ${50-25*sc},${50+45*sc} 50,${50+50*sc} C ${50+25*sc},${50+45*sc} ${50+50*sc},${50+30*sc} ${50+50*sc},${50+5*sc} C ${50+50*sc},${50-15*sc} ${50+35*sc},${50-40*sc} 50,${50-20*sc} Z')`;
                     break;
                 }
                 case 'cross': {
-                    const tw = w * limit * 0.3;
-                    const th = h * limit * 0.3;
-                    const p = [
-                        `${cx - tw/2},${0}`, `${cx + tw/2},${0}`, `${cx + tw/2},${cy - th/2}`,
-                        `${w},${cy - th/2}`, `${w},${cy + th/2}`, `${cx + tw/2},${cy + th/2}`,
-                        `${cx + tw/2},${h}`, `${cx - tw/2},${h}`, `${cx - tw/2},${cy + th/2}`,
-                        `${0},${cy + th/2}`, `${0},${cy - th/2}`, `${cx - tw/2},${cy - th/2}`
-                    ];
-                    clipSvgElement = `<polygon points="${p.join(' ')}" />`;
+                    const t = limit * 15;
+                    clipVal = `polygon(${50-t}% 0%, ${50+t}% 0%, ${50+t}% ${50-t}%, 100% ${50-t}%, 100% ${50+t}%, ${50+t}% ${50+t}%, ${50+t}% 100%, ${50-t}% 100%, ${50-t}% ${50+t}%, 0% ${50+t}%, 0% ${50-t}%, ${50-t}% ${50-t}%)`;
                     break;
                 }
                 case 'line': {
-                    const rh = h * limit * 0.1;
-                    clipSvgElement = `<rect x="0" y="${cy - rh/2}" width="${w}" height="${rh}" />`;
+                    clipVal = `inset(${50 - limit*2}% 0% ${50 - limit*2}% 0%)`;
                     break;
                 }
                 default:
-                    clipSvgElement = `<rect x="0" y="0" width="${w}" height="${h}" />`;
+                    clipVal = 'none';
             }
-
-            const bgImg = l.el.style.backgroundImage;
-            const bgCss = l.el.style.background;
-
-            let contentSvg = '';
-            if (bgImg && bgImg !== 'none') {
-                const imgUrlMatch = bgImg.match(/url\(["']?(.*?)["']?\)/);
-                if (imgUrlMatch) {
-                    contentSvg = `<image href="${imgUrlMatch[1]}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet" />`;
-                }
-            }
-            if (!contentSvg && bgCss && bgCss !== 'none') {
-                contentSvg = `<foreignObject width="${w}" height="${h}"><div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;background:${bgCss};"></div></foreignObject>`;
-            }
-            if (!contentSvg) {
-                contentSvg = `<foreignObject width="${w}" height="${h}"><div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;">${l._origContent || ''}</div></foreignObject>`;
-            }
-
-            l.el.innerHTML = `
-                <svg width="${w}" height="${h}" style="display:block;width:100%;height:100%;">
-                    <defs>
-                        <clipPath id="${clipId}">
-                            ${clipSvgElement}
-                        </clipPath>
-                    </defs>
-                    <g clip-path="url(#${clipId})">
-                        ${contentSvg}
-                    </g>
-                </svg>
-            `;
-            l._renderedSvg = true;
-            l.el.style.clipPath = 'none';
+            l.el.style.clipPath = clipVal;
         }
 
         function isInsideVoid(px, py, w, h, shape, threshold, rotationDeg) {
@@ -1031,17 +962,6 @@
             const blk = document.getElementById('blk-' + id);
             blk.querySelector('.text-content').innerText = val;
             blk.style.display = val.trim() ? "flex" : "none";
-            if (val.trim()) {
-                if (!blk.style.top && !blk.style.left) {
-                    if (id === 'title') { blk.style.top = '10%'; blk.style.left = '10%'; }
-                    else if (id === 'subtitle') { blk.style.top = '25%'; blk.style.left = '10%'; }
-                    else if (id === 'content') { blk.style.top = '40%'; blk.style.left = '10%'; }
-                    else if (id === 'meta') { blk.style.top = '80%'; blk.style.left = '10%'; }
-                    else if (id === 'date') { blk.style.top = '85%'; blk.style.left = '10%'; }
-                    else if (id === 'lefttitle') { blk.style.top = '10%'; blk.style.left = '5%'; }
-                    else if (id === 'righttitle') { blk.style.top = '10%'; blk.style.left = '85%'; }
-                }
-            }
         }
 
         function focusTarget(id) {
