@@ -481,6 +481,8 @@
             if (shape === 'none') {
                 if (l._renderedSvg) {
                     l.el.innerHTML = l._origContent || '';
+                    if (l._savedBgCss) { l.el.style.background = l._savedBgCss; l._savedBgCss = null; }
+                    if (l._savedBgImg) { l.el.style.backgroundImage = l._savedBgImg; l._savedBgImg = null; }
                     l._renderedSvg = false;
                 }
                 l.el.style.clipPath = 'none';
@@ -583,6 +585,15 @@
             }
             if (!contentSvg) {
                 contentSvg = `<foreignObject width="${w}" height="${h}"><div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;">${l._origContent || ''}</div></foreignObject>`;
+            }
+
+            if (!l._savedBgCss) {
+                l._savedBgCss = bgCss;
+                l.el.style.background = 'none';
+            }
+            if (!l._savedBgImg) {
+                l._savedBgImg = bgImg;
+                l.el.style.backgroundImage = 'none';
             }
 
             l.el.innerHTML = `
