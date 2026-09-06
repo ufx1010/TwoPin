@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>畫中有詩篇</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&family=Noto+Sans+TC:wght@400;700&family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&family=Liu+Jian+Mao+Cao&family=Zhi+Mang+Xing&family=Long+Cang&family=ZCOOL+KuaiLe&family=ZCOOL+QingKe+HuangYou&family=Chen+Yulu+One&family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Cinzel:wght@400;700&family=Dancing+Script:wght@500;700&family=Great+Vibes&family=Pacifico&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Sacramento&family=Parisienne&family=Allura&family=Petit+Formal+Script&family=Reenie+Beanie&family=Qwigley&family=Berkshire+Swash&family=Marck+Script&family=Alex+Brush&family=Tangerine:wght@400;700&family=Bad+Script&family=Amatic+SC:wght@400;700&family=Kalam:wght@300;400;700&family=Neucha&family=Patrick+Hand&family=Orbitron:wght@400;900&family=Press+Start+2P&family=Monoton&family=Rubik+Glitch&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #080a11;
+            --panel-bg: rgba(15, 19, 34, 0.85);
+            --card-bg: rgba(255, 255, 255, 0.035);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00f2fe;
+            --accent-teal: #39cccc;
+            --accent-amber: #f39c12;
+            --accent-gold: #ffb347;
+            --accent-coral: #ff5252;
+            --text-main: #f0f4f8;
+            --text-muted: #a0aec0;
+            --radius-lg: 12px;
+            --radius-md: 8px;
+            --radius-sm: 6px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            outline: none;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at 50% 30%, #151b2e 0%, #080a11 100%);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Noto Serif TC", sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        header {
+            background: rgba(15, 19, 34, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 10px 16px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            border-bottom: 1px solid var(--card-border);
+            color: var(--accent-cyan);
+            text-shadow: 0 0 12px rgba(0, 242, 254, 0.4);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+            height: calc(100dvh - 46px);
+        }
+
+        @media (min-width: 900px) {
+            .main-layout { flex-direction: row; }
+        }
+        
+        .stage {
+            flex: 1;
+            background-color: #040508;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            overflow: hidden;
+            position: relative;
+            touch-action: none;
+            min-height: 0;
+        }
+
+        .canvas-box {
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 2px rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            background: #000;
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            background-color: #11131c;
+            cursor: move;
+            touch-action: none;
+            border-radius: var(--radius-sm);
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
+        }
+
+        .toolbar {
+            flex: 1;
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--card-border);
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow: hidden;
+            max-width: 100vw;
+            flex-shrink: 0;
+            box-shadow: -6px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (min-width: 900px) {
+            .toolbar {
+                border-top: none;
+                border-left: 1px solid var(--card-border);
+                width: 460px;
+                max-width: 460px;
+            }
+        }
+        
+        .toolbar-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 2px;
+            padding-bottom: 8px;
+        }
+
+        .toolbar-scroll-area::-webkit-scrollbar {
+            width: 5px;
+        }
+        .toolbar-scroll-area::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        .toolbar-scroll-area::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+        .toolbar-scroll-area::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-teal);
+        }
+        
+        .card-block {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: border-color 0.2s ease;
+        }
+
+        .card-block:hover {
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+        
+        input[type="text"], select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: var(--text-main);
+            padding: 0 10px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            box-sizing: border-box;
+            -webkit-user-select: text;
+            user-select: text;
+            height: 34px;
+            line-height: 34px;
+            transition: all 0.25s ease;
+        }
+
+        input[type="text"]:focus, select:focus {
+            background: rgba(0, 0, 0, 0.5);
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 10px rgba(57, 204, 204, 0.35);
+        }
+
+        select option {
+            background: #111424;
+            color: #fff;
+            padding: 8px;
+        }
+        
+        .textarea-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: var(--text-main);
+            padding: 10px 32px 10px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            line-height: 1.6;
+            box-sizing: border-box;
+            -webkit-user-select: text;
+            user-select: text;
+            height: 60px;
+            min-height: 60px;
+            transition: height 0.3s ease, border-color 0.25s, box-shadow 0.25s, background 0.25s;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            height: 250px;
+            min-height: 250px;
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 12px rgba(57, 204, 204, 0.35);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .clear-textarea-btn {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-muted);
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 5;
+            line-height: 1;
+        }
+
+        .clear-textarea-btn:hover {
+            background: var(--accent-coral);
+            border-color: var(--accent-coral);
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        .size-ctrl {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            width: 100%;
+            height: 34px;
+        }
+
+        .size-btn {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-main);
+            border: none;
+            width: 30px;
+            height: 100%;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .size-btn:hover {
+            background: rgba(57, 204, 204, 0.25);
+            color: var(--accent-cyan);
+        }
+
+        .size-btn:active {
+            transform: scale(0.92);
+        }
+
+        .size-val {
+            flex: 1;
+            text-align: center;
+            font-size: 12px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            color: #fff;
+            white-space: nowrap;
+            line-height: 34px;
+            font-weight: 600;
+        }
+
+        .file-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-label.cyan { color: var(--accent-teal); }
+        .file-label.amber { color: var(--accent-amber); }
+        
+        .btn-action {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: var(--text-main);
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 36px;
+            transition: all 0.25s ease;
+            flex: 1;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-action:active {
+            transform: translateY(0);
+        }
+        
+        .btn-dl {
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-teal) 100%);
+            color: #060913;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 36px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 16px rgba(0, 242, 254, 0.25);
+            flex: 1.3;
+        }
+
+        .btn-dl:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(0, 242, 254, 0.4);
+            filter: brightness(1.05);
+        }
+
+        .btn-dl:active {
+            transform: translateY(0);
+        }
+
+        .custom-file-upload {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: var(--radius-sm);
+            padding: 0 8px;
+            text-align: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            height: 34px;
+            line-height: 34px;
+            transition: all 0.25s ease;
+        }
+
+        .custom-file-upload:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .collapse-container {
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            background: var(--card-bg);
+            overflow: hidden;
+            flex-shrink: 0;
+            transition: border-color 0.2s ease;
+        }
+
+        .collapse-container:hover {
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+
+        .collapse-header {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--accent-teal);
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background 0.2s ease;
+        }
+
+        .collapse-header:hover {
+            background: rgba(57, 204, 204, 0.08);
+        }
+
+        .collapse-content {
+            padding: 12px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(8, 10, 17, 0.5);
+            border-top: 1px solid var(--card-border);
+        }
+
+        .collapse-content.show {
+            display: flex;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            cursor: pointer;
+            background: transparent !important;
+            border-radius: var(--radius-sm);
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch {
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: var(--radius-sm);
+            box-shadow: inset 0 0 4px rgba(0,0,0,0.5);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            background: var(--accent-teal);
+            border: 2px solid #fff;
+            margin-top: -4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+            transition: transform 0.15s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .option-toggle-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            height: 32px;
+            color: var(--text-main);
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .option-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .option-toggle-btn.teal {
+            background: rgba(57, 204, 204, 0.12);
+            border-color: var(--accent-teal);
+            color: var(--accent-teal);
+        }
+
+        /* ===== 匯出下拉選單樣式 ===== */
+        .export-dropdown-wrapper {
+            position: relative;
+            display: flex;
+            width: 100%;
+            gap: 8px;
+            align-items: center;
+        }
+        .export-dropdown-wrapper .btn-dl {
+            flex: 1;
+        }
+        .export-options-btn {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            cursor: pointer;
+            height: 36px;
+            width: 36px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+            flex-shrink: 0;
+        }
+        .export-options-btn:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.3);
+        }
+        .export-options-btn.active {
+            border-color: var(--accent-teal);
+            background: rgba(57,204,204,0.15);
+        }
+
+        .export-options-panel {
+            display: none;
+            background: rgba(15, 19, 34, 0.98);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 12px 14px;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 4px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+        }
+        .export-options-panel.show {
+            display: flex;
+        }
+
+        .format-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+        .format-btn {
+            padding: 8px 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            border-radius: var(--radius-sm);
+            border: 2px solid transparent;
+            background: rgba(255,255,255,0.05);
+            color: #888;
+            cursor: pointer;
+            transition: 0.2s;
+            height: 32px;
+        }
+        .format-btn.active-format {
+            border-color: var(--accent-teal);
+            background: rgba(57, 204, 204, 0.2);
+            color: #fff;
+        }
+        .format-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--card-border);
+        }
+        .toggle-row label {
+            margin: 0;
+            font-size: 11px;
+            color: #aaa;
+            cursor: pointer;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 22px;
+            flex-shrink: 0;
+            background: #333;
+            border-radius: 11px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .toggle-switch.active {
+            background: var(--accent-teal);
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .toggle-switch.active::after {
+            left: 20px;
+        }
+        .toggle-switch.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .export-options-panel .sub-hint {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: center;
+            padding-top: 4px;
+            border-top: 1px solid var(--card-border);
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <span>🏞️</span>
+        <span>畫中有詩篇</span>
+        <span>🗺️</span>
+    </header>
+
+    <div class="main-layout">
+        <div class="stage">
+            <div class="canvas-box">
+                <canvas id="pic-canvas"></canvas>
+            </div>
+        </div>
+
+        <div class="toolbar" id="ctrl-panel">
+            <div class="toolbar-scroll-area" id="scroll-area">
+
+                <div class="collapse-container">
+                    <div class="collapse-header" onclick="toggleCollapse()">
+                        <span>⚙️ 進階排版與樣式設定</span>
+                        <span id="collapse-icon">▼ 展開</span>
+                    </div>
+                    <div class="collapse-content" id="collapse-box">
+                        <div class="row">
+                            <div class="col" style="flex: 1.1;">
+                                <span class="file-label">🀄 中文字型</span>
+                                <select id="font-family-select" onchange="shrinkInputs()">
+                                    <optgroup label="預設與系統">
+                                        <option value="sans-serif">系統黑體</option>
+                                        <option value="serif">系統宋體</option>
+                                    </optgroup>
+                                    <optgroup label="黑體 / 無襯線">
+                                        <option value="'Noto Sans TC', 'Noto Sans SC', sans-serif">思源黑體</option>
+                                        <option value="'Noto Sans SC', sans-serif">思源黑體(簡)</option>
+                                        <option value="'Microsoft JhengHei', '微軟正黑體', sans-serif">微軟正黑體</option>
+                                        <option value="'PingFang TC', 'PingFang SC', sans-serif">蘋方</option>
+                                    </optgroup>
+                                    <optgroup label="宋體 / 襯線">
+                                        <option value="'Noto Serif TC', 'Noto Serif SC', serif">思源宋體</option>
+                                        <option value="'Noto Serif SC', serif">思源宋體(簡)</option>
+                                        <option value="KaiTi, '標楷體', 'DFKai-SB', serif">標準楷體</option>
+                                        <option value="'PMingLiU', 'MingLiU', serif">細明體</option>
+                                    </optgroup>
+                                    <optgroup label="書法 / 毛筆">
+                                        <option value="'Ma Shan Zheng', cursive">馬善政書法體</option>
+                                        <option value="'Zhi Mang Xing', cursive">志芒行書體</option>
+                                        <option value="'Long Cang', cursive">龍藏書法體</option>
+                                        <option value="'Liu Jian Mao Cao', cursive">劉建毛草體</option>
+                                    </optgroup>
+                                    <optgroup label="藝術 / 創意">
+                                        <option value="'ZCOOL XiaoWei', serif">站酷小薇體</option>
+                                        <option value="'ZCOOL KuaiLe', cursive">站酷快樂體</option>
+                                        <option value="'ZCOOL QingKe HuangYou', cursive">站酷青克黃油</option>
+                                        <option value="'Chen Yulu One', cursive">陳玉露體</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="col" style="flex: 1.1;">
+                                <span class="file-label">🆎 英文字型</span>
+                                <select id="english-font-select" onchange="shrinkInputs()">
+                                    <optgroup label="預設">
+                                        <option value="sans-serif">系統無襯線</option>
+                                        <option value="serif">系統襯線</option>
+                                    </optgroup>
+                                    <optgroup label="手寫 / 草書">
+                                        <option value="'Dancing Script', cursive">優雅手寫</option>
+                                        <option value="'Great Vibes', cursive">浪漫草書</option>
+                                        <option value="'Parisienne', cursive">法式優雅草寫</option>
+                                        <option value="'Allura', cursive">流暢細緻草寫</option>
+                                        <option value="'Petit Formal Script', cursive">古典精緻草寫</option>
+                                        <option value="'Sacramento', cursive">加州手寫</option>
+                                        <option value="'Alex Brush', cursive">亞歷克斯手寫</option>
+                                        <option value="'Tangerine', cursive">橘子花體</option>
+                                        <option value="'Qwigley', cursive">奎格利花體</option>
+                                        <option value="'Berkshire Swash', cursive">伯克郡花體</option>
+                                        <option value="'Marck Script', cursive">馬克手寫</option>
+                                        <option value="'Bad Script', cursive">壞手寫</option>
+                                        <option value="'Reenie Beanie', cursive">雷尼豆豆</option>
+                                        <option value="'Patrick Hand', cursive">派翠克手寫</option>
+                                    </optgroup>
+                                    <optgroup label="藝術 / 裝飾">
+                                        <option value="'Pacifico', cursive">圓潤藝術</option>
+                                        <option value="'Amatic SC', cursive">阿馬蒂克</option>
+                                        <option value="'Kalam', cursive">卡拉姆手寫</option>
+                                        <option value="'Neucha', cursive">諾伊查</option>
+                                    </optgroup>
+                                    <optgroup label="古典 / 襯線">
+                                        <option value="'Playfair Display', serif">展覽體</option>
+                                        <option value="'Cinzel', serif">古典羅馬</option>
+                                    </optgroup>
+                                    <optgroup label="特殊 / 科技">
+                                        <option value="'Orbitron', sans-serif">軌道科技</option>
+                                        <option value="'Press Start 2P', cursive">復古像素</option>
+                                        <option value="'Monoton', cursive">單調體</option>
+                                        <option value="'Rubik Glitch', cursive">故障藝術</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="col" style="flex: 0.5;">
+                                <span class="file-label">🎨 字色</span>
+                                <input type="color" id="text-color" value="#ffffff" style="width:100%; height:34px; padding:0; cursor:pointer;">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col" style="flex: 1;">
+                                <span class="file-label">⬜ 框底色</span>
+                                <input type="color" id="title-box-bg-color" value="#000000" style="width:100%; height:34px; padding:0; cursor:pointer;">
+                            </div>
+                            <div class="col" style="flex: 2;">
+                                <span class="file-label">💧 透明度 (<span id="val-title-opacity-text">0</span>%)</span>
+                                <div style="display: flex; align-items: center; gap: 6px; height: 34px;">
+                                    <input type="range" id="title-box-bg-opacity" min="0" max="100" value="0" step="5" style="flex: 1; cursor: pointer; accent-color: var(--accent-teal);">
+                                    <button class="size-btn" style="width: 28px; height: 28px; font-size: 12px; border-radius: var(--radius-sm);" onclick="adjustOpacity('title-box-bg-opacity', -5)">-</button>
+                                    <button class="size-btn" style="width: 28px; height: 28px; font-size: 12px; border-radius: var(--radius-sm);" onclick="adjustOpacity('title-box-bg-opacity', 5)">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col" style="flex: 1;">
+                                <span class="file-label">🔄 書寫方向</span>
+                                <select id="text-dir" onchange="handleDirectionChange()">
+                                    <option value="v-rl">直排：➡️</option>
+                                    <option value="v-lr">直排：⬅️</option>
+                                    <option value="h-lr" selected>橫排：➡️</option>
+                                </select>
+                            </div>
+                            <div class="col" style="flex: 1;">
+                                <span class="file-label">🎯 對齊方式</span>
+                                <select id="text-align" onchange="shrinkInputs()">
+                                    <option value="start">靠頂 / 置左</option>
+                                    <option value="center" selected>置中</option>
+                                    <option value="end">靠底 / 置右</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-block">
+                    <span class="file-label cyan">🖼️ 底圖與圖框設定</span>
+                    <div class="row">
+                        <label class="custom-file-upload" style="border-color: var(--accent-teal); color: var(--accent-teal); flex: 1.2;">
+                            選擇照片
+                            <input type="file" id="choose-img" accept="image/*" style="display: none;">
+                        </label>
+                        <select id="aspect-ratio-select" onchange="handleAspectRatioChange()" style="border-color: var(--accent-teal); color: var(--accent-teal); flex: 1; height: 34px;">
+                            <option value="original">原始比例</option>
+                            <option value="1:1" selected>1 : 1 正方</option>
+                            <option value="9:16">9 : 16 直式</option>
+                            <option value="16:9">16 : 9 橫式</option>
+                            <option value="4:3">4 : 3 標準</option>
+                            <option value="3:4">3 : 4 直式</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <button onclick="clearCanvasData()" style="background: rgba(255, 82, 82, 0.15); border: 1px solid var(--accent-coral); color: #ff6b6b; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; cursor: pointer; height: 32px; flex: 0.9; transition: all 0.2s;">🗑️ 清除</button>
+                        <label class="option-toggle-btn" style="flex: 1;">
+                            <input type="checkbox" id="lock-bg" style="cursor: pointer; accent-color: var(--accent-teal);"> 🔒 底圖
+                        </label>
+                        <label class="option-toggle-btn teal" style="flex: 1.1;" title="鎖定後可兩指縮放">
+                            <input type="checkbox" id="zoom-mode" style="cursor: pointer; accent-color: var(--accent-teal);" onchange="handleZoomModeChange()"> 🔍 局部縮放
+                        </label>
+                    </div>
+                </div>
+
+                <div class="card-block">
+                    <span class="file-label amber">🎨 印章與圖層控制</span>
+                    <div class="row">
+                        <label class="custom-file-upload" style="border-color: var(--accent-amber); color: var(--accent-amber); flex: 1.2;">
+                            選擇印章
+                            <input type="file" id="choose-img2" accept="image/*" style="display: none;">
+                        </label>
+                        <button id="btn-img2-text-layer" onclick="toggleImg2TextLayer()" style="background: rgba(0,0,0,0.3); border: 1px solid var(--accent-amber); color: var(--accent-amber); border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; cursor: pointer; height: 34px; flex: 0.9; transition: all 0.2s;">中層</button>
+                        <button id="btn-img2-bg-layer" onclick="toggleImg2BgLayer()" style="background: rgba(0,0,0,0.3); border: 1px solid var(--accent-amber); color: var(--accent-amber); border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; cursor: pointer; height: 34px; flex: 0.9; transition: all 0.2s;">上層</button>
+                    </div>
+                    <div class="row">
+                        <div class="size-ctrl" style="border-color: var(--accent-amber); flex: 1;">
+                            <button class="size-btn" style="background:transparent; color: var(--accent-amber); width: 28px;" onclick="changeImg2Scale(-0.05)">-</button>
+                            <span class="size-val" id="val-img2-scale" style="color: var(--accent-gold); font-size: 11px;">100%</span>
+                            <button class="size-btn" style="background:transparent; color: var(--accent-amber); width: 28px;" onclick="changeImg2Scale(0.05)">+</button>
+                        </div>
+                        <div class="size-ctrl" style="border-color: var(--accent-amber); flex: 1;">
+                            <button class="size-btn" style="background:transparent; color: var(--accent-amber); width: 28px;" onclick="changeImg2Angle(-5)">-</button>
+                            <span class="size-val" id="val-img2-angle" style="color: var(--accent-gold); font-size: 11px;">0°</span>
+                            <button class="size-btn" style="background:transparent; color: var(--accent-amber); width: 28px;" onclick="changeImg2Angle(5)">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== 匯出按鈕 + 格式選單 ===== -->
+                <div class="card-block">
+                    <span class="file-label cyan">📤 匯出圖檔</span>
+                    <div class="export-dropdown-wrapper">
+                        <button class="btn-dl" onclick="exportCanvas()">
+                            💾 匯出
+                        </button>
+                        <button class="export-options-btn" id="exportOptionsToggle" onclick="toggleExportOptions()" title="輸出格式設定">
+                            ⚙️
+                        </button>
+                    </div>
+                    <div class="export-options-panel" id="exportOptionsPanel">
+                        <div class="format-grid">
+                            <button class="format-btn active-format" data-format="png" onclick="setExportFormat('png', this)">PNG</button>
+                            <button class="format-btn" data-format="jpg" onclick="setExportFormat('jpg', this)">JPG</button>
+                            <button class="format-btn" data-format="webp" onclick="setExportFormat('webp', this)">WebP</button>
+                            <button class="format-btn" data-format="bmp" onclick="setExportFormat('bmp', this)">BMP</button>
+                            <button class="format-btn" data-format="tiff" onclick="setExportFormat('tiff', this)">TIFF</button>
+                            <button class="format-btn" data-format="gif" onclick="setExportFormat('gif', this)">GIF</button>
+                            <button class="format-btn" data-format="ico" onclick="setExportFormat('ico', this)">ICO</button>
+                            <button class="format-btn" data-format="avif" onclick="setExportFormat('avif', this)">AVIF</button>
+                        </div>
+                        <div class="row">
+                            <div class="toggle-row" style="flex:1;">
+                                <span>⬜ 透明背景</span>
+                                <div class="toggle-switch" id="transparentToggle" onclick="toggleTransparent()"></div>
+                                <span style="font-size:10px; color:#666;">(PNG / TIFF / GIF)</span>
+                            </div>
+                            <div class="col" style="flex:0.8; align-items:flex-end;">
+                                <span class="file-label" style="font-size:9px; color:#555; margin:0;">品質</span>
+                                <input type="range" id="exportQuality" min="10" max="100" value="92" style="width:80px; height:6px; accent-color:var(--accent-teal);">
+                            </div>
+                        </div>
+                        <div class="sub-hint">點擊「匯出」按鈕下載 • 透明背景僅部分格式支援</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <button class="btn-action" onclick="saveProgress()" style="background: rgba(243, 156, 18, 0.18); border-color: var(--accent-amber); color: var(--accent-gold);">
+                        💾 畫面
+                    </button>
+                    <button class="btn-action" onclick="loadProgress()" style="background: rgba(57, 204, 204, 0.18); border-color: var(--accent-teal); color: var(--accent-cyan);">
+                        📂 復原
+                    </button>
+                    <button class="btn-action" onclick="undoState()" style="background: rgba(255, 255, 255, 0.06); border-color: rgba(255,255,255,0.2);">
+                        ↩️ 退回
+                    </button>
+                </div>
+
+                <!-- 第一排：文字大小與文字角度 -->
+                <div class="card-block">
+                    <div class="row" style="align-items: center;">
+                        <div class="col" style="flex: 1;">
+                            <span class="file-label">📐 文字大小</span>
+                            <div class="size-ctrl">
+                                <button class="size-btn" onclick="changeTitleScale(-2)">-</button>
+                                <span class="size-val" id="val-title-scale">60</span>
+                                <button class="size-btn" onclick="changeTitleScale(2)">+</button>
+                            </div>
+                        </div>
+                        <div class="col" style="flex: 1;">
+                            <span class="file-label">🔄 文字角度</span>
+                            <div class="size-ctrl">
+                                <button class="size-btn" onclick="changeTitleAngle(-5)">-</button>
+                                <span class="size-val" id="val-title-angle">0°</span>
+                                <button class="size-btn" onclick="changeTitleAngle(5)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第二排：上下微調與左右微調 -->
+                <div class="card-block">
+                    <div class="row" style="align-items: center;">
+                        <div class="col" style="flex: 1;">
+                            <span class="file-label">↕️ 上下微調</span>
+                            <div class="size-ctrl">
+                                <button class="size-btn" onclick="moveTitlePos(0, -5)" style="font-size: 12px;">⬆️</button>
+                                <span class="size-val" style="font-size: 11px;">+</span>
+                                <button class="size-btn" onclick="moveTitlePos(0, 5)" style="font-size: 12px;">⬇️</button>
+                            </div>
+                        </div>
+                        <div class="col" style="flex: 1;">
+                            <span class="file-label">↔️ 左右微調</span>
+                            <div class="size-ctrl">
+                                <button class="size-btn" onclick="moveTitlePos(-5, 0)" style="font-size: 12px;">⬅️</button>
+                                <span class="size-val" style="font-size: 11px;">+</span>
+                                <button class="size-btn" onclick="moveTitlePos(5, 0)" style="font-size: 12px;">➡️</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-block" id="input-card-block">
+                    <span class="file-label cyan">✍️ 文字輸入框（畫布單指平移 & 雙指縮放）</span>
+                    <div class="textarea-wrapper">
+                        <textarea id="input-title" placeholder="請輸入詩詞或文字..."></textarea>
+                        <button class="clear-textarea-btn" onclick="clearTextareaContent()" title="清除文字">×</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('pic-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let bgImg = new Image();
+        let isBgLoaded = false;
+        let img2 = new Image();
+        let isImg2Loaded = false;
+        let img2BehindText = false;
+        let img2BehindBg = false;
+
+        const bgConf = { x: 0, y: 0, scale: 1.0, angle: 0 };
+        const titleObj = { centerX: 400, centerY: 250, width: 100, height: 50, scale: 60, angle: 0, userMoved: false };
+        const conf = { gap: 12 };
+        const img2Conf = { centerX: 200, centerY: 200, scale: 1.0, angle: 0 };
+        let historyStack = [];
+
+        let canvasZoomState = { scale: 1.0, x: 0, y: 0 };
+        let initialZoomPinchDist = null;
+
+        // ===== 輸出格式設定 =====
+        let exportFormat = 'png';
+        let transparentBg = false;
+
+        canvas.width = 800;
+        canvas.height = 800;
+
+        window.onload = function() {
+            render();
+            document.getElementById('transparentToggle').classList.add('disabled');
+        };
+
+        // ===== 匯出選單開關 =====
+        function toggleExportOptions() {
+            const panel = document.getElementById('exportOptionsPanel');
+            const btn = document.getElementById('exportOptionsToggle');
+            panel.classList.toggle('show');
+            btn.classList.toggle('active');
+        }
+
+        // ===== 輸出格式相關函數 =====
+        function setExportFormat(format, btn) {
+            exportFormat = format;
+            document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active-format'));
+            if (btn) btn.classList.add('active-format');
+            
+            const toggle = document.getElementById('transparentToggle');
+            const transparentFormats = ['png', 'tiff', 'gif'];
+            if (transparentFormats.includes(format)) {
+                toggle.classList.remove('disabled');
+                toggle.style.opacity = '1';
+                toggle.style.pointerEvents = 'auto';
+            } else {
+                toggle.classList.add('disabled');
+                toggle.style.opacity = '0.4';
+                toggle.style.pointerEvents = 'none';
+                if (transparentBg) {
+                    transparentBg = false;
+                    toggle.classList.remove('active');
+                }
+            }
+        }
+
+        function toggleTransparent() {
+            const transparentFormats = ['png', 'tiff', 'gif'];
+            if (!transparentFormats.includes(exportFormat)) return;
+            const toggle = document.getElementById('transparentToggle');
+            transparentBg = !transparentBg;
+            toggle.classList.toggle('active');
+        }
+
+        function exportCanvas() {
+            const quality = parseInt(document.getElementById('exportQuality').value) / 100;
+            
+            const formatMap = {
+                'png': { mime: 'image/png', ext: 'png', quality: quality, supportsTransparent: true },
+                'jpg': { mime: 'image/jpeg', ext: 'jpg', quality: quality, supportsTransparent: false },
+                'webp': { mime: 'image/webp', ext: 'webp', quality: quality, supportsTransparent: false },
+                'bmp': { mime: 'image/bmp', ext: 'bmp', quality: 1, supportsTransparent: false },
+                'tiff': { mime: 'image/tiff', ext: 'tiff', quality: quality, supportsTransparent: true },
+                'gif': { mime: 'image/gif', ext: 'gif', quality: 1, supportsTransparent: true },
+                'ico': { mime: 'image/x-icon', ext: 'ico', quality: 1, supportsTransparent: false },
+                'avif': { mime: 'image/avif', ext: 'avif', quality: quality, supportsTransparent: false }
+            };
+            
+            const fmt = formatMap[exportFormat] || formatMap['png'];
+            const useTransparent = transparentBg && fmt.supportsTransparent;
+            
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            if (!useTransparent) {
+                tempCtx.fillStyle = '#11131c';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            }
+            
+            tempCtx.drawImage(canvas, 0, 0);
+            
+            const link = document.createElement('a');
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+            link.download = `畫中有詩篇_${timestamp}.${fmt.ext}`;
+            
+            try {
+                link.href = tempCanvas.toDataURL(fmt.mime, fmt.quality);
+            } catch(e) {
+                console.warn('格式不支援，降級為 PNG', e);
+                link.download = `畫中有詩篇_${timestamp}.png`;
+                link.href = tempCanvas.toDataURL('image/png', 1);
+            }
+            link.click();
+        }
+
+        const textareaEl = document.getElementById('input-title');
+        textareaEl.addEventListener('focus', function() {
+            setTimeout(() => {
+                document.getElementById('input-card-block').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 300);
+        });
+
+        window.clearTextareaContent = function() {
+            const ta = document.getElementById('input-title');
+            ta.value = '';
+            requestRender();
+            ta.focus();
+        };
+
+        window.toggleCollapse = function() {
+            const box = document.getElementById('collapse-box');
+            const icon = document.getElementById('collapse-icon');
+            box.classList.toggle('show');
+            icon.innerText = box.classList.contains('show') ? "▲ 收起" : "▼ 展開";
+        };
+
+        window.shrinkInputs = function() {
+            document.getElementById('input-title').blur();
+        };
+
+        window.handleDirectionChange = function() {
+            shrinkInputs();
+            const dir = document.getElementById('text-dir').value;
+            document.getElementById('text-align').value = (dir === 'h-lr') ? 'center' : 'start';
+            render();
+        };
+
+        window.toggleImg2TextLayer = function() {
+            img2BehindText = !img2BehindText;
+            const btn = document.getElementById('btn-img2-text-layer');
+            btn.innerHTML = img2BehindText ? "上層" : "中層";
+            btn.style.color = img2BehindText ? "#fff" : "var(--accent-amber)";
+            btn.style.background = img2BehindText ? "var(--accent-amber)" : "rgba(0,0,0,0.3)";
+            render();
+        };
+
+        window.toggleImg2BgLayer = function() {
+            img2BehindBg = !img2BehindBg;
+            const btn = document.getElementById('btn-img2-bg-layer');
+            btn.innerHTML = img2BehindBg ? "下層" : "上層";
+            btn.style.color = img2BehindBg ? "#fff" : "var(--accent-amber)";
+            btn.style.background = img2BehindBg ? "var(--accent-amber)" : "rgba(0,0,0,0.3)";
+            render();
+        };
+
+        window.adjustOpacity = function(elementId, amount) {
+            const slider = document.getElementById(elementId);
+            let val = Math.max(0, Math.min(100, parseInt(slider.value) + amount));
+            slider.value = val;
+            document.getElementById('val-title-opacity-text').innerText = val;
+            requestRender();
+        };
+
+        window.changeTitleScale = function(amt) {
+            shrinkInputs();
+            saveStateToHistory();
+            titleObj.scale = Math.max(4, Math.min(300, titleObj.scale + amt));
+            document.getElementById('val-title-scale').innerText = Math.round(titleObj.scale);
+            requestRender();
+        };
+
+        window.changeTitleAngle = function(amt) {
+            shrinkInputs();
+            saveStateToHistory();
+            titleObj.angle = (titleObj.angle + amt) % 360;
+            document.getElementById('val-title-angle').innerText = titleObj.angle + '°';
+            requestRender();
+        };
+
+        window.moveTitlePos = function(dx, dy) {
+            shrinkInputs();
+            saveStateToHistory();
+            titleObj.centerX += dx;
+            titleObj.centerY += dy;
+            titleObj.userMoved = true;
+            requestRender();
+        };
+
+        window.changeImg2Scale = function(amt) {
+            img2Conf.scale = Math.max(0.01, Math.min(15.0, img2Conf.scale + amt));
+            document.getElementById('val-img2-scale').innerText = Math.round(img2Conf.scale * 100) + "%";
+            if (isImg2Loaded) requestRender();
+        };
+
+        window.changeImg2Angle = function(amt) {
+            img2Conf.angle = (img2Conf.angle + amt) % 360;
+            document.getElementById('val-img2-angle').innerText = img2Conf.angle + '°';
+            if (isImg2Loaded) requestRender();
+        };
+
+        window.handleZoomModeChange = function() {
+            if (!document.getElementById('zoom-mode').checked) {
+                canvasZoomState = { scale: 1.0, x: 0, y: 0 };
+                canvas.style.transform = `scale(1)`;
+            }
+        };
+
+        function updateCanvasDimensionsByRatio() {
+            const ratioVal = document.getElementById('aspect-ratio-select').value;
+            if (ratioVal === 'original' && isBgLoaded) {
+                canvas.width = bgImg.naturalWidth;
+                canvas.height = bgImg.naturalHeight;
+                return;
+            }
+            let w = 800, h = 800;
+            if (ratioVal === '1:1') { w = 800; h = 800; }
+            else if (ratioVal === '9:16') { w = 720; h = 1280; }
+            else if (ratioVal === '16:9') { w = 1280; h = 720; }
+            else if (ratioVal === '4:3') { w = 1024; h = 768; }
+            else if (ratioVal === '3:4') { w = 768; h = 1024; }
+            canvas.width = w;
+            canvas.height = h;
+        }
+
+        function fitImageToCanvas() {
+            if (!bgImg.naturalWidth) return;
+            updateCanvasDimensionsByRatio();
+            const cRatio = canvas.width / canvas.height;
+            const imgRatio = bgImg.naturalWidth / bgImg.naturalHeight;
+            if (imgRatio > cRatio) {
+                bgConf.scale = canvas.height / bgImg.naturalHeight;
+            } else {
+                bgConf.scale = canvas.width / bgImg.naturalWidth;
+            }
+            bgConf.x = (canvas.width - bgImg.naturalWidth * bgConf.scale) / 2;
+            bgConf.y = (canvas.height - bgImg.naturalHeight * bgConf.scale) / 2;
+            bgConf.angle = 0;
+        }
+
+        window.handleAspectRatioChange = function() {
+            saveStateToHistory();
+            if (isBgLoaded) fitImageToCanvas();
+            else updateCanvasDimensionsByRatio();
+            titleObj.userMoved = false;
+            render();
+        };
+
+        window.clearCanvasData = function() {
+            if (!confirm("確定要清除所有照片與重設畫布嗎？")) return;
+            saveStateToHistory();
+            bgImg = new Image();
+            isBgLoaded = false;
+            img2 = new Image();
+            isImg2Loaded = false;
+            document.getElementById('choose-img').value = '';
+            document.getElementById('choose-img2').value = '';
+            document.getElementById('input-title').value = '';
+            document.getElementById('lock-bg').checked = false;
+            document.getElementById('zoom-mode').checked = false;
+            canvas.style.transform = `scale(1)`;
+            canvas.width = 800;
+            canvas.height = 800;
+            titleObj.userMoved = false;
+            render();
+        };
+
+        document.getElementById('choose-img').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            saveStateToHistory();
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const newBgImg = new Image();
+                newBgImg.onload = function() {
+                    bgImg = newBgImg;
+                    isBgLoaded = true;
+                    fitImageToCanvas();
+                    titleObj.userMoved = false;
+                    render();
+                };
+                newBgImg.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('choose-img2').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            saveStateToHistory();
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                img2 = new Image();
+                img2.onload = function() {
+                    isImg2Loaded = true;
+                    img2Conf.centerX = canvas.width / 2;
+                    img2Conf.centerY = canvas.height / 2;
+                    img2Conf.scale = 1.0;
+                    img2Conf.angle = 0;
+                    document.getElementById('val-img2-scale').innerText = "100%";
+                    document.getElementById('val-img2-angle').innerText = "0°";
+                    render();
+                };
+                img2.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function getCanvasCoord(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * (canvas.width / rect.width),
+                y: (clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        let activeObj = null;
+        let dragOffset = { x: 0, y: 0 };
+        let initialPinchDist = null, initialPinchAngle = 0, initialPinchScale = 1.0, initialBgAngle = 0;
+
+        function dragStart(e) {
+            shrinkInputs();
+            activeObj = null;
+            const isZoomMode = document.getElementById('zoom-mode').checked;
+            const isBgLocked = document.getElementById('lock-bg').checked;
+
+            if (isZoomMode && e.touches && e.touches.length === 2) {
+                initialZoomPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                activeObj = 'canvas-zoom';
+                if (e.cancelable) e.preventDefault();
+                return;
+            }
+            if (isZoomMode) return;
+
+            if (e.touches && e.touches.length === 2) {
+                initialPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                initialPinchAngle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * (180 / Math.PI);
+
+                const pos = getCanvasCoord(e);
+                if (titleTextActive() && Math.hypot(pos.x - titleObj.centerX, pos.y - titleObj.centerY) < Math.max(titleObj.width, titleObj.height) / 1.0) {
+                    saveStateToHistory();
+                    activeObj = 'pinch-title';
+                    initialPinchScale = titleObj.scale;
+                    if (e.cancelable) e.preventDefault();
+                    return;
+                }
+                if (!isBgLocked && isBgLoaded) {
+                    saveStateToHistory();
+                    activeObj = 'pinch-bg';
+                    initialPinchScale = bgConf.scale;
+                    initialBgAngle = bgConf.angle;
+                    if (e.cancelable) e.preventDefault();
+                }
+                return;
+            }
+
+            const pos = getCanvasCoord(e);
+            if (isImg2Loaded && Math.hypot(pos.x - img2Conf.centerX, pos.y - img2Conf.centerY) < Math.max(img2.naturalWidth * img2Conf.scale, img2.naturalHeight * img2Conf.scale) / 2) {
+                saveStateToHistory();
+                activeObj = 'img2';
+                dragOffset.x = pos.x - img2Conf.centerX;
+                dragOffset.y = pos.y - img2Conf.centerY;
+                if (e.cancelable) e.preventDefault();
+                return;
+            }
+
+            if (titleTextActive() && Math.abs(pos.x - titleObj.centerX) < titleObj.width / 2 + 20 && Math.abs(pos.y - titleObj.centerY) < titleObj.height / 2 + 20) {
+                saveStateToHistory();
+                activeObj = 'title';
+                dragOffset.x = pos.x - titleObj.centerX;
+                dragOffset.y = pos.y - titleObj.centerY;
+                if (e.cancelable) e.preventDefault();
+                return;
+            }
+
+            if (!isBgLocked && isBgLoaded) {
+                saveStateToHistory();
+                activeObj = 'bg';
+                dragOffset.x = pos.x - bgConf.x;
+                dragOffset.y = pos.y - bgConf.y;
+                if (e.cancelable) e.preventDefault();
+            }
+        }
+
+        function dragMove(e) {
+            const isZoomMode = document.getElementById('zoom-mode').checked;
+            if (isZoomMode && activeObj === 'canvas-zoom' && e.touches && e.touches.length === 2) {
+                const currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                if (initialZoomPinchDist) {
+                    canvasZoomState.scale = Math.max(1.0, Math.min(5.0, currentDist / initialZoomPinchDist));
+                    canvas.style.transform = `scale(${canvasZoomState.scale})`;
+                }
+                if (e.cancelable) e.preventDefault();
+                return;
+            }
+            if (!activeObj) return;
+
+            if ((activeObj === 'pinch-bg' || activeObj === 'pinch-title') && e.touches && e.touches.length === 2) {
+                const currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                const currentAngle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * (180 / Math.PI);
+                if (initialPinchDist) {
+                    const scaleFactor = 1.0 + ((currentDist / initialPinchDist - 1.0) / 5.0);
+                    const angleDelta = ((currentAngle - initialPinchAngle) / 5.0);
+
+                    if (activeObj === 'pinch-bg') {
+                        bgConf.scale = Math.max(0.05, Math.min(10.0, initialPinchScale * scaleFactor));
+                        bgConf.angle = (initialBgAngle + angleDelta) % 360;
+                    } else if (activeObj === 'pinch-title') {
+                        titleObj.scale = Math.max(4, Math.min(300, initialPinchScale * scaleFactor));
+                        document.getElementById('val-title-scale').innerText = Math.round(titleObj.scale);
+                    }
+                    requestRender();
+                }
+                if (e.cancelable) e.preventDefault();
+                return;
+            }
+
+            const pos = getCanvasCoord(e);
+            if (activeObj === 'title') {
+                titleObj.centerX = pos.x - dragOffset.x;
+                titleObj.centerY = pos.y - dragOffset.y;
+                titleObj.userMoved = true;
+            } else if (activeObj === 'img2') {
+                img2Conf.centerX = pos.x - dragOffset.x;
+                img2Conf.centerY = pos.y - dragOffset.y;
+            } else if (activeObj === 'bg') {
+                bgConf.x = bgConf.x + ((pos.x - dragOffset.x) - bgConf.x) / 6.5;
+                bgConf.y = bgConf.y + ((pos.y - dragOffset.y) - bgConf.y) / 6.5;
+            }
+            if (e.cancelable) e.preventDefault();
+            requestRender();
+        }
+
+        function dragEnd() {
+            activeObj = null;
+            initialPinchDist = null;
+            initialZoomPinchDist = null;
+        }
+
+        canvas.addEventListener('mousedown', dragStart);
+        canvas.addEventListener('touchstart', dragStart, { passive: false });
+        window.addEventListener('mousemove', dragMove);
+        window.addEventListener('touchmove', dragMove, { passive: false });
+        window.addEventListener('mouseup', dragEnd);
+        window.addEventListener('touchend', dragEnd);
+
+        document.getElementById('title-box-bg-opacity').addEventListener('input', function() {
+            document.getElementById('val-title-opacity-text').innerText = this.value;
+            requestRender();
+        });
+
+        ['input-title', 'font-family-select', 'english-font-select', 'text-color', 'title-box-bg-color', 'text-align', 'aspect-ratio-select'].forEach(id => {
+            document.getElementById(id).addEventListener('input', requestRender);
+            document.getElementById(id).addEventListener('change', requestRender);
+        });
+
+        function saveStateToHistory() {
+            const state = {
+                bgConf: { ...bgConf }, titleObj: { ...titleObj }, img2Conf: { ...img2Conf },
+                isBgLoaded, isImg2Loaded,
+                inputTitle: document.getElementById('input-title').value,
+                titleOpacity: document.getElementById('title-box-bg-opacity').value,
+                titleBgColor: document.getElementById('title-box-bg-color').value,
+                textColor: document.getElementById('text-color').value,
+                textDir: document.getElementById('text-dir').value,
+                textAlign: document.getElementById('text-align').value,
+                aspectRatio: document.getElementById('aspect-ratio-select').value,
+                canvasWidth: canvas.width, canvasHeight: canvas.height
+            };
+            historyStack.push(state);
+            if (historyStack.length > 20) historyStack.shift();
+        }
+
+        window.undoState = function() {
+            if (historyStack.length === 0) {
+                alert("沒有可退回的紀錄了！");
+                return;
+            }
+            const s = historyStack.pop();
+            Object.assign(bgConf, s.bgConf);
+            Object.assign(titleObj, s.titleObj);
+            Object.assign(img2Conf, s.img2Conf);
+            isBgLoaded = s.isBgLoaded;
+            isImg2Loaded = s.isImg2Loaded;
+            document.getElementById('input-title').value = s.inputTitle;
+            document.getElementById('title-box-bg-opacity').value = s.titleOpacity;
+            document.getElementById('val-title-opacity-text').innerText = s.titleOpacity;
+            document.getElementById('title-box-bg-color').value = s.titleBgColor;
+            document.getElementById('text-color').value = s.textColor;
+            document.getElementById('text-dir').value = s.textDir;
+            document.getElementById('text-align').value = s.textAlign;
+            document.getElementById('aspect-ratio-select').value = s.aspectRatio;
+            canvas.width = s.canvasWidth;
+            canvas.height = s.canvasHeight;
+            document.getElementById('val-title-scale').innerText = Math.round(titleObj.scale);
+            document.getElementById('val-title-angle').innerText = titleObj.angle + '°';
+            document.getElementById('val-img2-scale').innerText = Math.round(img2Conf.scale * 100) + '%';
+            document.getElementById('val-img2-angle').innerText = img2Conf.angle + '°';
+            render();
+        };
+
+        window.saveProgress = function() {
+            render();
+            const currentCanvasDataUrl = canvas.toDataURL("image/jpeg", 0.9);
+
+            const state = {
+                bgConf, titleObj, img2Conf, isBgLoaded, isImg2Loaded,
+                inputTitle: "",
+                titleOpacity: document.getElementById('title-box-bg-opacity').value,
+                titleBgColor: document.getElementById('title-box-bg-color').value,
+                textColor: document.getElementById('text-color').value,
+                textDir: document.getElementById('text-dir').value,
+                textAlign: document.getElementById('text-align').value,
+                aspectRatio: document.getElementById('aspect-ratio-select').value,
+                canvasWidth: canvas.width, canvasHeight: canvas.height,
+                bgImgSrc: currentCanvasDataUrl,
+                img2Src: null,
+                canvasDataUrl: currentCanvasDataUrl
+            };
+            localStorage.setItem('poetry_canvas_save', JSON.stringify(state));
+
+            document.getElementById('input-title').value = '';
+            isImg2Loaded = false;
+            img2 = new Image();
+            document.getElementById('choose-img2').value = '';
+
+            const newBgImg = new Image();
+            newBgImg.onload = function() {
+                bgImg = newBgImg;
+                isBgLoaded = true;
+                fitImageToCanvas();
+                titleObj.userMoved = false;
+                render();
+                alert("當前畫面（含文字與圖層）已成功儲存，文字輸入框已清除！");
+            };
+            newBgImg.src = currentCanvasDataUrl;
+        };
+
+        window.loadProgress = function() {
+            const savedData = localStorage.getItem('poetry_canvas_save');
+            if (!savedData) {
+                alert("找不到先前儲存的進度！");
+                return;
+            }
+            try {
+                const s = JSON.parse(savedData);
+                saveStateToHistory();
+                
+                Object.assign(bgConf, s.bgConf);
+                Object.assign(titleObj, s.titleObj);
+                Object.assign(img2Conf, s.img2Conf);
+                isBgLoaded = s.isBgLoaded;
+                isImg2Loaded = s.isImg2Loaded;
+                
+                document.getElementById('input-title').value = s.inputTitle || '';
+                document.getElementById('title-box-bg-opacity').value = s.titleOpacity || 0;
+                document.getElementById('val-title-opacity-text').innerText = s.titleOpacity || 0;
+                document.getElementById('title-box-bg-color').value = s.titleBgColor || '#000000';
+                document.getElementById('text-color').value = s.textColor || '#ffffff';
+                document.getElementById('text-dir').value = s.textDir || 'h-lr';
+                document.getElementById('text-align').value = s.textAlign || 'center';
+                document.getElementById('aspect-ratio-select').value = s.aspectRatio || '1:1';
+                
+                canvas.width = s.canvasWidth || 800;
+                canvas.height = s.canvasHeight || 800;
+                
+                document.getElementById('val-title-scale').innerText = Math.round(titleObj.scale);
+                document.getElementById('val-title-angle').innerText = titleObj.angle + '°';
+                document.getElementById('val-img2-scale').innerText = Math.round(img2Conf.scale * 100) + '%';
+                document.getElementById('val-img2-angle').innerText = img2Conf.angle + '°';
+
+                let loadCount = 0;
+                let totalToLoad = (s.bgImgSrc ? 1 : 0) + (s.img2Src ? 1 : 0);
+
+                function checkRenderAll() {
+                    loadCount++;
+                    if (loadCount >= totalToLoad) {
+                        render();
+                        alert("已成功載入先前儲存的畫面與進度！");
+                    }
+                }
+
+                if (s.bgImgSrc) {
+                    bgImg = new Image();
+                    bgImg.onload = checkRenderAll;
+                    bgImg.src = s.bgImgSrc;
+                    isBgLoaded = true;
+                } else {
+                    isBgLoaded = false;
+                    bgImg = new Image();
+                }
+
+                if (s.img2Src) {
+                    img2 = new Image();
+                    img2.onload = checkRenderAll;
+                    img2.src = s.img2Src;
+                    isImg2Loaded = true;
+                } else {
+                    isImg2Loaded = false;
+                    img2 = new Image();
+                }
+
+                if (totalToLoad === 0) {
+                    render();
+                    alert("已成功載入先前儲存的畫面與進度！");
+                }
+
+            } catch (e) {
+                console.error(e);
+                alert("載入進度發生錯誤！");
+            }
+        };
+
+        let renderRequested = false;
+        function requestRender() {
+            if (!renderRequested) {
+                renderRequested = true;
+                requestAnimationFrame(() => { render(); renderRequested = false; });
+            }
+        }
+
+        function hexToRgba(hex, alphaPercent) {
+            let c = hex.replace('#', '');
+            if (c.length === 3) c = c.split('').map(x => x + x).join('');
+            const num = parseInt(c, 16);
+            return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alphaPercent / 100})`;
+        }
+
+        function titleTextActive() {
+            return document.getElementById('input-title').value.trim() !== '';
+        }
+
+        function splitStringIntoChars(str) {
+            let chars = [];
+            for (let i = 0; i < str.length; i++) {
+                let code = str.charCodeAt(i);
+                if (code >= 0xD800 && code <= 0xDBFF && i + 1 < str.length) {
+                    chars.push(str[i] + str[i+1]); i++;
+                } else { chars.push(str[i]); }
+            }
+            return chars;
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#11131c';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 1. 先根據設定繪製底層、背景圖與印章（非文字部分）
+            if (img2BehindBg) {
+                if (isImg2Loaded) {
+                    ctx.save();
+                    ctx.translate(img2Conf.centerX, img2Conf.centerY);
+                    ctx.rotate((img2Conf.angle * Math.PI) / 180);
+                    ctx.drawImage(img2, -(img2.naturalWidth * img2Conf.scale)/2, -(img2.naturalHeight * img2Conf.scale)/2, img2.naturalWidth * img2Conf.scale, img2.naturalHeight * img2Conf.scale);
+                    ctx.restore();
+                }
+                if (isBgLoaded) {
+                    ctx.save();
+                    ctx.translate(bgConf.x, bgConf.y);
+                    ctx.rotate((bgConf.angle * Math.PI) / 180);
+                    ctx.drawImage(bgImg, 0, 0, bgImg.naturalWidth * bgConf.scale, bgImg.naturalHeight * bgConf.scale);
+                    ctx.restore();
+                }
+            } else {
+                if (isBgLoaded) {
+                    ctx.save();
+                    ctx.translate(bgConf.x, bgConf.y);
+                    ctx.rotate((bgConf.angle * Math.PI) / 180);
+                    ctx.drawImage(bgImg, 0, 0, bgImg.naturalWidth * bgConf.scale, bgImg.naturalHeight * bgConf.scale);
+                    ctx.restore();
+                }
+                if (img2BehindText && isImg2Loaded) {
+                    ctx.save();
+                    ctx.translate(img2Conf.centerX, img2Conf.centerY);
+                    ctx.rotate((img2Conf.angle * Math.PI) / 180);
+                    ctx.drawImage(img2, -(img2.naturalWidth * img2Conf.scale)/2, -(img2.naturalHeight * img2Conf.scale)/2, img2.naturalWidth * img2Conf.scale, img2.naturalHeight * img2Conf.scale);
+                    ctx.restore();
+                }
+            }
+
+            if (!img2BehindText && !img2BehindBg && isImg2Loaded) {
+                ctx.save();
+                ctx.translate(img2Conf.centerX, img2Conf.centerY);
+                ctx.rotate((img2Conf.angle * Math.PI) / 180);
+                ctx.drawImage(img2, -(img2.naturalWidth * img2Conf.scale)/2, -(img2.naturalHeight * img2Conf.scale)/2, img2.naturalWidth * img2Conf.scale, img2.naturalHeight * img2Conf.scale);
+                ctx.restore();
+            }
+
+            // 2. 文字永遠在最上層
+            const rawTitle = document.getElementById('input-title').value;
+            const selectFont = document.getElementById('font-family-select').value;
+            const englishFont = document.getElementById('english-font-select').value;
+            const textColor = document.getElementById('text-color').value;
+            const titleBoxBgHex = document.getElementById('title-box-bg-color').value;
+            const titleOpacityVal = parseInt(document.getElementById('title-box-bg-opacity').value);
+            const dir = document.getElementById('text-dir').value;
+            const textAlign = document.getElementById('text-align').value;
+
+            ctx.fillStyle = textColor;
+            ctx.textBaseline = 'alphabetic';
+
+            function getCompositeFont(char, sizePx) {
+                return `${sizePx}px ${/[a-zA-Z0-9]/.test(char) ? englishFont : selectFont}`;
+            }
+
+            if (!titleObj.userMoved && isBgLoaded) {
+                titleObj.centerX = (dir === 'v-rl') ? canvas.width * 0.85 : canvas.width * 0.25;
+                titleObj.centerY = canvas.height * 0.2;
+            }
+
+            if (rawTitle.trim() !== '') {
+                let titleLines = rawTitle.split('\n');
+                ctx.save();
+                ctx.translate(titleObj.centerX, titleObj.centerY);
+                ctx.rotate((titleObj.angle * Math.PI) / 180);
+
+                const scaledTitleSize = titleObj.scale;
+                let titleW = 0, titleH = 0;
+
+                if (dir === 'h-lr') {
+                    titleH = titleLines.length * scaledTitleSize + (titleLines.length - 1) * conf.gap;
+                    let maxW = 0;
+                    titleLines.forEach(l => {
+                        ctx.font = getCompositeFont(l, scaledTitleSize);
+                        let m = ctx.measureText(l).width;
+                        if (m > maxW) maxW = m;
+                    });
+                    titleW = maxW;
+                } else {
+                    let cols = titleLines.map(l => ({ chars: splitStringIntoChars(l) }));
+                    let maxH = 0;
+                    cols.forEach(c => { if (c.chars.length * scaledTitleSize > maxH) maxH = c.chars.length * scaledTitleSize; });
+                    titleH = maxH;
+                    titleW = cols.length * scaledTitleSize + (cols.length - 1) * conf.gap;
+                }
+
+                titleObj.width = titleW;
+                titleObj.height = titleH;
+
+                if (titleOpacityVal > 0) {
+                    ctx.fillStyle = hexToRgba(titleBoxBgHex, titleOpacityVal);
+                    let padding = 16;
+                    ctx.beginPath();
+                    if (ctx.roundRect) ctx.roundRect(-titleW/2 - padding, -titleH/2 - padding, titleW + padding*2, titleH + padding*2, 8);
+                    else ctx.rect(-titleW/2 - padding, -titleH/2 - padding, titleW + padding*2, titleH + padding*2, 8);
+                    ctx.fill();
+                    ctx.fillStyle = textColor;
+                }
+
+                if (dir === 'h-lr') {
+                    let startY = -titleH / 2 + scaledTitleSize * 0.8;
+                    titleLines.forEach((l, index) => {
+                        ctx.font = getCompositeFont(l, scaledTitleSize);
+                        let lineWidth = ctx.measureText(l).width;
+                        let startX = (textAlign === 'center') ? -lineWidth / 2 : ((textAlign === 'end') ? titleW / 2 - lineWidth : -titleW / 2);
+                        let curX = startX;
+                        splitStringIntoChars(l).forEach(ch => {
+                            ctx.font = getCompositeFont(ch, scaledTitleSize);
+                            ctx.fillText(ch, curX, startY + (index * (scaledTitleSize + conf.gap)));
+                            curX += ctx.measureText(ch).width;
+                        });
+                    });
+                } else {
+                    let startX = (dir === 'v-lr') ? -titleW / 2 + scaledTitleSize / 2 : titleW / 2 - scaledTitleSize / 2;
+                    titleLines.forEach(l => {
+                        let chars = splitStringIntoChars(l);
+                        let colH = chars.length * scaledTitleSize;
+                        let drawY = (textAlign === 'center') ? -colH / 2 : ((textAlign === 'end') ? titleH / 2 - colH : -titleH / 2);
+                        chars.forEach((ch, i) => {
+                            ctx.font = getCompositeFont(ch, scaledTitleSize);
+                            ctx.fillText(ch, startX - scaledTitleSize / 2, drawY + (i * scaledTitleSize) + scaledTitleSize * 0.8);
+                        });
+                        startX += (dir === 'v-lr') ? (scaledTitleSize + conf.gap) : -(scaledTitleSize + conf.gap);
+                    });
+                }
+                ctx.restore();
+            }
+        }
+    </script>
+</body>
+</html>
