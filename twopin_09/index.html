@@ -1487,9 +1487,74 @@
             render();
         };
 
-        window.saveProgress = function() {
+        // ===== IndexedDB 與 LocalStorage 雙軌儲存機制（解決 GitHub Pages 5MB 限制） =====
+        const DB_NAME = 'PoetryCanvasDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'app_state';
+
+        function openIndexedDB() {
+            return new Promise((resolve, reject) => {
+                if (!window.indexedDB) {
+                    reject(new Error("IndexedDB 不被支援"));
+                    return;
+                }
+                const req = indexedDB.open(DB_NAME, DB_VERSION);
+                req.onupgradeneeded = function(e) {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
+                req.onsuccess = function(e) { resolve(e.target.result); };
+                req.onerror = function(e) { reject(e.target.error); };
+            });
+        }
+
+        async function saveToStorage(key, data) {
+            try {
+                const db = await openIndexedDB();
+                await new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    const store = tx.objectStore(STORE_NAME);
+                    const req = store.put(data, key);
+                    req.onsuccess = () => resolve();
+                    req.onerror = (e) => reject(e.target.error);
+                });
+            } catch (err) {
+                console.warn("IndexedDB 儲存失敗，降級使用 localStorage:", err);
+                try {
+                    localStorage.setItem(key, JSON.stringify(data));
+                } catch (lsErr) {
+                    console.error("LocalStorage 也無法儲存:", lsErr);
+                    throw new Error("容量限制：無法儲存畫面，請嘗試縮小圖片或清理瀏覽器快取。");
+                }
+            }
+        }
+
+        async function loadFromStorage(key) {
+            try {
+                const db = await openIndexedDB();
+                const data = await new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const req = store.get(key);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = (e) => reject(e.target.error);
+                });
+                if (data) return data;
+            } catch (err) {
+                console.warn("IndexedDB 讀取失敗或無資料，嘗試從 localStorage 讀取:", err);
+            }
+            const lsData = localStorage.getItem(key);
+            if (lsData) {
+                try { return JSON.parse(lsData); } catch (e) { return null; }
+            }
+            return null;
+        }
+
+        window.saveProgress = async function() {
             render();
-            const currentCanvasDataUrl = canvas.toDataURL("image/jpeg", 0.9);
+            const currentCanvasDataUrl = canvas.toDataURL("image/jpeg", 0.85);
 
             const state = {
                 bgConf, titleObj, img2Conf, isBgLoaded, isImg2Loaded,
@@ -1505,33 +1570,37 @@
                 img2Src: null,
                 canvasDataUrl: currentCanvasDataUrl
             };
-            localStorage.setItem('poetry_canvas_save', JSON.stringify(state));
 
-            document.getElementById('input-title').value = '';
-            isImg2Loaded = false;
-            img2 = new Image();
-            document.getElementById('choose-img2').value = '';
+            try {
+                await saveToStorage('poetry_canvas_save', state);
 
-            const newBgImg = new Image();
-            newBgImg.onload = function() {
-                bgImg = newBgImg;
-                isBgLoaded = true;
-                fitImageToCanvas();
-                titleObj.userMoved = false;
-                render();
-                alert("當前畫面（含文字與圖層）已成功儲存，文字輸入框已清除！");
-            };
-            newBgImg.src = currentCanvasDataUrl;
+                document.getElementById('input-title').value = '';
+                isImg2Loaded = false;
+                img2 = new Image();
+                document.getElementById('choose-img2').value = '';
+
+                const newBgImg = new Image();
+                newBgImg.onload = function() {
+                    bgImg = newBgImg;
+                    isBgLoaded = true;
+                    fitImageToCanvas();
+                    titleObj.userMoved = false;
+                    render();
+                    alert("當前畫面（含文字與圖層）已成功儲存，文字輸入框已清除！");
+                };
+                newBgImg.src = currentCanvasDataUrl;
+            } catch (err) {
+                alert(err.message || "儲存進度失敗！");
+            }
         };
 
-        window.loadProgress = function() {
-            const savedData = localStorage.getItem('poetry_canvas_save');
-            if (!savedData) {
+        window.loadProgress = async function() {
+            const s = await loadFromStorage('poetry_canvas_save');
+            if (!s) {
                 alert("找不到先前儲存的進度！");
                 return;
             }
             try {
-                const s = JSON.parse(savedData);
                 saveStateToHistory();
                 
                 Object.assign(bgConf, s.bgConf);
