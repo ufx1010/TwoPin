@@ -18,42 +18,42 @@ html,body{margin:0;padding:0;background:var(--bg);color:#fff;font-family:'Noto S
 #outer-wrap::before{content:'';position:absolute;inset:6px;border:1px solid rgba(196,167,125,.13);border-radius:2px;pointer-events:none;z-index:5}
 
 /* 修復包角顏色失真與截圖不符 */
-.corner-brass{position:absolute;width:46px;height:46px;z-index:100;pointer-events:none;box-shadow:1px 3px 6px rgba(0,0,0,0.7)}
-.corner-brass .arm{position:absolute;background:linear-gradient(135deg, #fff8d0 0%, #ffe9a0 12%, #d4b77a 35%, #b8944a 60%, #8a6a30 82%, #5a4a20 100%);box-shadow:inset 1px 1px 0 rgba(255,255,255,.7), inset -1px -1px 0 rgba(90,60,20,.8);border:1px solid #5a4a20}
+.corner-brass{position:absolute;width:46px;height:46px;z-index:100;pointer-events:none;box-shadow:0 2px 5px rgba(0,0,0,0.5)}
+.corner-brass .arm{position:absolute;background-color:#d4b77a;background-image:linear-gradient(135deg, #fff8d0 0%, #ffe9a0 15%, #d4b77a 40%, #b8944a 65%, #8a6a30 85%, #5a4a20 100%);box-shadow:inset 1px 1px 0 rgba(255,255,255,.6), inset -1px -1px 0 rgba(90,60,20,.6);border:1px solid #5a4a20}
 .corner-brass .arm.h{height:12px;width:100%}
 .corner-brass .arm.v{width:12px;height:100%}
-.corner-brass .nail{position:absolute;width:7px;height:7px;background:radial-gradient(circle at 30% 30%, #fffbe6, #d4b77a 40%, #8a6a30 75%, #3a2a10 100%);border-radius:50%;box-shadow:0 1px 2px rgba(0,0,0,0.8);border:1px solid #5a4a20}
+.corner-brass .nail{position:absolute;width:7px;height:7px;background-color:#d4b77a;background-image:radial-gradient(circle at 30% 30%, #fffbe6, #d4b77a 40%, #8a6a30 75%, #3a2a10 100%);border-radius:50%;box-shadow:0 1px 2px rgba(0,0,0,0.8);border:1px solid #5a4a20}
 
-.corner-brass.tl{top:-4px;left:-4px}
+.corner-brass.tl{top:0;left:0}
 .corner-brass.tl .arm.h{top:0;left:0;border-bottom:none;border-left:none;border-top-left-radius:3px}
 .corner-brass.tl .arm.v{top:0;left:0;border-right:none;border-top:none;border-top-left-radius:3px}
-.corner-brass.tl .nail{top:15px;left:15px}
+.corner-brass.tl .nail{top:14px;left:14px}
 
-.corner-brass.tr{top:-4px;right:-4px}
+.corner-brass.tr{top:0;right:0}
 .corner-brass.tr .arm.h{top:0;right:0;border-bottom:none;border-right:none;border-top-right-radius:3px}
 .corner-brass.tr .arm.v{top:0;right:0;border-left:none;border-top:none;border-top-right-radius:3px}
-.corner-brass.tr .nail{top:15px;right:15px}
+.corner-brass.tr .nail{top:14px;right:14px}
 
-.corner-brass.bl{bottom:-4px;left:-4px}
+.corner-brass.bl{bottom:0;left:0}
 .corner-brass.bl .arm.h{bottom:0;left:0;border-top:none;border-left:none;border-bottom-left-radius:3px}
 .corner-brass.bl .arm.v{bottom:0;left:0;border-right:none;border-bottom:none;border-bottom-left-radius:3px}
-.corner-brass.bl .nail{bottom:15px;left:15px}
+.corner-brass.bl .nail{bottom:14px;left:14px}
 
-.corner-brass.br{bottom:-4px;right:-4px}
+.corner-brass.br{bottom:0;right:0}
 .corner-brass.br .arm.h{bottom:0;right:0;border-top:none;border-right:none;border-bottom-right-radius:3px}
 .corner-brass.br .arm.v{bottom:0;right:0;border-left:none;border-bottom:none;border-bottom-right-radius:3px}
-.corner-brass.br .nail{bottom:15px;right:15px}
+.corner-brass.br .nail{bottom:14px;right:14px}
 
 /* 修復裱框特效失真（改用兼容性佳的邊框與陰影疊加） */
-#frame-container{position:relative;padding:0;border:var(--frame-w) solid #4a1e1e;background-clip:padding-box;background-color:#fcf8f2;border-radius:2px;transition:all .2s ease;box-shadow:0 0 0 1px #000, inset 2px 2px 0 rgba(255,255,255,.22), inset -2px -2px 0 rgba(0,0,0,.38), inset 0 0 14px rgba(0,0,0,.18), 0 6px 14px rgba(0,0,0,.45);overflow:visible}
-#frame-container.woodRed{border-color:#7a3a3a;background-color:#5a2222}
-#frame-container.goldArt{border-color:#d4b77a;background-color:#fdf6e0}
-#frame-container.darkInk{border-color:#3e3e4a;background-color:#1c1c1f}
-#frame-container.hollow{border-color:#d8c9a8;background-color:#f5f0e6}
-#frame-container.relief{border-color:#c4b5a0;background-color:#e8ddd0}
-#frame-container.stone{border-color:#a8a8a0;background-color:#d6d6d2}
-#frame-container.metal{border-color:#a0a0a0;background-color:#c8c8c8}
-#frame-container.jade{border-color:#a5d6a7;background-color:#e8f5e9}
+#frame-container{position:relative;padding:var(--frame-w);background-color:#4a1e1e;border-radius:2px;transition:all .2s ease;box-shadow:0 0 0 1px #120c06, inset 0 0 0 1px rgba(255,255,255,.25), 0 4px 10px rgba(0,0,0,.4);overflow:visible}
+#frame-container.woodRed{background-color:#4a1e1e}
+#frame-container.goldArt{background-color:#d4b77a}
+#frame-container.darkInk{background-color:#1c1c1f}
+#frame-container.hollow{background-color:#d8c9a8}
+#frame-container.relief{background-color:#c4b5a0}
+#frame-container.stone{background-color:#a8a8a0}
+#frame-container.metal{background-color:#a0a0a0}
+#frame-container.jade{background-color:#a5d6a7}
 
 #captureWrap{position:relative;transition:transform .25s ease;transform-origin:center center;transform:scale(var(--paper-scale));z-index:1;overflow:visible}
 #captureArea{position:relative;width:270px;height:405px;overflow:visible;isolation:isolate;box-shadow:inset 0 0 32px rgba(0,0,0,.12);transition:all .35s ease;background:#fcf8f2;z-index:1}
@@ -66,7 +66,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:#fff;font-family:'Noto S
 .v-mode{writing-mode:vertical-rl;text-orientation:mixed}
 
 /* 修復印章文字偏下與垂直置中問題 */
-.seal-box{background:#b22222;color:#fff;font-family:'Ma Shan Zheng',cursive;padding:4px 8px;border-radius:3px;box-shadow:2px 4px 8px rgba(0,0,0,.5);display:inline-flex;align-items:center;justify-content:center;line-height:1;text-align:center}
+.seal-box{background:#b22222;color:#fff;font-family:'Ma Shan Zheng',cursive;padding:4px 6px 3px 6px;border-radius:3px;box-shadow:1px 2px 4px rgba(0,0,0,.35);display:inline-flex;align-items:center;justify-content:center;line-height:1 !important;text-align:center;text-shadow:none !important;filter:none}
 
 .text-content.effect-none{text-shadow:none;-webkit-text-stroke:0;filter:none;background:none !important;-webkit-background-clip:unset !important;background-clip:unset !important;-webkit-text-fill-color:unset !important}
 .text-content.effect-feibai{-webkit-mask-image:repeating-linear-gradient(90deg, black 0 2px, transparent 2px 3.5px);mask-image:repeating-linear-gradient(90deg, black 0 2px, transparent 2px 3.5px);filter:contrast(1.1)}
@@ -411,7 +411,7 @@ function setFrame(type){
   else if(type==='jade'){fc1.value='#e8f5e9';fc2.value='#a5d6a7';fc3.value='#5a8a5a';}
   applyFrameGradient();
 }
-function setFrameWidth(v){v=Math.max(8,Math.min(48,v));document.documentElement.style.setProperty('--frame-w', v+'px');frameContainer.style.borderWidth=v+'px';document.getElementById('frameWVal').textContent=v+'px';document.getElementById('frameWRange').value=v;}
+function setFrameWidth(v){v=Math.max(8,Math.min(48,v));document.documentElement.style.setProperty('--frame-w', v+'px');frameContainer.style.padding=v+'px';document.getElementById('frameWVal').textContent=v+'px';document.getElementById('frameWRange').value=v;}
 function setPaperSizeScale(v){paperSizeScale=v;document.documentElement.style.setProperty('--paper-scale', v/100);captureWrap.style.transform=`scale(${v/100})`;document.getElementById('paperSizeVal').textContent=v+'%';document.getElementById('paperSize').value=v;}
 function setRatio(ratio){
   document.querySelectorAll('[data-ratio]').forEach(b=>b.classList.toggle('active',b.dataset.ratio===ratio));
@@ -422,7 +422,7 @@ function setRatio(ratio){
 function applyFrameGradient(){
   const c1=document.getElementById('frameC1').value,c2=document.getElementById('frameC2').value,c3=document.getElementById('frameC3').value,ang=document.getElementById('frameAngle').value;
   const grad=`linear-gradient(${ang}deg, ${c1}, ${c2}, ${c3})`;
-  frameContainer.style.borderColor = c2;
+  frameContainer.style.backgroundColor = c2;
   frameContainer.style.backgroundImage = grad;
   document.getElementById('frameAngleVal').textContent=ang+'°';
 }
