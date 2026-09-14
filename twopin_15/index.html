@@ -167,7 +167,7 @@ textarea{resize:none;height:56px}
       </div>
       <div class="panel" id="p1">
         <div class="grid2">
-          <div class="full"><label>選擇對象</label><select id="targetSelect"><option value="blk-meta">落款 江波</option><option value="blk-seal">印章 江波</option></select></div>
+          <div class="full"><label>選擇對象</label><select id="targetSelect"><option value="blk-meta">落款 江波</option></select></div>
           <div class="full"><label>排版</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px"><button class="sub active" id="btnVMode">直排</button><button class="sub" id="btnHMode">橫排</button></div></div>
           <div class="full"><label>對齊</label><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px"><button class="sub" data-align="left">左</button><button class="sub active" data-align="center">中</button><button class="sub" data-align="right">右</button></div></div>
           <div class="full"><label>中文字型 12款</label><select id="fontSelect">
@@ -355,7 +355,7 @@ function addTextBlockWithId(id, text){
   const sel=document.getElementById('targetSelect');const opt=document.createElement('option');opt.value=id;opt.textContent=id;sel.appendChild(opt);
   initDragForOne(div);focusTarget(id);
 }
-function focusTarget(id){try{activeId=id;document.querySelectorAll('.draggable').forEach(el=>el.classList.toggle('active',el.id===id));const sel=document.getElementById('targetSelect');if(sel&&sel.querySelector(`option[value="${id}"]`))sel.value=id;const blk=document.getElementById(id);if(blk){const tc=blk.querySelector('.text-content');const ci=document.getElementById('inp-custom');if(ci&&tc)ci.value=tc.innerText||tc.textContent;const sz=parseInt(tc.style.fontSize)||18;document.getElementById('sizeVal').textContent=sz+'px';document.getElementById('sizeRange').value=sz;
+function focusTarget(id){try{if(id==='blk-seal')return;activeId=id;document.querySelectorAll('.draggable').forEach(el=>el.classList.toggle('active',el.id===id));const sel=document.getElementById('targetSelect');if(sel&&sel.querySelector(`option[value="${id}"]`))sel.value=id;const blk=document.getElementById(id);if(blk){const tc=blk.querySelector('.text-content');const ci=document.getElementById('inp-custom');if(ci&&tc)ci.value=tc.innerText||tc.textContent;const sz=parseInt(tc.style.fontSize)||18;document.getElementById('sizeVal').textContent=sz+'px';document.getElementById('sizeRange').value=sz;
     const g1=getComputedStyle(tc).getPropertyValue('--grad-c1').trim()||'#1a1a1a';
     const g2=getComputedStyle(tc).getPropertyValue('--grad-c2').trim()||'#555';
     const g3=getComputedStyle(tc).getPropertyValue('--grad-c3').trim()||'#999';
