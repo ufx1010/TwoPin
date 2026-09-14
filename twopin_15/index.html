@@ -14,38 +14,37 @@ html,body{margin:0;padding:0;background:var(--bg);color:#fff;font-family:'Noto S
 .app{display:flex;flex-direction:column;height:100vh;height:100dvh}
 .preview{flex:1;background:radial-gradient(circle at 50% 40%, #332e2b 0%, #1a1715 50%, #0a0908 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:visible;padding:16px 16px 40px 16px;min-height:50vh}
 #frame-scale-wrap{transform-origin:center center;transition:transform .2s ease;will-change:transform;filter:drop-shadow(0 18px 22px rgba(0,0,0,.7));transform:scale(1.15);overflow:visible}
-#outer-wrap{position:relative;padding:12px;background:#2b1e14;background-image:radial-gradient(ellipse at 18% 18%, rgba(255,255,255,.08) 0%, transparent 55%), repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 1px, transparent 1px 14px), linear-gradient(180deg, #3e2e1e, #1c1108);border:2px solid #120c06;box-shadow:0 0 0 1px #000, 0 0 0 3px #2e1e12, 0 10px 20px rgba(0,0,0,.75);border-radius:4px;overflow:visible}
-#outer-wrap::before{content:'';position:absolute;inset:6px;border:1px solid rgba(196,167,125,.13);border-radius:2px;pointer-events:none;z-index:5}
+#outer-wrap{position:relative;padding:12px;background:#2b1e14;border:2px solid #120c06;border-radius:4px;overflow:hidden}
 
-/* 修復包角顏色失真與截圖不符 */
-.corner-brass{position:absolute;width:46px;height:46px;z-index:100;pointer-events:none;box-shadow:0 2px 5px rgba(0,0,0,0.5)}
-.corner-brass .arm{position:absolute;background-color:#d4b77a;background-image:linear-gradient(135deg, #fff8d0 0%, #ffe9a0 15%, #d4b77a 40%, #b8944a 65%, #8a6a30 85%, #5a4a20 100%);box-shadow:inset 1px 1px 0 rgba(255,255,255,.6), inset -1px -1px 0 rgba(90,60,20,.6);border:1px solid #5a4a20}
+/* 修復包角顏色失真與截圖不符 - 四角對稱一致黃銅材質 */
+.corner-brass{position:absolute;width:46px;height:46px;z-index:100;pointer-events:none}
+.corner-brass .arm{position:absolute;background:#d4b77a;border:1px solid #5a4a20}
 .corner-brass .arm.h{height:12px;width:100%}
 .corner-brass .arm.v{width:12px;height:100%}
-.corner-brass .nail{position:absolute;width:7px;height:7px;background-color:#d4b77a;background-image:radial-gradient(circle at 30% 30%, #fffbe6, #d4b77a 40%, #8a6a30 75%, #3a2a10 100%);border-radius:50%;box-shadow:0 1px 2px rgba(0,0,0,0.8);border:1px solid #5a4a20}
+.corner-brass .nail{position:absolute;width:7px;height:7px;background:#e8d596;border-radius:50%;border:1px solid #5a4a20}
 
 .corner-brass.tl{top:0;left:0}
-.corner-brass.tl .arm.h{top:0;left:0;border-bottom:none;border-left:none;border-top-left-radius:3px}
-.corner-brass.tl .arm.v{top:0;left:0;border-right:none;border-top:none;border-top-left-radius:3px}
+.corner-brass.tl .arm.h{top:0;left:0;border-top-left-radius:3px;background:linear-gradient(180deg, #ffe9a0 0%, #d4b77a 50%, #8a6a30 100%)}
+.corner-brass.tl .arm.v{top:0;left:0;border-top-left-radius:3px;background:linear-gradient(90deg, #ffe9a0 0%, #d4b77a 50%, #8a6a30 100%)}
 .corner-brass.tl .nail{top:14px;left:14px}
 
 .corner-brass.tr{top:0;right:0}
-.corner-brass.tr .arm.h{top:0;right:0;border-bottom:none;border-right:none;border-top-right-radius:3px}
-.corner-brass.tr .arm.v{top:0;right:0;border-left:none;border-top:none;border-top-right-radius:3px}
+.corner-brass.tr .arm.h{top:0;right:0;border-top-right-radius:3px;background:linear-gradient(180deg, #ffe9a0 0%, #d4b77a 50%, #8a6a30 100%)}
+.corner-brass.tr .arm.v{top:0;right:0;border-top-right-radius:3px;background:linear-gradient(270deg, #ffe9a0 0%, #d4b77a 50%, #8a6a30 100%)}
 .corner-brass.tr .nail{top:14px;right:14px}
 
 .corner-brass.bl{bottom:0;left:0}
-.corner-brass.bl .arm.h{bottom:0;left:0;border-top:none;border-left:none;border-bottom-left-radius:3px}
-.corner-brass.bl .arm.v{bottom:0;left:0;border-right:none;border-bottom:none;border-bottom-left-radius:3px}
+.corner-brass.bl .arm.h{bottom:0;left:0;border-bottom-left-radius:3px;background:linear-gradient(0deg, #ffe9a0 0%, #d4b77a 50%, #8a6a30 100%)}
+.corner-brass.bl .arm.v{bottom:0;left:0;border-bottom-left-radius:3px;background:linear-gradient(90deg, #ffe9a0 0%, #d4b77a 50%, #8a6a30 100%)}
 .corner-brass.bl .nail{bottom:14px;left:14px}
 
 .corner-brass.br{bottom:0;right:0}
-.corner-brass.br .arm.h{bottom:0;right:0;border-top:none;border-right:none;border-bottom-right-radius:3px}
-.corner-brass.br .arm.v{bottom:0;right:0;border-left:none;border-bottom:none;border-bottom-right-radius:3px}
+.corner-brass.br .arm.h{bottom:0;right:0;border-bottom-right-radius:3px;background:linear-gradient(0deg, #ffe9a0 0%, #d4b77a 50%, #8a6a30 100%)}
+.corner-brass.br .arm.v{bottom:0;right:0;border-bottom-right-radius:3px;background:linear-gradient(270deg, #ffe9a0 0%, #d4b77a 50%, #8a6a30 100%)}
 .corner-brass.br .nail{bottom:14px;right:14px}
 
-/* 修復裱框特效失真（改用兼容性佳的邊框與陰影疊加） */
-#frame-container{position:relative;padding:var(--frame-w);background-color:#4a1e1e;border-radius:2px;transition:all .2s ease;box-shadow:0 0 0 1px #120c06, inset 0 0 0 1px rgba(255,255,255,.25), 0 4px 10px rgba(0,0,0,.4);overflow:visible}
+/* 修復裱框特效失真 */
+#frame-container{position:relative;padding:var(--frame-w);background-color:#4a1e1e;border-radius:2px;transition:all .2s ease;overflow:hidden}
 #frame-container.woodRed{background-color:#4a1e1e}
 #frame-container.goldArt{background-color:#d4b77a}
 #frame-container.darkInk{background-color:#1c1c1f}
@@ -56,7 +55,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:#fff;font-family:'Noto S
 #frame-container.jade{background-color:#a5d6a7}
 
 #captureWrap{position:relative;transition:transform .25s ease;transform-origin:center center;transform:scale(var(--paper-scale));z-index:1;overflow:visible}
-#captureArea{position:relative;width:270px;height:405px;overflow:visible;isolation:isolate;box-shadow:inset 0 0 32px rgba(0,0,0,.12);transition:all .35s ease;background:#fcf8f2;z-index:1}
+#captureArea{position:relative;width:270px;height:405px;overflow:hidden;isolation:isolate;transition:all .35s ease;background:#fcf8f2;z-index:1}
 #paperBgWrap{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;display:none;background:#fcf8f2;border-radius:2px}
 #paperBgWrap.hasImage{display:block;pointer-events:auto;z-index:0}
 #paperBgImg{position:absolute;left:50%;top:50%;width:100%;height:auto;max-width:none;max-height:none;transform:translate(-50%,-50%) translate(0px,0px) scale(1) rotate(0deg);transform-origin:center center;cursor:move;user-select:none;-webkit-user-drag:none;z-index:0}
@@ -65,8 +64,8 @@ html,body{margin:0;padding:0;background:var(--bg);color:#fff;font-family:'Noto S
 .draggable .text-content{white-space:pre-wrap;word-break:break-all;line-height:1.7;pointer-events:none;transition:all .25s ease;--effect-color:#1a1a1a;--grad-c1:#1a1a1a;--grad-c2:#444;--grad-c3:#666;--grad-angle:135deg}
 .v-mode{writing-mode:vertical-rl;text-orientation:mixed}
 
-/* 修復印章文字偏下與垂直置中問題 */
-.seal-box{background:#b22222;color:#fff;font-family:'Ma Shan Zheng',cursive;padding:4px 6px 3px 6px;border-radius:3px;box-shadow:1px 2px 4px rgba(0,0,0,.35);display:inline-flex;align-items:center;justify-content:center;line-height:1 !important;text-align:center;text-shadow:none !important;filter:none}
+/* 修復印章文字偏下與垂直置中問題 - 防溢出紅底 */
+.seal-box{background:#b22222 !important;color:#fff !important;-webkit-text-fill-color:#fff !important;font-family:'Ma Shan Zheng',serif;padding:3px 8px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;line-height:1.2 !important;text-align:center;text-shadow:none !important;filter:none !important;box-shadow:none !important;overflow:hidden;box-sizing:border-box}
 
 .text-content.effect-none{text-shadow:none;-webkit-text-stroke:0;filter:none;background:none !important;-webkit-background-clip:unset !important;background-clip:unset !important;-webkit-text-fill-color:unset !important}
 .text-content.effect-feibai{-webkit-mask-image:repeating-linear-gradient(90deg, black 0 2px, transparent 2px 3.5px);mask-image:repeating-linear-gradient(90deg, black 0 2px, transparent 2px 3.5px);filter:contrast(1.1)}
