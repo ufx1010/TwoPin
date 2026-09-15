@@ -12,8 +12,8 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;background:var(--bg);color:#fff;font-family:'Noto Sans TC',sans-serif;overflow:hidden;height:100vh;height:100dvh}
 .app{display:flex;flex-direction:column;height:100vh;height:100dvh}
-.preview{flex:1;background:radial-gradient(circle at 50% 40%, #332e2b 0%, #1a1715 50%, #0a0908 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:visible;padding:16px 16px 40px 16px;min-height:50vh}
-#frame-scale-wrap{transform-origin:center center;transition:transform .2s ease;will-change:transform;filter:drop-shadow(0 18px 22px rgba(0,0,0,.7));transform:scale(1.15);overflow:visible}
+.preview{flex:1;min-height:0;background:radial-gradient(circle at 50% 40%, #332e2b 0%, #1a1715 50%, #0a0908 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:12px}
+#frame-scale-wrap{transform-origin:center center;transition:transform .2s ease;will-change:transform;filter:drop-shadow(0 18px 22px rgba(0,0,0,.7));transform:scale(1);overflow:visible}
 #outer-wrap{position:relative;padding:12px;background:#2b1e14;border:2px solid #120c06;border-radius:4px;overflow:hidden}
 
 .corner-brass{position:absolute;width:46px;height:46px;z-index:100;pointer-events:none}
@@ -96,14 +96,14 @@ html,body{margin:0;padding:0;background:var(--bg);color:#fff;font-family:'Noto S
 .text-content.grad-on{background:linear-gradient(var(--grad-angle), var(--grad-c1), var(--grad-c2), var(--grad-c3)) !important;-webkit-background-clip:text !important;background-clip:text !important;-webkit-text-fill-color:transparent !important;color:transparent !important}
 .text-content.grad-on.effect-yinbai{-webkit-text-fill-color:#fff !important;color:#fff !important;background:var(--effect-color) !important;-webkit-background-clip:unset !important;background-clip:unset !important}
 
-.editor{height:56px;min-height:56px;max-height:50vh;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column;z-index:50;transition:height .3s cubic-bezier(.4,0,.2,1);position:relative;flex-shrink:0}
-.editor.expanded{height:50vh;max-height:50vh;min-height:50vh}
+.editor{height:56px;min-height:56px;max-height:80vh;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column;z-index:50;transition:height .3s cubic-bezier(.4,0,.2,1);position:relative;flex-shrink:0}
+.editor.expanded{height:50vh;max-height:80vh;min-height:180px}
 .editor .scroll,.editor .foot{display:none}
 .editor.expanded .scroll,.editor.expanded .foot{display:flex}
-.editor.expanded .scroll{display:block;max-height:calc(50vh - 84px);overflow-y:auto;padding-bottom:24px;overscroll-behavior:contain}
+.editor.expanded .scroll{display:block;flex:1;overflow-y:auto;padding:10px 10px 30px 10px;overscroll-behavior:contain}
 .drag-handle{position:absolute;top:0;left:0;right:0;height:18px;display:flex;align-items:center;justify-content:center;cursor:ns-resize;z-index:60;background:linear-gradient(180deg, rgba(255,255,255,.06), transparent)}
 .drag-handle::before{content:'';width:36px;height:4px;background:rgba(255,255,255,.18);border-radius:999px}
-.toggle-btn{position:absolute;top:-34px;right:12px;background:var(--panel);border:1px solid var(--border);color:var(--accent);width:112px;height:30px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-size:12px;z-index:55;box-shadow:0 -4px 12px rgba(0,0,0,.35)}
+.toggle-btn{position:absolute;top:-34px;right:12px;background:var(--panel);border:1px solid var(--border);color:var(--accent);width:120px;height:30px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-size:12px;z-index:55;box-shadow:0 -4px 12px rgba(0,0,0,.35)}
 .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:6px;background:#0f0f12;margin-top:8px;flex-shrink:0}
 .tab{text-align:center;padding:9px 0;font-size:12px;border-radius:6px;color:#aaa;background:#23232a;cursor:pointer;font-weight:600}
 .tab.active{background:var(--accent);color:#111;font-weight:700}
@@ -146,7 +146,6 @@ textarea{resize:vertical;height:64px;min-height:48px;max-height:160px;}
 <div id="loading"><div style="width:48px;height:48px;border:2px solid rgba(196,167,125,.2);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite"></div><div id="loadText" style="margin-top:12px;font-weight:700">渲染中...</div></div>
 <div class="app">
   <div class="preview" id="previewArea">
-    <button class="toggle-btn" id="toggleEditor">⬆️ 展開編輯 (50%)</button>
     <div id="frame-scale-wrap">
       <div id="outer-wrap">
         <div class="corner-brass tl"><div class="arm h"></div><div class="arm v"></div><div class="nail"></div></div>
@@ -163,6 +162,7 @@ textarea{resize:vertical;height:64px;min-height:48px;max-height:160px;}
     </div>
   </div>
   <div class="editor" id="editor">
+    <button class="toggle-btn" id="toggleEditor">⬆️ 展開編輯 (50%)</button>
     <div class="drag-handle" id="dragHandle"></div>
     <div class="tabs"><div class="tab active" data-i="0">內容</div><div class="tab" data-i="1">排版</div><div class="tab" data-i="2">裱框</div></div>
     <div class="scroll">
@@ -501,11 +501,25 @@ function setFrame(type){
 }
 function setFrameWidth(v){v=Math.max(8,Math.min(48,v));document.documentElement.style.setProperty('--frame-w', v+'px');frameContainer.style.padding=v+'px';document.getElementById('frameWVal').textContent=v+'px';document.getElementById('frameWRange').value=v;}
 function setPaperSizeScale(v){paperSizeScale=v;document.documentElement.style.setProperty('--paper-scale', v/100);captureWrap.style.transform=`scale(${v/100})`;document.getElementById('paperSizeVal').textContent=v+'%';document.getElementById('paperSize').value=v;}
+function autoFitScale(){
+  const previewArea=document.getElementById('previewArea');
+  const outerWrap=document.getElementById('outer-wrap');
+  if(!previewArea||!outerWrap)return;
+  const pw=previewArea.clientWidth-24;
+  const ph=previewArea.clientHeight-24;
+  const ow=outerWrap.offsetWidth||320;
+  const oh=outerWrap.offsetHeight||450;
+  if(pw<=0||ph<=0||ow<=0||oh<=0)return;
+  const fitRatio=Math.min(pw/ow, ph/oh);
+  const targetZoom=Math.max(30, Math.min(200, Math.floor(fitRatio*95)));
+  setZoom(targetZoom);
+}
 function setRatio(ratio){
   document.querySelectorAll('[data-ratio]').forEach(b=>b.classList.toggle('active',b.dataset.ratio===ratio));
   let w=270,h=405;
   if(ratio==='1:1'){w=360;h=360;}else if(ratio==='4:5'){w=320;h=400;}else if(ratio==='3:4'){w=300;h=400;}else if(ratio==='9:16'){w=270;h=480;}else if(ratio==='16:9'){w=480;h=270;}else if(ratio==='3:2'){w=420;h=280;}else if(ratio==='2:3'){w=280;h=420;}else if(ratio==='orig'){w=270;h=405;}
   captureArea.style.width=w+'px';captureArea.style.height=h+'px';
+  setTimeout(autoFitScale, 50);
 }
 function applyFrameGradient(){
   const c1=document.getElementById('frameC1').value,c2=document.getElementById('frameC2').value,c3=document.getElementById('frameC3').value,ang=document.getElementById('frameAngle').value;
@@ -519,8 +533,8 @@ function applyPaperGradient(){const c1=document.getElementById('gradC1').value,c
 function randomPaperGradient(){const pals=[['#fdf6e3','#f5e6c8','#e8d5b0'],['#fef9ef','#f7e8d0','#ecdcc0'],['#e8f0f2','#d4e4e8','#c2d8df'],['#fbe9e7','#ffccbc','#ffab91'],['#e8f5e9','#c8e6c9','#a5d6a7']];const p=pals[Math.floor(Math.random()*pals.length)];document.getElementById('gradC1').value=p[0];document.getElementById('gradC2').value=p[1];document.getElementById('gradC3').value=p[2];document.getElementById('gradAngle').value=Math.floor(Math.random()*72)*5;applyPaperGradient();}
 function applyWrap(){const c1=document.getElementById('wrapC1').value,c2=document.getElementById('wrapC2').value,c3=document.getElementById('wrapC3').value;outerWrap.style.backgroundImage=`radial-gradient(ellipse at 18% 18%, rgba(255,255,255,.08) 0%, transparent 55%), repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 1px, transparent 1px 14px), linear-gradient(180deg, ${c1}, ${c2} 50%, ${c3})`;}
 function randomWrap(){const pals=[['#3e2e1e','#2b1e14','#1c1108'],['#4a3a2a','#3a2a1a','#2a1a0a'],['#2a2a3a','#1e1e2a','#14141e']];const p=pals[Math.floor(Math.random()*pals.length)];document.getElementById('wrapC1').value=p[0];document.getElementById('wrapC2').value=p[1];document.getElementById('wrapC3').value=p[2];applyWrap();}
-function setZoom(v){zoom=Math.max(40,Math.min(200,v));scaleWrap.style.transform=`scale(${zoom/100})`;document.getElementById('zoomVal').textContent=zoom+'%';document.getElementById('zoomRange').value=zoom;}
-function toggleEditor(){isCollapsed=!isCollapsed;if(isCollapsed){editor.classList.remove('expanded');document.getElementById('toggleEditor').innerHTML='⬆️ 展開編輯 (50%)';scaleWrap.style.transform='scale(1.15)';setZoom(115);}else{editor.classList.add('expanded');document.getElementById('toggleEditor').innerHTML='⬇️ 收起';scaleWrap.style.transform='scale(0.85)';setZoom(85);}}
+function setZoom(v){zoom=Math.max(30,Math.min(200,v));scaleWrap.style.transform=`scale(${zoom/100})`;document.getElementById('zoomVal').textContent=zoom+'%';document.getElementById('zoomRange').value=zoom;}
+function toggleEditor(){isCollapsed=!isCollapsed;if(isCollapsed){editor.classList.remove('expanded');document.getElementById('toggleEditor').innerHTML='⬆️ 展開編輯 (50%)';}else{editor.classList.add('expanded');document.getElementById('toggleEditor').innerHTML='⬇️ 收起';}setTimeout(autoFitScale, 50);}
 function updatePaperTransform(){paperImg.style.transform=`translate(-50%,-50%) translate(${paperX}px,${paperY}px) scale(${paperImgScale}) rotate(${paperRotate}deg)`;paperImg.style.opacity=paperOpacity;}
 function handlePaperFile(file){
   if(!file) return;
@@ -575,11 +589,11 @@ function initDrag(){
 function initResize(){
   const handle=document.getElementById('dragHandle');
   let startY,startH,drag=false;
-  handle.addEventListener('pointerdown',e=>{drag=true;startY=e.clientY;startH=editor.offsetHeight;handle.setPointerCapture(e.pointerId);if(isCollapsed){editor.classList.add('expanded');isCollapsed=false;document.getElementById('toggleEditor').innerHTML='⬇️ 收起';scaleWrap.style.transform='scale(0.85)';setZoom(85);}});
-  handle.addEventListener('pointermove',e=>{if(!drag)return;const dy=startY-e.clientY;let nh=startH+dy;nh=Math.max(56,Math.min(window.innerHeight*0.80,nh));editor.style.height=nh+'px';editor.style.maxHeight=nh+'px';});
+  handle.addEventListener('pointerdown',e=>{drag=true;startY=e.clientY;startH=editor.offsetHeight;handle.setPointerCapture(e.pointerId);if(isCollapsed){editor.classList.add('expanded');isCollapsed=false;document.getElementById('toggleEditor').innerHTML='⬇️ 收起';setTimeout(autoFitScale,50);}});
+  handle.addEventListener('pointermove',e=>{if(!drag)return;const dy=startY-e.clientY;let nh=startH+dy;nh=Math.max(56,Math.min(window.innerHeight*0.80,nh));editor.style.height=nh+'px';editor.style.maxHeight=nh+'px';setTimeout(autoFitScale,20);});
   handle.addEventListener('pointerup',()=>drag=false);
 }
-document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i==t.dataset.i));if(isCollapsed){editor.classList.add('expanded');isCollapsed=false;document.getElementById('toggleEditor').innerHTML='⬇️ 收起';scaleWrap.style.transform='scale(0.85)';setZoom(85);}}));
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i==t.dataset.i));if(isCollapsed){editor.classList.add('expanded');isCollapsed=false;document.getElementById('toggleEditor').innerHTML='⬇️ 收起';}setTimeout(autoFitScale,50);}));
 ['title','content','meta','seal'].forEach(k=>{const el=document.getElementById('inp-'+k); if(el) el.addEventListener('input',()=>sync(k));});
 document.getElementById('inp-custom').addEventListener('input',e=>{if(!activeId)return;const blk=document.getElementById(activeId);if(!blk)return;const tc=blk.querySelector('.text-content');if(tc){tc.textContent=e.target.value;tc.setAttribute('data-text', e.target.value);}});
 document.getElementById('targetSelect').addEventListener('change',e=>focusTarget(e.target.value));
@@ -634,7 +648,8 @@ document.getElementById('btnPaperCenter').addEventListener('click',()=>{paperX=0
 document.querySelectorAll('[data-format]').forEach(b=>b.addEventListener('click',()=>setExportFormat(b.dataset.format)));document.getElementById('exportQuality').addEventListener('input',e=>{exportQuality=e.target.value/100;document.getElementById('exportQualityVal').textContent=e.target.value+'%';});document.getElementById('exportScale').addEventListener('change',e=>{exportScale=parseInt(e.target.value);document.getElementById('exportScaleVal').textContent=e.target.value+'x';});
 document.getElementById('btnAddText').addEventListener('click',addTextBlock);document.getElementById('btnDelText').addEventListener('click',deleteActive);document.getElementById('toggleEditor').addEventListener('click',toggleEditor);
 document.querySelectorAll('[data-frame]').forEach(b=>b.addEventListener('click',()=>setFrame(b.dataset.frame)));document.querySelectorAll('[data-ratio]').forEach(b=>b.linejoin||b.addEventListener('click',()=>setRatio(b.dataset.ratio)));document.getElementById('btnDownload').addEventListener('click',doDownload);
-window.addEventListener('load',()=>{initDrag();initResize();focusTarget('blk-meta');setFrameWidth(22);randomPaperGradient();applyFrameGradient();applyWrap();setZoom(115);setRatio('orig');setTxtGradMode(false);applyTextGradient();setExportFormat('png');setPaperSizeScale(100);setBrassSize(46);setBrassVisible(true);});
+window.addEventListener('load',()=>{initDrag();initResize();focusTarget('blk-meta');setFrameWidth(22);randomPaperGradient();applyFrameGradient();applyWrap();setRatio('orig');setTxtGradMode(false);applyTextGradient();setExportFormat('png');setPaperSizeScale(100);setBrassSize(46);setBrassVisible(true);autoFitScale();});
+window.addEventListener('resize',autoFitScale);
 </script>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 </body>
