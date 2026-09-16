@@ -54,7 +54,9 @@ html,body{margin:0;padding:0;background:var(--bg);color:#fff;font-family:'Noto S
 
 #captureWrap{position:relative;transition:transform .25s ease;transform-origin:center center;transform:scale(var(--paper-scale));z-index:1;overflow:visible}
 #captureArea{position:relative;width:270px;height:405px;overflow:hidden;isolation:isolate;transition:all .35s ease;background:#fcf8f2;z-index:1;}
-#paperBgWrap{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;display:none;background:#fcf8f2;border-radius:2px}
+
+/* 修改：上傳底圖獨立一層，支援隨意拖曳移動，背景透明以透出下方漸層 */
+#paperBgWrap{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:auto;display:none;background:transparent;border-radius:2px;cursor:move}
 #paperBgImg{position:absolute;left:50%;top:50%;width:100%;height:auto;max-width:none;max-height:none;transform:translate(-50%,-50%) translate(0px,0px) scale(1) rotate(0deg);transform-origin:center center;cursor:move;user-select:none;-webkit-user-drag:none;z-index:0}
 
 #contentInner{position:absolute;inset:var(--text-padding);pointer-events:none;z-index:10;overflow:hidden;}
@@ -62,7 +64,6 @@ html,body{margin:0;padding:0;background:var(--bg);color:#fff;font-family:'Noto S
 .draggable{position:absolute;cursor:move;z-index:20;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;border:1px dashed transparent;min-width:30px;min-height:30px;pointer-events:auto}
 .draggable.active{border-color:var(--accent);background:rgba(196,167,125,.14);box-shadow:0 0 0 1px var(--accent);z-index:30}
 
-/* 修改：支援欄寬與欄高調整與自動換行 */
 .draggable .text-content{
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -200,7 +201,6 @@ textarea{resize:vertical;height:64px;min-height:48px;max-height:160px;}
             <div class="slider-row"><span style="font-size:9px;min-width:36px;color:#888">旋轉(5°)</span><button class="btn" id="rotMinus">−</button><input type="range" id="rotRange" min="-180" max="180" step="5" value="0"><button class="btn" id="rotPlus">+</button><div class="val" id="rotVal">0°</div></div>
           </div></div>
           
-          <!-- 修改：欄寬調整滑桿 -->
           <div class="full"><label>選中文字欄寬調整 (自動換行)</label><div class="slider-row">
             <span style="font-size:9px;min-width:36px;color:#888">欄寬</span>
             <button class="btn" id="textWidthMinus">−</button>
@@ -209,7 +209,6 @@ textarea{resize:vertical;height:64px;min-height:48px;max-height:160px;}
             <div class="val" id="textWidthVal">200px</div>
           </div></div>
 
-          <!-- 新增：欄高調整滑桿 -->
           <div class="full"><label>選中文字欄高調整 (垂直限制/自動截斷或滾動)</label><div class="slider-row">
             <span style="font-size:9px;min-width:36px;color:#888">欄高</span>
             <button class="btn" id="textHeightMinus">−</button>
@@ -276,7 +275,7 @@ textarea{resize:vertical;height:64px;min-height:48px;max-height:160px;}
             <button class="sub" data-frame="metal">🔩 金屬</button>
             <button class="sub" data-frame="jade">🟩 玉質</button>
           </div></div>
-          <div class="full"><label>底紙上傳圖檔 最底層</label><div class="paper-upload">
+          <div class="full"><label>底紙上傳圖檔 獨立一層 (可隨意移動)</label><div class="paper-upload">
             <input type="file" id="filePaper" accept="image/*" hidden>
             <div style="display:grid;grid-template-columns:1fr 56px;gap:6px">
               <button class="sub" id="btnUploadPaper">📷 上傳底紙圖片</button>
@@ -296,7 +295,7 @@ textarea{resize:vertical;height:64px;min-height:48px;max-height:160px;}
           </div></div>
           <div class="full" style="margin-top:6px"><label>包皮漸層</label><div class="color-row"><div><label>1</label><input type="color" id="wrapC1" value="#3e2e1e"></div><div><label>2</label><input type="color" id="wrapC2" value="#2b1e14"></div><div><label>3</label><input type="color" id="wrapC3" value="#1c1108"></div><button class="sub" id="btnRandomWrap">🎲</button></div></div>
           <div class="full" style="margin-top:6px"><label>裱框漸層</label><div class="color-row"><div><label>1</label><input type="color" id="frameC1" value="#7a3a3a"></div><div><label>2</label><input type="color" id="frameC2" value="#4a1e1e"></div><div><label>3</label><input type="color" id="frameC3" value="#1a0606"></div><button class="sub" id="btnRandomFrame">🎲</button></div><div class="slider-row" style="margin-top:4px"><span style="font-size:9px;color:#888">角度(5°)</span><input type="range" id="frameAngle" min="0" max="360" step="5" value="135"><div class="val" id="frameAngleVal">135°</div></div></div>
-          <div class="full" style="margin-top:6px"><label>底紙漸層</label><div class="color-row"><div><label>1</label><input type="color" id="gradC1" value="#fdf6e3"></div><div><label>2</label><input type="color" id="gradC2" value="#f5e6c8"></div><div><label>3</label><input type="color" id="gradC3" value="#e8d5b0"></div><button class="sub" id="btnRandomGrad">🎲</button></div><div class="slider-row" style="margin-top:4px"><span style="font-size:9px;color:#888">角度(5°)</span><input type="range" id="gradAngle" min="0" max="360" step="5" value="135"><div class="val" id="gradAngleVal">135°</div></div></div>
+          <div class="full" style="margin-top:6px"><label>底紙漸層 (可與上傳底圖疊加)</label><div class="color-row"><div><label>1</label><input type="color" id="gradC1" value="#fdf6e3"></div><div><label>2</label><input type="color" id="gradC2" value="#f5e6c8"></div><div><label>3</label><input type="color" id="gradC3" value="#e8d5b0"></div><button class="sub" id="btnRandomGrad">🎲</button></div><div class="slider-row" style="margin-top:4px"><span style="font-size:9px;color:#888">角度(5°)</span><input type="range" id="gradAngle" min="0" max="360" step="5" value="135"><div class="val" id="gradAngleVal">135°</div></div></div>
           <div class="full" style="margin-top:10px"><label>下載可選輸出格式</label><div class="paper-upload">
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px">
               <button class="sub active" data-format="png">PNG<br><small style="font-size:8px">透明高清</small></button>
@@ -311,7 +310,7 @@ textarea{resize:vertical;height:64px;min-height:48px;max-height:160px;}
         </div>
       </div>
     </div>
-    <div class="foot"><span></span><span>v39</span></div>
+    <div class="foot"><span></span><span>江波-藝術裱框</span></div>
   </div>
 </div>
 <script>
@@ -398,12 +397,10 @@ function focusTarget(id){
       document.getElementById('sizeVal').textContent=sz+'px';
       document.getElementById('sizeRange').value=sz;
       
-      // 同步欄寬數值到滑桿
       const w=parseInt(tc.style.width)||200;
       document.getElementById('textWidthVal').textContent=w+'px';
       document.getElementById('textWidthRange').value=w;
 
-      // 同步欄高數值到滑桿
       const hStr = tc.style.height;
       if(!hStr || hStr==='auto'){
         document.getElementById('textHeightVal').textContent='自動';
@@ -430,7 +427,6 @@ function applyLetterSpacing(v){try{const tc=document.getElementById(activeId).qu
 function applyLineHeight(v){try{const tc=document.getElementById(activeId).querySelector('.text-content');tc.style.lineHeight=(v/10).toFixed(1);document.getElementById('lhVal').textContent=(v/10).toFixed(1);}catch(e){}}
 function applyRotation(v){try{const blk=document.getElementById(activeId);blk.style.transform=`rotate(${v}deg)`;document.getElementById('rotVal').textContent=v+'°';}catch(e){}}
 
-// 修改：欄寬調整套用函數
 function applyTextWidth(v){
   try{
     const tc=document.getElementById(activeId).querySelector('.text-content');
@@ -440,7 +436,6 @@ function applyTextWidth(v){
   }catch(e){}
 }
 
-// 新增：欄高調整套用函數
 function applyTextHeight(v){
   try{
     const tc=document.getElementById(activeId).querySelector('.text-content');
@@ -542,7 +537,7 @@ function handlePaperFile(file){
   reader.onload=e=>{
     paperImg.onload = ()=>{
       paperWrap.classList.add('hasImage');paperWrap.style.display='block';document.getElementById('paperControls').style.display='block';hasPaperImage=true;paperX=0;paperY=0;paperImgScale=1;paperRotate=0;paperOpacity=1;
-      document.getElementById('paperScale').value=100;document.getElementById('paperRotate').value=0;document.getElementById('paperOpacity').value=100;document.getElementById('paperScaleVal').textContent='100%25';document.getElementById('paperRotateVal').textContent='0°';document.getElementById('paperOpacityVal').textContent='100%25';updatePaperTransform();
+      document.getElementById('paperScale').value=100;document.getElementById('paperRotate').value=0;document.getElementById('paperOpacity').value=100;document.getElementById('paperScaleVal').textContent='100%';document.getElementById('paperRotateVal').textContent='0°';document.getElementById('paperOpacityVal').textContent='100%';updatePaperTransform();
       setTimeout(()=>{ setPaperCover(); }, 50);
       document.getElementById('paperDebug').textContent=`已載入 ${paperImg.naturalWidth}x${paperImg.naturalHeight} 已自動填滿`;document.getElementById('paperDebug').style.color='#2ecc71';
     };
@@ -603,12 +598,10 @@ document.getElementById('lsRange').addEventListener('input',e=>applyLetterSpacin
 document.getElementById('lhRange').addEventListener('input',e=>applyLineHeight(e.target.value));
 document.getElementById('rotRange').addEventListener('input',e=>applyRotation(e.target.value));
 
-// 欄寬調整滑桿與按鈕事件綁定
 document.getElementById('textWidthRange').addEventListener('input',e=>applyTextWidth(parseInt(e.target.value)));
 document.getElementById('textWidthMinus').addEventListener('click',()=>{const v=Math.max(50,parseInt(document.getElementById('textWidthRange').value)-10);applyTextWidth(v);});
 document.getElementById('textWidthPlus').addEventListener('click',()=>{const v=Math.min(380,parseInt(document.getElementById('textWidthRange').value)+10);applyTextWidth(v);});
 
-// 欄高調整滑桿與按鈕事件綁定
 document.getElementById('textHeightRange').addEventListener('input',e=>applyTextHeight(parseInt(e.target.value)));
 document.getElementById('textHeightMinus').addEventListener('click',()=>{const cur=parseInt(document.getElementById('textHeightRange').value)||0;const v=Math.max(0,cur-20);applyTextHeight(v);});
 document.getElementById('textHeightPlus').addEventListener('click',()=>{const cur=parseInt(document.getElementById('textHeightRange').value)||0;const v=Math.min(500,cur+20);applyTextHeight(v);});
